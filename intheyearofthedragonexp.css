@@ -1,0 +1,240 @@
+/* Testlayout stylesheet */
+
+@import url(../../../css/csslayer.css);
+
+
+/*** Events ***/
+
+.event {
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    margin: 2px;
+    background-image: url('img/tiles.png');
+}
+.eventtype_1 {  background-position: -0px -0px; }
+.eventtype_2 {  background-position: -60px -0px; }
+.eventtype_3 {  background-position: -120px -0px; }
+.eventtype_4 {  background-position: -180px -0px; }
+.eventtype_5 {  background-position: -240px -0px; }
+.eventtype_6 {  background-position: -300px -0px; }
+.eventtype_past {  background-position: -180px -180px; }
+
+.nextevent {
+    position: relative;
+    border: 2px red solid;
+    top: 2px;
+    left: 0px;
+}
+
+/** Great Wall */
+.wall {
+    display: inline-block;
+    width: 64px;
+    height: 36px;
+    background-image: url('img/walltiles.jpg');
+    background-position: -320px -0px;
+    opacity: 0.4;
+}
+
+/*** person tiles ***/
+
+.persontile {
+    width: 60px;
+    height: 60px;
+    background-image: url('img/tiles.png');    
+    cursor: pointer;
+}
+
+#persontiles .persontile {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+#persontiles {
+    position: relative;
+    height: 125px;
+}
+#persontiles .persontile_3_1 {   left: 0px;  } 
+#persontiles .persontile_3_2 {   left: 0px; top: 65px;  } 
+#persontiles .persontile_5_1 {   left: 65px;  } 
+#persontiles .persontile_5_2 {   left: 65px; top: 65px;  } 
+#persontiles .persontile_6_1 {   left: 130px;  } 
+#persontiles .persontile_6_2 {   left: 130px; top: 65px;   } 
+#persontiles .persontile_4_1 {   left: 195px; top: 65px;  } 
+#persontiles .persontile_2_1 {   left: 260px; top: 65px; } 
+#persontiles .persontile_1_1 {   left: 325px; top: 65px;  } 
+#persontiles .persontile_7_1 {   left: 390px;  } 
+#persontiles .persontile_7_2 {   left: 390px; top: 65px; } 
+#persontiles .persontile_9_1 {   left: 455px;  } 
+#persontiles .persontile_9_2 {   left: 455px; top: 65px; } 
+#persontiles .persontile_8_1 {   left: 520px;  } 
+#persontiles .persontile_8_2 {   left: 520px; top: 65px; } 
+
+.persontile_1_1 {   background-position: -0px -60px; }
+.persontile_2_1 {   background-position: -60px -60px; }
+.persontile_3_2 {   background-position: -120px -60px; }
+.persontile_3_1 {   background-position: -180px -60px; }
+.persontile_4_1 {   background-position: -240px -60px; }
+.persontile_5_1 {   background-position: -300px -60px; }
+.persontile_5_2 {   background-position: -0px -120px; }
+.persontile_6_1 {   background-position: -60px -120px; }
+.persontile_6_2 {   background-position: -120px -120px; }
+.persontile_7_1 {   background-position: -180px -120px; }
+.persontile_7_2 {   background-position: -240px -120px; }
+.persontile_8_1 {   background-position: -300px -120px; }
+.persontile_8_2 {   background-position: -0px -180px; }
+.persontile_9_1 {   background-position: -60px -180px; }
+.persontile_9_2 {   background-position: -120px -180px; }
+
+.persontileToPlace {
+    border: 2px red solid;
+    top: -1px;
+    left: -1px;
+}
+
+.persontile_nbr {
+    font-size: 60%;
+    color: white;
+    position: absolute;
+    bottom: 1px;
+    left: 2px;
+    font-weight: bold;
+}
+
+/*** personcard ***/
+
+#personcards {
+    margin-top: 5px;
+    position: relative;
+    height: 100px;
+}
+
+.personcard {
+    position: absolute;
+    width: 60px;
+    height: 100px;
+    background-image: url('img/cards.png');    
+    top: 0px;
+    left: 0px;
+}
+
+.personcard_1 {    background-position: -480px; left: 324px; }
+.personcard_2 {    background-position: -540px; left: 259px; }
+.personcard_3 {    background-position: -600px; left: -1px; }
+.personcard_4 {    background-position: -660px; left: 194px; }
+.personcard_5 {    background-position: -720px; left: 64px; }
+.personcard_6 {    background-position: -780px; left: 129px; }
+.personcard_7 {    background-position: -840px; left: 389px; }
+.personcard_8 {    background-position: -900px; left: 519px; }
+.personcard_9 {    background-position: -960px; left: 454px; }
+
+.personcard_0 {    background-position: -1020px; left: 584px; }
+.second_joker {    left: 649px; }
+
+/*** palace ***/
+
+.palaceswrap {
+    display: inline-block;
+}
+
+.palace {
+    position: relative;
+    width: 75px;
+    float: left;
+}
+.palaceicon {
+    background-image: url('img/icons.png'); 
+    width: 75px;   
+    height: 50px;
+    background-position: 0px -25px;
+}
+.palacefloor {
+    width: 75px;
+    height: 30px;
+}
+.palacespacer {
+    width: 20px;
+    height: 16px;
+}
+.palacepersontile_place {
+    position: relative;
+    left: 6px;
+    width: 60px;
+    height: 60px;
+}
+.palace_persons .persontile {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+}
+
+.choosepalace{
+    background-image: url('img/icons.png'); 
+    width: 25px;   
+    height: 32px;
+    background-position: -75px -25px; 
+    margin-left: 23px;
+    cursor: pointer;
+    display: none;
+}
+
+/*** actioncard ***/
+
+.actionplace {
+    display: inline-block;
+    width: 60px;
+    height: 100px;
+    position: relative;
+}
+.actioncard {
+    position: absolute;
+    width: 60px;
+    height: 100px;
+    background-image: url('img/cards.png');
+    cursor: pointer;
+}
+.actioncard_1 { background-position: -0px -0px; }
+.actioncard_2 { background-position: -60px -0px; }
+.actioncard_3 { background-position: -120px -0px; }
+.actioncard_4 { background-position: -180px -0px; }
+.actioncard_5 { background-position: -240px -0px; }
+.actioncard_6 { background-position: -300px -0px; }
+.actioncard_7 { background-position: -360px -0px; }
+.actioncard_8 { background-position: -420px -0px; }
+
+/*** action flag ***/
+
+.actionflag {
+    position: absolute;
+    width: 50px;
+    height: 25px;
+    background-image: url('img/icons.png');
+}
+.actionflag_ff0000 {    background-position: -50px -100px;   }
+.actionflag_008000 {    background-position: 0px -75px;   }
+.actionflag_0000ff {    background-position: -50px -75px;   }
+.actionflag_ffa500 {    background-position: 0px -100px;   }
+.actionflag_ff00ff {    background-position: 0px -125px;   }
+
+/*** player board ***/
+
+.yd_icon {
+    display: inline-block;
+    position: relative;
+    top: 4px;
+    width: 25px;
+    height: 25px;
+    background-image: url('img/icons.png');
+}
+.icon_yuan {    background-position: 0px 0px;   }
+.icon_rice {    background-position: -25px 0px;   }
+.icon_fw {    background-position: -50px 0px;   }
+.icon_priv {    background-position: -75px 0px;   }
+.icon_pers {    background-position: -75px -125px;   }
+
+.boardblock {
+    margin-left: 32px;
+}
+
