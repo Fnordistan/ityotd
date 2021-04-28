@@ -151,6 +151,11 @@ $this->action_types = array(
                 'items' => 1)
 );
 
+// types of wall tile bonuses
+$this->wall_tiles = array (
+    "rice", "firework", "yuan", "palace", "pp", "vp"
+);
+
 // Action groups, depending on player number
 // for basic game
 $this->action_to_actiongroup_7 = array(

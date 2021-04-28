@@ -58,3 +58,11 @@ CREATE TABLE IF NOT EXISTS `year` (
   PRIMARY KEY (`year_id`)
 ) ENGINE=InnoDB ;
 
+CREATE TABLE IF NOT EXISTS `WALL` ( 
+  `card_id` TINYINT unsigned NOT NULL AUTO_INCREMENT,
+  `card_type` varchar(16) NOT NULL COMMENT 'player_id',
+  `card_type_arg` varchar(8) NULL COMMENT 'rice|firework|yuan|palace|pp|vp',
+  `card_location` TINYINT NOT NULL COMMENT '0 or wall position',
+  `card_location_arg` TINYINT NULL COMMENT 'not used',
+  PRIMARY KEY (`card_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;

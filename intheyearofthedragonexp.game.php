@@ -1,5 +1,5 @@
 <?php
- /**
+/**
   * intheyearofthedragonexp.game.php
   *
   * @author Grégory Isabelli <gisabelli@gmail.com>
@@ -9,20 +9,34 @@
   *
   * intheyearofthedragonexp main game core
   *
-  */
-  
+*/
 
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
-
 
 class InTheYearOfTheDragonExp extends Table
 {
 	function __construct( )
 	{
 	    // Note: remaining big/small favor are NO MORE USED (indeed, there is no limit)
-        parent::__construct();self::initGameStateLabels( array( "remainingSmallFavor" => 10, "remainingBigFavor" => 11, 
-        "toPlaceType"=>12, "toPlaceLevel"=>13, "toBuild" => 14, "month" => 15, "toRelease" => 16, "lowerHelmet" => 17, "largePrivilegeCost" => 100, "expansions" => 101 ) );
+        parent::__construct();
         
+        self::initGameStateLabels( 
+            array( 
+                "remainingSmallFavor" => 10,
+                "remainingBigFavor" => 11,
+                "toPlaceType"=>12,
+                "toPlaceLevel"=>13,
+                "toBuild" => 14,
+                "month" => 15,
+                "toRelease" => 16,
+                "lowerHelmet" => 17,
+                "wallLength" => 20,
+                "largePrivilegeCost" => 100,
+                "expansions" => 101
+            ));
+            $this->walltiles = self::getNew("module.common.deck");
+            $this->walltiles->init("WALL");
+    
         $this->tie_breaker_description = self::_("Position on the person track (descending order)");                
 	}
 	
@@ -154,7 +168,8 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'month', 1 );
         self::setGameStateInitialValue( 'toRelease', 0 );
         self::setGameStateInitialValue( 'lowerHelmet', 0 );
-        
+        self::setGameStateInitialValue( 'wallLength', 0 );
+
         // Statistics
         self::initStat( 'table', 'person_lost_events_allplayers', 0 );
         self::initStat( 'player', 'person_lost_events', 0 );
@@ -170,8 +185,27 @@ class InTheYearOfTheDragonExp extends Table
         self::initStat( 'player', 'points_monks', 0 );
         self::initStat( 'player', 'points_remaining', 0 );
         self::initStat( 'player', 'points_mongol', 0 );
-                
+
+        if ($this->isGreatWall()) {
+            $this->createWallTiles();
+        }
+
         self::activeNextPlayer();
+    }
+
+    /**
+     * Create certificates, 8 for each currency.
+     */
+     protected function createWallTiles() {
+        $walls = array();
+        $players = self::loadPlayersBasicInfos();
+
+        foreach( $players as $player_id => $player ) {
+            foreach ($this->wall_tiles as $w) {
+                $walls[] = array('type' => $player_id, 'type_arg' => $w, 'location' => 0, 'nbr' => 1 );
+            }
+        }
+        $this->walltiles->createCards( $walls, "unbuilt" );
     }
 
     // Get all datas (complete reset request from client side)
@@ -345,7 +379,7 @@ class InTheYearOfTheDragonExp extends Table
     function countItemsByTypeForAll( $person_type )
     {
         $result = array();
-        
+
         $players = self::loadPlayersBasicInfos();
         foreach( $players as $player_id => $player )
         {
