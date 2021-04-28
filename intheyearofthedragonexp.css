@@ -30,11 +30,16 @@
 /** Great Wall */
 .wall {
     display: inline-block;
-    width: 64px;
+    width: 60px;
     height: 36px;
+    margin: 2px;
     background-image: url('img/walltiles.jpg');
-    background-position: -320px -0px;
+    background-position: -300px -0px;
     opacity: 0.4;
+}
+
+.nextwall {
+    margin: 4px;
 }
 
 /*** person tiles ***/

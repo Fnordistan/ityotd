@@ -341,6 +341,8 @@ function (dojo, declare) {
         {
             dojo.query( '.nextevent' ).removeClass( 'nextevent' );
             dojo.addClass( 'event_'+month, 'nextevent' );
+            dojo.query( '.nextwall' ).removeClass( 'nextwall' );
+            dojo.addClass( 'wall_'+month, 'nextwall' );
             
             for( var i=1; i<month; i++ )
             {
