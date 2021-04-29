@@ -128,7 +128,7 @@ function (dojo, declare) {
                 const player_board_div = $('player_board_'+player_id);
                 dojo.place( this.format_block('jstpl_wall_tiles', {'id': player_id} ), player_board_div );
             }
-            const colors = {"0000ff" : 1, "008000" : 2, "ff00ff": 3, "ff0000": 4, "ffa500": 5 };
+            const colors = {"0000ff" : 1, "008000" : 2, "ffa500": 3, "ff0000": 4, "ff00ff": 5 };
             for( const w in wallTiles) {
                 const wallTile = wallTiles[w];
                 const player_id = wallTile['player_id'];
