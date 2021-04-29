@@ -153,7 +153,24 @@ $this->action_types = array(
 
 // types of wall tile bonuses
 $this->wall_tiles = array (
-    "rice", "firework", "yuan", "palace", "pp", "vp"
+    1 => array( 'name' => clienttranslate('Person Track'),
+                'nametr' => self::_('Person Track'),
+                'description' => self::_("Advance 3 spaces on the Person Track")),
+    2 => array( 'name' => clienttranslate('Rice'),
+                'nametr' => self::_('Rice'),
+                'description' => self::_("Gain 1 Rice")),
+    3 => array( 'name' => clienttranslate('Palace'),
+                'nametr' => self::_('Palace'),
+                'description' => self::_("Gain 1 palace section")),
+    4 => array( 'name' => clienttranslate('Yuan'),
+                'nametr' => self::_('Yuan'),
+                'description' => self::_("Gain 2 yuan")),
+    5 => array( 'name' => clienttranslate('Fireworks'),
+                'nametr' => self::_('Fireworks'),
+                'description' => self::_("Gain 1 Firework")),
+    6 => array( 'name' => clienttranslate('Victory Points'),
+                'nametr' => self::_('Victory Points'),
+                'description' => self::_("Gain 3 victory points")),
 );
 
 // Action groups, depending on player number

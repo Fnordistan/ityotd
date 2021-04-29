@@ -78,6 +78,9 @@ var jstpl_action  = '<div id="actioncard_${type}" class="actioncard actioncard_$
 
 var jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}"></div>';
 
+var jstpl_wall_tiles = '<div id="wall_tiles_${id}" class="wall_block"></div>';
+
+var jstpl_wall = '<div id="wall_${id}_${type}" class="wall" style="background-position: ${x}px ${y}px; opacity: 1;"></div>'
 
 </script>  
 

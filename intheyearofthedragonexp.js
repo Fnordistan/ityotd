@@ -114,8 +114,34 @@ function (dojo, declare) {
             this.addTooltipToClass( 'ttrice', _('Rice'), '' );
             this.addTooltipToClass( 'ttfw', _('Fireworks'), '' );
             this.addTooltipToClass( 'ttpriv', _('Privileges'), '' );
+
+            // Great Wall
+            if (this.gamedatas.greatWall) {
+                this.placeWallTiles(this.gamedatas.greatWall);
+            }
         },
-        
+
+        placeWallTiles: function(wallTiles) {
+            for( var player_id in this.gamedatas.players )
+            {
+                var player = this.gamedatas.players[player_id];
+                const player_board_div = $('player_board_'+player_id);
+                dojo.place( this.format_block('jstpl_wall_tiles', {'id': player_id} ), player_board_div );
+            }
+            const colors = {"0000ff" : 1, "008000" : 2, "ff00ff": 3, "ff0000": 4, "ffa500": 5 };
+            for( const w in wallTiles) {
+                const wallTile = wallTiles[w];
+                const player_id = wallTile['player_id'];
+                const color = this.gamedatas.players[ player_id ].color;
+                const xoff = -60*(colors[color]-1);
+
+                if (wallTile['location'] == 0) {
+                    dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': wallTile['bonus'], 'x': xoff, 'y': 0}), 'wall_tiles_'+player_id);
+                } else {
+                    dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': wallTile['bonus'], 'x': xoff, 'y': -36 * wallTile['bonus']}), 'wall_tiles_'+player_id);
+                }
+            }
+        },
 
 
         ///////////////////////////////////////////////////

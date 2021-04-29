@@ -34,8 +34,6 @@ class InTheYearOfTheDragonExp extends Table
                 "largePrivilegeCost" => 100,
                 "expansions" => 101
             ));
-            $this->walltiles = self::getNew("module.common.deck");
-            $this->walltiles->init("WALL");
     
         $this->tie_breaker_description = self::_("Position on the person track (descending order)");                
 	}
@@ -187,7 +185,7 @@ class InTheYearOfTheDragonExp extends Table
         self::initStat( 'player', 'points_mongol', 0 );
 
         if ($this->isGreatWall()) {
-            $this->createWallTiles();
+            $this->initializeWall();
         }
 
         self::activeNextPlayer();
@@ -196,16 +194,21 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * Create certificates, 8 for each currency.
      */
-     protected function createWallTiles() {
-        $walls = array();
+     protected function initializeWall() {
         $players = self::loadPlayersBasicInfos();
 
         foreach( $players as $player_id => $player ) {
-            foreach ($this->wall_tiles as $w) {
-                $walls[] = array('type' => $player_id, 'type_arg' => $w, 'location' => 0, 'nbr' => 1 );
+            foreach ($this->wall_tiles as $w => $wall) {
+                self::DbQuery( "INSERT INTO WALL (player_id, bonus, location) VALUES($player_id, $w, 0)" );
             }
         }
-        $this->walltiles->createCards( $walls, "unbuilt" );
+    }
+
+    /**
+     * Get all the Wall tiles.
+     */
+    protected function getWallTiles() {
+        return self::getNonEmptyCollectionFromDB("SELECT * FROM WALL");
     }
 
     // Get all datas (complete reset request from client side)
@@ -248,6 +251,11 @@ class InTheYearOfTheDragonExp extends Table
         $result['month'] = self::getGameStateValue('month');
         
         $result['largePrivilegeCost'] = $this->getLargePrivilegeCost();
+
+
+        if ($this->isGreatWall()) {
+            $result['greatWall'] = $this->getWallTiles();
+        }
   
         return $result;
     }
