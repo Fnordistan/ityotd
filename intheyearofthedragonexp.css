@@ -27,12 +27,6 @@
     left: 0px;
 }
 
-/** On player boards */
-.wall_block {
-    display: inline-block;
-    margin-top: 10px;
-}
-
 /** Great Wall */
 .wall {
     display: inline-block;

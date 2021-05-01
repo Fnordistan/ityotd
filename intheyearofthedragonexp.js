@@ -1,4 +1,6 @@
-// Coloretto main javascript
+// In The Year of the Dragon main javascript
+
+const COLORS_PLAYER = {"0000ff" : 1, "008000" : 2, "ffa500": 3, "ff0000": 4, "ff00ff": 5 }
 
 define([
     "dojo","dojo/_base/declare",
@@ -121,13 +123,11 @@ function (dojo, declare) {
             }
         },
 
+        /**
+         * Place each Wall Tile, on player board and in Great Wall.
+         * @param {Object} wallTiles 
+         */
         placeWallTiles: function(wallTiles) {
-            for( var player_id in this.gamedatas.players )
-            {
-                var player = this.gamedatas.players[player_id];
-                const player_board_div = $('player_board_'+player_id);
-                dojo.place( this.format_block('jstpl_wall_tiles', {'id': player_id} ), player_board_div );
-            }
             for( const w in wallTiles) {
                 const wallTile = wallTiles[w];
                 this.placeWallTile(wallTile['player_id'], wallTile['location'], wallTile['bonus']);
@@ -141,14 +141,24 @@ function (dojo, declare) {
          * @param {int} bonus 
          */
         placeWallTile: function(player_id, location, bonus) {
-            const COLOR_I = {"0000ff" : 1, "008000" : 2, "ffa500": 3, "ff0000": 4, "ff00ff": 5 };
             const pcolor = this.gamedatas.players[ player_id ].color;
-            const xoff = -60*(COLOR_I[pcolor]-1);
-
+            const xoff = -60*(COLORS_PLAYER[pcolor]-1);
             if (location == 0) {
-                dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'wall_tiles_'+player_id);
+                // face down on player board
+                dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'player_board_'+player_id);
             } else {
-                dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': -36 * bonus}), 'wall_tiles_'+player_id);
+                // face up on player board
+                const yoff = -36*bonus;
+                const wall_tile = document.getElementById('player_wall_'+player_id+'_'+bonus);
+                if (wall_tile) {
+                    wall_tile.style['background-position'] = xoff+"px "+yoff+"px";
+                } else {
+                    dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'player_board_'+player_id);
+                }
+                // flip up the wall tile
+                const wall = document.getElementById('wall_'+location);
+                wall.style['opacity'] = 1;
+                wall.style['background-position'] = xoff+"px 0px";
             }
         },
 
