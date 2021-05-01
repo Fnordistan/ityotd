@@ -211,6 +211,40 @@ class InTheYearOfTheDragonExp extends Table
         return self::getNonEmptyCollectionFromDB("SELECT * FROM WALL");
     }
 
+    /**
+     * Returns all the unplayed Wall tiles for this player as an associative array.
+     */
+    function getAvailableWallTiles($player_id) {
+        $tiles = self::getCollectionFromDB("SELECT * from WALL WHERE player_id = $player_id AND location = 0");
+        return $tiles;
+    }
+
+    /**
+     * Give player bonus for their wall section.
+     */
+    function assignWallBonus($wall) {
+        switch($wall['bonus']) {
+            case 1:
+                // PP
+                break;
+            case 2:
+                // Rice
+                break;
+            case 3:
+                // Palace
+                break;
+            case 4:
+                // Yuan
+                break;
+            case 5:
+                // Fireworks
+                break;
+            case 6:
+                // VP
+                break;
+        }
+    }
+
     // Get all datas (complete reset request from client side)
     protected function getAllDatas()
     {
@@ -785,12 +819,32 @@ class InTheYearOfTheDragonExp extends Table
             $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
 
             if( $money < 2 )
-                throw new feException( self::_("You won't be able to buy any available privilege"), true );
+                throw new BgaUserException( self::_("You don't have enough yuan to buy a privilege"));
             
             $nextState = 'privilegeAction';
         } else if ($action_id == 8) {
             // Great Wall
+            $nextWall = self::getGameStateValue("wallLength")+1;
+            if ($nextWall > 12) {
+                throw new BgaUserException( self::_("No more wall sections can be built"));
+            }
+            $tiles = $this->getAvailableWallTiles($player_id);
+            if (count($tiles) == 0) {
+                throw new BgaUserException( self::_("You have no more wall sections to build"));
+            }
+            shuffle($tiles);
+            $wall = $tiles[0];
 
+            self::DbQuery("UPDATE WALL SET location=$nextWall WHERE id=".$wall['id']);
+            self::incGameStateValue("wallLength", 1);
+            self::notifyAllPlayers("wallBuilt", '${player_name} builds wall section ${length} and receives ${reward} bonus', array(
+                'player_name' => self::getActivePlayerName(),
+                'player_id' => $player_id,
+                'length' => $nextWall,
+                'bonus' => $wall['bonus'],
+                'reward' => $this->wall_tiles[$wall['bonus']]['name']
+            ));
+            $this->assignWallBonus($wall);
         }
         
         // Next player

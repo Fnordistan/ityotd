@@ -128,21 +128,29 @@ function (dojo, declare) {
                 const player_board_div = $('player_board_'+player_id);
                 dojo.place( this.format_block('jstpl_wall_tiles', {'id': player_id} ), player_board_div );
             }
-            const colors = {"0000ff" : 1, "008000" : 2, "ffa500": 3, "ff0000": 4, "ff00ff": 5 };
             for( const w in wallTiles) {
                 const wallTile = wallTiles[w];
-                const player_id = wallTile['player_id'];
-                const color = this.gamedatas.players[ player_id ].color;
-                const xoff = -60*(colors[color]-1);
-
-                if (wallTile['location'] == 0) {
-                    dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': wallTile['bonus'], 'x': xoff, 'y': 0}), 'wall_tiles_'+player_id);
-                } else {
-                    dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': wallTile['bonus'], 'x': xoff, 'y': -36 * wallTile['bonus']}), 'wall_tiles_'+player_id);
-                }
+                this.placeWallTile(wallTile['player_id'], wallTile['location'], wallTile['bonus']);
             }
         },
 
+        /**
+         * Place a wall tile at the specified wall section.
+         * @param {string*} player_id 
+         * @param {int} location 
+         * @param {int} bonus 
+         */
+        placeWallTile: function(player_id, location, bonus) {
+            const COLOR_I = {"0000ff" : 1, "008000" : 2, "ffa500": 3, "ff0000": 4, "ff00ff": 5 };
+            const pcolor = this.gamedatas.players[ player_id ].color;
+            const xoff = -60*(COLOR_I[pcolor]-1);
+
+            if (location == 0) {
+                dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'wall_tiles_'+player_id);
+            } else {
+                dojo.place( this.format_block('jstpl_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': -36 * bonus}), 'wall_tiles_'+player_id);
+            }
+        },
 
         ///////////////////////////////////////////////////
         //// Game & client states
@@ -547,8 +555,9 @@ function (dojo, declare) {
             dojo.subscribe( 'decay', this, "notif_decay" );
             dojo.subscribe( 'endOfTurnScoring', this, "notif_endOfTurnScoring" );
             dojo.subscribe( 'endOfGameScoring', this, "notif_endOfGameScoring" );
-            
-        },  
+
+            dojo.subscribe( 'wallBuilt', this, "notif_wallBuilt");
+        },
         
         notif_placePerson: function( notif )
         {
@@ -668,7 +677,7 @@ function (dojo, declare) {
             console.log( 'notif_newPalace' );
             console.log( notif );
             this.createNewPalace( notif.args.player_id, notif.args.palace_id );
-        },              
+        },
         notif_buildPalace: function( notif )
         {
             console.log( 'notif_buildPalace' );
@@ -727,7 +736,18 @@ function (dojo, declare) {
             {
                 this.scoreCtrl[ player_id ].incValue( notif.args.player_to_score[ player_id ] );
             }
-        }
+        },
+
+        /**
+         * A wall section was built.
+         * @param {Object} notif 
+         */
+        notif_wallBuilt: function(notif) {
+            const newSec = parseInt(notif.args.length);
+            const player_id = notif.args.player_id;
+            const bonus = parseInt(notif.args.bonus);
+            this.placeWallTile(player_id, newSec, bonus);
+        },
   });      
 });
 

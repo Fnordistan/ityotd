@@ -61,7 +61,7 @@ CREATE TABLE IF NOT EXISTS `year` (
 CREATE TABLE IF NOT EXISTS `WALL` ( 
   `id` TINYINT unsigned NOT NULL AUTO_INCREMENT,
   `player_id` int(10) unsigned NOT NULL COMMENT 'player_id',
-  `bonus` TINYINT NULL COMMENT 'wall_tile index',
+  `bonus` TINYINT NOT NULL COMMENT 'wall_tile index',
   `location` TINYINT NOT NULL COMMENT '0 or wall position',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
