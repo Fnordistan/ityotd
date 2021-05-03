@@ -185,6 +185,9 @@ class InTheYearOfTheDragonExp extends Table
         self::initStat( 'player', 'points_mongol', 0 );
 
         if ($this->isGreatWall()) {
+            self::initStat('table', 'walls_built_allplayers', 0);
+            self::initStat( 'player', 'walls_built', 0 );
+            self::initStat( 'player', 'points_wall', 0 );
             $this->initializeWall();
         }
 
@@ -220,29 +223,48 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
+     * Count how many Great Wall sections were built by this player.
+     */
+    function countWallTilesBuilt($player_id) {
+        $tiles = self::getObjectListFromDB("SELECT id from WALL WHERE player_id = $player_id AND location != 0", true);
+        return count($tiles);
+    }
+
+    /**
      * Give player bonus for their wall section.
+     * #return TRUE if we are entering build state, otherwise false
      */
     function assignWallBonus($wall) {
+        $tobuild = false;
+        $player_id = $wall['player_id'];
         switch($wall['bonus']) {
             case 1:
                 // PP
+                $this->addPersonPoints($player_id, 3);
                 break;
             case 2:
                 // Rice
+                $this->addRice($player_id, 1);
                 break;
             case 3:
                 // Palace
+                self::setGameStateValue( 'toBuild', 1 );
+                $tobuild = true;
                 break;
             case 4:
                 // Yuan
+                $this->addYuan($player_id, 2);
                 break;
             case 5:
                 // Fireworks
+                $this->addFireworks($player_id, 1);
                 break;
             case 6:
-                // VP
+                // Gain 3 VP
+                $this->addVictoryPoints($player_id, 3);
                 break;
         }
+        return $tobuild;
     }
 
     // Get all datas (complete reset request from client side)
@@ -329,6 +351,20 @@ class InTheYearOfTheDragonExp extends Table
     function isGreatWall() {
         $exp = self::getGameStateValue( 'expansions' );
         return $exp == 2 || $exp == 4;
+    }
+
+    /**
+     * Check whether this is a Mongol Invasion month AND we're using the Great Wall.
+     * @returns true if this is a Mongol Invasion and Great Wall is being used
+     */
+    function isGreatWallEvent() {
+        $gw = false;
+        if ($this->isGreatWall()) {
+            $month = self::getGameStateValue( 'month' );
+            $event = self::getUniqueValueFromDB( "SELECT year_event FROM year WHERE year_id='$month'" );
+            $gw = ($event == 5);
+        }
+        return $gw;
     }
 
     /**
@@ -441,7 +477,6 @@ class InTheYearOfTheDragonExp extends Table
         
         return $result;
     }    
-
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
@@ -636,7 +671,7 @@ class InTheYearOfTheDragonExp extends Table
        
         $this->gamestate->nextState( '' );
     }
-    
+
     // Increase person score of given player
     // Also update player_person_score_order and notify
     function increasePersonScore( $player_id, $inc )
@@ -661,6 +696,76 @@ class InTheYearOfTheDragonExp extends Table
         ) );
     }
     
+    /**
+     * Add to person track and send notification to players.
+     */
+    function addPersonPoints($player_id, $pp) {
+        self::increasePersonScore( $player_id, $pp );
+        $players = self::loadPlayersBasicInfos();
+            
+        self::notifyAllPlayers( 'personPointMsg', clienttranslate( '${player_name} advances ${nbr} spaces on the Person track' ), array(
+            'player_id' => $player_id,
+            'player_name' => $players[$player_id]['player_name'],
+            'nbr' => $pp
+        ) );
+    }
+
+    /**
+     * Add rice and send notification to players.
+     */
+    function addRice($player_id, $rice) {
+        $sql = "UPDATE player SET player_rice=player_rice+$rice WHERE player_id='$player_id' ";
+        self::DbQuery( $sql );
+        $players = self::loadPlayersBasicInfos();
+        self::notifyAllPlayers( 'harvest', clienttranslate( '${player_name} gains ${nbr} rice' ), array(
+            'player_id' => $player_id,
+            'player_name' => $players[$player_id]['player_name'],
+            'nbr' => $rice
+        ) );
+    }
+
+    /**
+     * Add Fireworks and send notification to players.
+     */
+    function addFireworks($player_id, $fw) {
+        $sql = "UPDATE player SET player_fireworks=player_fireworks+$fw WHERE player_id='$player_id' ";
+        self::DbQuery( $sql );
+        $players = self::loadPlayersBasicInfos();
+        self::notifyAllPlayers( 'fireworks', clienttranslate( '${player_name} gains ${nbr} fireworks' ), array(
+            'player_id' => $player_id,
+            'player_name' => $players[$player_id]['player_name'],
+            'nbr' => $fw
+        ) );
+    }
+
+    /**
+     * Add yuan and send notification to players.
+     */
+    function addYuan($player_id, $yuan) {
+        $sql = "UPDATE player SET player_yuan=player_yuan+$yuan WHERE player_id='$player_id' ";
+        self::DbQuery( $sql );
+        $players = self::loadPlayersBasicInfos();
+        self::notifyAllPlayers( 'taxes', clienttranslate( '${player_name} gains ${nbr} yuan' ), array(
+            'player_id' => $player_id,
+            'player_name' => $players[$player_id]['player_name'],
+            'nbr' => $yuan
+        ) );
+    }
+
+    /**
+     * Add VPs and send notification to players.
+     */
+    function addVictoryPoints($player_id, $vp) {
+        $sql = "UPDATE player SET player_score=player_score+$vp WHERE player_id='$player_id' ";
+        self::DbQuery( $sql );
+        $players = self::loadPlayersBasicInfos();
+        self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} gets ${nbr} points' ), array(
+            'player_id' => $player_id,
+            'player_name' => $players[$player_id]['player_name'],
+            'nbr' => $vp
+        ) );
+    }
+
     // Realize an action
     function action( $action_id )
     {
@@ -713,8 +818,9 @@ class InTheYearOfTheDragonExp extends Table
                 $notiftext = clienttranslate( '${player_name} chooses action ${action_name} for 3 yuan' );
                 self::incStat( 1, 'action_payed', $player_id );
             }
-            else
-                throw new feException( self::_("You have to pay 3 yuan to choose this action and you can't."), true );
+            else {
+                throw new BgaUserException( self::_("You do not have the required 3 yuan to pay for this action"));
+            }
         }
         
         // This player => this action
@@ -739,14 +845,7 @@ class InTheYearOfTheDragonExp extends Table
             // Get all tax collectors (4)
             $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 4 );
             
-            $sql = "UPDATE player SET player_yuan=player_yuan+$items WHERE player_id='$player_id' ";
-            self::DbQuery( $sql );
-            self::notifyAllPlayers( 'taxes', clienttranslate( '${player_name} gets ${nbr} yuans' ), array(
-                'player_id' => $player_id,
-                'player_name' => self::getActivePlayerName(),
-                'nbr' => $items
-            ) );
-            
+            $this->addYuan($player_id, $items);
         }
         else if( $action_id == 2 )
         {   // Build
@@ -760,55 +859,27 @@ class InTheYearOfTheDragonExp extends Table
         {   // Harvest
             // Get all Farmers (8)
             $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 8 );
-            
-            $sql = "UPDATE player SET player_rice=player_rice+$items WHERE player_id='$player_id' ";
-            self::DbQuery( $sql );
-            self::notifyAllPlayers( 'harvest', clienttranslate( '${player_name} gets ${nbr} rices' ), array(
-                'player_id' => $player_id,
-                'player_name' => self::getActivePlayerName(),
-                'nbr' => $items
-            ) );
+            $this->addRice($player_id, $items);
         }
         else if( $action_id == 4 )
         {   // Fireworks
             // Get all Pyrotechnists (3)
             $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 3 );
-            
-            $sql = "UPDATE player SET player_fireworks=player_fireworks+$items WHERE player_id='$player_id' ";
-            self::DbQuery( $sql );
-            self::notifyAllPlayers( 'fireworks', clienttranslate( '${player_name} gets ${nbr} fireworks' ), array(
-                'player_id' => $player_id,
-                'player_name' => self::getActivePlayerName(),
-                'nbr' => $items
-            ) );
+            $this->addFireworks($player_id, $items);
         }
         else if( $action_id == 5 )
         {   // Military parade
             // Get all wariors (5)
 
             $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 5 );
-            
-            self::increasePersonScore( $player_id, $items );
-            
-            self::notifyAllPlayers( 'personPointMsg', clienttranslate( '${player_name} gets ${nbr} person points' ), array(
-                'player_id' => $player_id,
-                'player_name' => self::getActivePlayerName(),
-                'nbr' => $items
-            ) );
+            $this->addPersonPoints($player_id, $item);
         }
         else if( $action_id == 6 )
         {   // Research
             // Get all scholars (9)
 
             $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 9 );
-            
-            $sql = "UPDATE player SET player_score=player_score+$items WHERE player_id='$player_id' ";
-            self::DbQuery( $sql );
-            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} gets ${nbr} points' ), array(
-                'player_id' => $player_id,
-                'player_name' => self::getActivePlayerName(),
-                'nbr' => $items
-            ) );
+            $this->addVictoryPoints($player_id, $items);
             
             self::incStat( $items, 'points_scholars', $player_id );
         }
@@ -818,9 +889,10 @@ class InTheYearOfTheDragonExp extends Table
             // We must check that there is enough remaining privilege and that player can afford it.
             $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
 
-            if( $money < 2 )
+            if( $money < 2 ) {
                 throw new BgaUserException( self::_("You don't have enough yuan to buy a privilege"));
-            
+            }
+
             $nextState = 'privilegeAction';
         } else if ($action_id == 8) {
             // Great Wall
@@ -837,17 +909,20 @@ class InTheYearOfTheDragonExp extends Table
 
             self::DbQuery("UPDATE WALL SET location=$nextWall WHERE id=".$wall['id']);
             self::incGameStateValue("wallLength", 1);
-            self::notifyAllPlayers("wallBuilt", '${player_name} builds wall section ${length} and receives ${reward} bonus', array(
+            self::notifyAllPlayers("wallBuilt", '${player_name} builds Great Wall section and receives ${reward} bonus', array(
                 'player_name' => self::getActivePlayerName(),
                 'player_id' => $player_id,
                 'length' => $nextWall,
                 'bonus' => $wall['bonus'],
                 'reward' => $this->wall_tiles[$wall['bonus']]['name']
             ));
-            $this->assignWallBonus($wall);
+            $tobuild = $this->assignWallBonus($wall);
+            if ($tobuild) {
+                $nextState = 'buildAction';
+            }
         }
         
-        // Next player
+        // Next player (unless building)
         $this->gamestate->nextState( $nextState );
     }
     
@@ -890,7 +965,7 @@ class InTheYearOfTheDragonExp extends Table
         $price = ( $bIsLarge ? $largePrivilegeCost : 2 );
         
         if( $remainingMoney < $price )
-            throw new feException( self::_("No enough money"), true );
+            throw new BgaUserException( self::_("Not enough money") );
         
         
         if( $bIsLarge )
@@ -1000,7 +1075,7 @@ class InTheYearOfTheDragonExp extends Table
         $person = self::getObjectFromDB( $sql );
         
         if( $person === null )
-            throw new feException( 'This person does not exists' );
+            throw new feException( 'This person does not exist' );
         
         if( $person['player'] != $player_id )
             throw new feException( self::_("This person is not one of yours"), true );
@@ -1236,7 +1311,6 @@ class InTheYearOfTheDragonExp extends Table
             // Get players with the maximum number of fireworks and the second score
             $player_items = self::getCollectionFromDB( "SELECT player_id, player_fireworks fireworks
                                                         FROM player ORDER BY player_fireworks DESC", true );
-            
             $players = self::loadPlayersBasicInfos();
             
             $lastScore = 0;
@@ -1357,7 +1431,7 @@ class InTheYearOfTheDragonExp extends Table
             {
                 // No problem, just reduce the rice
                 self::DbQuery( "UPDATE player SET player_rice=player_rice-$palacesCount WHERE player_id='$player_id' " );
-                self::notifyAllPlayers( 'eventPayRice', clienttranslate( '${player_name} returns ${nbr} rices for his ${nbr} palaces' ), array(
+                self::notifyAllPlayers( 'eventPayRice', clienttranslate( '${player_name} spends ${nbr} rice to feed ${nbr} palaces' ), array(
                     'player_id' => $player_id,
                     'player_name' => $players[ $player_id ]['player_name'],
                     'nbr' => $palacesCount
@@ -1374,7 +1448,7 @@ class InTheYearOfTheDragonExp extends Table
                 
                 $toRelease = $palacesCount-$rices;
 
-                self::notifyAllPlayers( 'eventPayRice', clienttranslate( '${player_name} returns ${nbr} rices for his ${nbr} palaces and must release ${nbrperson} person(s)' ), array(
+                self::notifyAllPlayers( 'eventPayRice', clienttranslate( '${player_name} spends ${nbr} rice to feed ${nbr} palaces and must release ${nbrperson} person(s)' ), array(
                     'player_id' => $player_id,
                     'player_name' => $players[ $player_id ]['player_name'],
                     'nbr' => $rices,
@@ -1410,8 +1484,9 @@ class InTheYearOfTheDragonExp extends Table
                     'toRelease' => $toRelease
                 ) );
             }
-            else
+            else {
                 $toRelease = 0;
+            }
         }
         else if( $event == 6 )  // Contagion
         {
@@ -1498,10 +1573,14 @@ class InTheYearOfTheDragonExp extends Table
     function stEventPhaseNextPlayer()
     {
         // Done ! => next player
-        if( self::activeNextPlayerInPlayOrder() )
+        if( self::activeNextPlayerInPlayOrder() ) {
             $this->gamestate->nextState( 'nextPlayer' );
-        else
+        }
+        else if ($this->isGreatWallEvent()) {
+            $this->gamestate->nextState( 'greatWall' );
+        } else {
             $this->gamestate->nextState( 'endPhase' );
+        }
     }
     
     function stRelease()
@@ -1517,6 +1596,47 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState( 'endRelease' );
     }
     
+    /**
+     * Done during Mongol Invasion and at game end.
+     */
+     function stGreatWall() {
+        $players = self::loadPlayersBasicInfos();
+        $player_id = self::getActivePlayerId();
+
+        if (self::getGameStateValue("wallLength") < self::getGameStateValue("month")) {
+            self::notifyAllPlayers( 'greatWallEvent', clienttranslate('The Great Wall is not long enough; player(s) with fewest wall sections built must lose 1 person'), array() );
+
+            // fewest walls loses person
+            $wallsBuilt = array();
+            $min = 12;
+            foreach( $players as $pid => $player ) {
+                $wb = $this->countWallTilesBuilt($pid);
+                $wallsBuilt[$pid] = $wb;
+                $min = min($min, $wb);
+            }
+
+            if ($wallsBuilt[$player_id] == $min) {
+                self::incStat( 1, 'person_lost_events_allplayers'  );
+                self::incStat( 1, 'person_lost_events' , $player_id );
+            
+                self::setGameStateValue( 'toRelease', 1 );
+                $this->gamestate->nextState( 'releasePerson' );
+            } else {
+                // Jump to next player
+                $this->gamestate->nextState( 'noRelease' );
+            }
+        } else {
+            // get points per wall
+            self::notifyAllPlayers( 'greatWallEvent', clienttranslate('The Great Wall reaches the current month; players score 1 point per wall section built'), array() );
+
+            foreach( $players as $pid => $player ) {
+                $vp = $this->countWallTilesBuilt($pid);
+                $this->addVictoryPoints($pid, $vp);
+            }
+            $this->gamestate->nextState('endPhase');
+        }
+    }
+
     function endOfTurnScoring()
     {
         $notification = array( 

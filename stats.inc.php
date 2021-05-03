@@ -11,8 +11,12 @@ $stats_type = array(
 
         "person_lost_events_allplayers" => array( "id"=> 10,
                                 "name" => totranslate("Number of persons lost in events"), 
-                                "type" => "int" )
-    ),
+                                "type" => "int" ),
+
+        "walls_built_allplayers" => array( "id"=> 11,
+                "name" => totranslate("Number of walls built by players"), 
+                "type" => "int" )
+        ),
     
     // Statistics existing for each player
     "player" => array(
@@ -55,7 +59,13 @@ $stats_type = array(
                                 "type" => "int" ),
         "points_mongol" => array( "id"=> 22,
                                 "name" => totranslate("Points: Mongol Invasion"), 
-                                "type" => "int" )
+                                "type" => "int" ),
+        "points_wall" => array( "id" => 23,
+                                "name" => totranslate("Points: Great Wall"),
+                                "type" => "int"),
+        "walls_built" => array( "id" => 24,
+                                "name" => totranslate("Walls Built"),
+                                "type" => "int")
     )
 );
 ?>

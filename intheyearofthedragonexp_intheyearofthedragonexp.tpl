@@ -7,7 +7,7 @@
         <div id="event_{ID}" class="event eventtype_{TYPE}"></div>
         <!-- END event -->
     </div>
-    <div id="wall">
+    <div id="great_wall">
         <!-- BEGIN wall -->
         <div id="wall_{ID}" class="wall"></div>
         <!-- END wall -->

@@ -145,21 +145,25 @@ function (dojo, declare) {
             const xoff = -60*(COLORS_PLAYER[pcolor]-1);
             if (location == 0) {
                 // face down on player board
-                dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'player_board_'+player_id);
+                let wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'player_board_'+player_id);
+                this.addTooltip(wall_tile.id, _("Wall tile (unbuilt)"), '');
             } else {
                 // face up on player board
                 const yoff = -36*bonus;
-                const wall_tile = document.getElementById('player_wall_'+player_id+'_'+bonus);
+                let wall_tile = document.getElementById('player_wall_'+player_id+'_'+bonus);
                 if (wall_tile) {
                     wall_tile.style['background-position'] = xoff+"px "+yoff+"px";
                 } else {
-                    dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'player_board_'+player_id);
+                    wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'player_board_'+player_id);
                 }
+                this.addTooltip(wall_tile.id, _("Wall tile (built)"), '');
                 // flip up the wall tile
                 const wall = document.getElementById('wall_'+location);
                 wall.style['opacity'] = 1;
                 wall.style['background-position'] = xoff+"px 0px";
+                this.addTooltip(wall.id, _("Great Wall section built by "+this.gamedatas.players[ player_id ].name), '');
             }
+            this.addTooltip('great_wall', _("Great Wall"), '');
         },
 
         ///////////////////////////////////////////////////
@@ -665,7 +669,7 @@ function (dojo, declare) {
         {
             console.log( 'notif_gainPoint' );
             console.log( notif );
-            this.scoreCtrl[ notif.args.player_id ].incValue( notif.args.nbr );
+            this.scoreCtrl[ notif.args.player_id ].incValue( parseInt(notif.args.nbr) );
         },   
         notif_gainPointFireworks: function( notif )
         {
@@ -757,6 +761,11 @@ function (dojo, declare) {
             const player_id = notif.args.player_id;
             const bonus = parseInt(notif.args.bonus);
             this.placeWallTile(player_id, newSec, bonus);
+
+            const pcolor = this.gamedatas.players[ player_id ].color;
+            const xoff = -60*(COLORS_PLAYER[pcolor]-1);
+            const wall_tile = this.format_block('jstpl_player_wall', {id: player_id, type: 'temp', x: xoff, y: 0});
+            this.slideTemporaryObject( wall_tile, 'player_board_'+player_id, 'player_wall_'+player_id+'_'+bonus, 'wall_'+newSec, 1000, 1000 ).play();
         },
   });      
 });

@@ -145,9 +145,9 @@ $this->action_types = array(
                 'nametr' => self::_('Privilege'),
                 'description' => self::_("Pay 2 yuan for a small privilege or 6 yuan for a large privilege"), // gets switched inplace if new edition
                 'items' => 1 ),
-    8 => array( 'name' => clienttranslate( 'City Walls'),
-                'nametr' => self::_('City Walls'),
-                'description' => self::_("Build city wall, gain bonus"),
+    8 => array( 'name' => clienttranslate( 'Great Wall'),
+                'nametr' => self::_('Great Wall'),
+                'description' => self::_("Build Great Wall, gain bonus"),
                 'items' => 1)
 );
 

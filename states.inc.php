@@ -180,8 +180,17 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stEventPhaseNextPlayer",
-        "transitions" => array( "endPhase" => 39, "nextPlayer" => 31 )
-    ),      
+        "transitions" => array( "endPhase" => 39, "nextPlayer" => 31, "greatWall" => 34 )
+    ),
+
+    34 => array(
+        "name" => "greatWallEvent",
+        "description" => '',
+        "type" => "game",
+        "action" => "stGreatWall",
+        "transitions" => array( "releasePerson" => 32, "noRelease" => 33, "endPhase" => 39)
+    ),
+
     39 => array(
         "name" => "decayAndScoring",
         "description" => '',
