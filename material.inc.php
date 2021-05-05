@@ -2,6 +2,7 @@
 
 /*
 *   InTheYearOfDragon material
+* Implementation of Great Wall and Super-Events expansions: @David Edelstein <davidedelstein@gmail.com>
 *
 */
 

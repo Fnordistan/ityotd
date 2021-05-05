@@ -173,14 +173,14 @@ $machinestates = array(
         "action" => "stRelease",
         "args" => "argNbrToRelease",
         "type" => "activeplayer",
-        "transitions" => array( "continueRelease" => 32, "endRelease" => 33 )
+        "transitions" => array( "continueRelease" => 32, "endRelease" => 33, "greatWall" => 34 )
     ), 
     33 => array(
         "name" => "eventPhaseNextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stEventPhaseNextPlayer",
-        "transitions" => array( "endPhase" => 39, "nextPlayer" => 31, "greatWall" => 34 )
+        "transitions" => array( "endPhase" => 39, "nextPlayer" => 31 )
     ),
 
     34 => array(
@@ -188,7 +188,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stGreatWall",
-        "transitions" => array( "releasePerson" => 32, "noRelease" => 33, "endPhase" => 39)
+        "transitions" => array( "releasePerson" => 32, "noRelease" => 33, "endPhase" => 39 )
     ),
 
     39 => array(

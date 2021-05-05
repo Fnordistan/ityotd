@@ -456,6 +456,7 @@ function (dojo, declare) {
             } 
             else if( this.checkAction( 'build' ) )
             {
+                console.log('build palace');
                 // Build a floor
                 if( palace_id=='new' )
                 {   palace_id = 0;  }   // Note: meaning = "new palace"
@@ -706,7 +707,7 @@ function (dojo, declare) {
         },
         notif_release: function( notif )
         {
-            console.log( 'notif_newMonth' );
+            console.log( 'notif_release' );
             console.log( notif );
             this.releasePerson( notif.args.person_id );        
         },

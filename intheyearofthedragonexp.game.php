@@ -5,6 +5,7 @@
   * @author Grégory Isabelli <gisabelli@gmail.com>
   * @copyright Grégory Isabelli <gisabelli@gmail.com>
   * @package Game kernel
+  * Implementation of Great Wall and Super-Events expansions: @David Edelstein <davidedelstein@gmail.com>
   *
   *
   * intheyearofthedragonexp main game core
@@ -668,7 +669,6 @@ class InTheYearOfTheDragonExp extends Table
             'person_type_name' => $tile_persontype['name'],
             'details' => $details
         ) );
-       
         $this->gamestate->nextState( '' );
     }
 
@@ -872,7 +872,7 @@ class InTheYearOfTheDragonExp extends Table
             // Get all wariors (5)
 
             $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 5 );
-            $this->addPersonPoints($player_id, $item);
+            $this->addPersonPoints($player_id, $items);
         }
         else if( $action_id == 6 )
         {   // Research
@@ -1573,14 +1573,10 @@ class InTheYearOfTheDragonExp extends Table
     function stEventPhaseNextPlayer()
     {
         // Done ! => next player
-        if( self::activeNextPlayerInPlayOrder() ) {
+        if( self::activeNextPlayerInPlayOrder() )
             $this->gamestate->nextState( 'nextPlayer' );
-        }
-        else if ($this->isGreatWallEvent()) {
-            $this->gamestate->nextState( 'greatWall' );
-        } else {
+        else
             $this->gamestate->nextState( 'endPhase' );
-        }
     }
     
     function stRelease()
@@ -1592,8 +1588,15 @@ class InTheYearOfTheDragonExp extends Table
                                               INNER JOIN palace ON palace_id=palace_person_palace_id
                                               WHERE palace_player='$player_id' " );
         
-        if( $count == 0 )
-            $this->gamestate->nextState( 'endRelease' );
+        if( $count == 0 ) {
+            if ($this->isGreatWallEvent()) {
+                $this->gamestate->nextState( 'greatWall' );
+            } else {
+                $this->gamestate->nextState( 'endRelease' );
+            }
+        } else {
+            $this->gamestate->nextState( 'continueRelease' );
+        }
     }
     
     /**
