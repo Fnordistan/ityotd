@@ -1573,10 +1573,15 @@ class InTheYearOfTheDragonExp extends Table
     function stEventPhaseNextPlayer()
     {
         // Done ! => next player
-        if( self::activeNextPlayerInPlayOrder() )
-            $this->gamestate->nextState( 'nextPlayer' );
-        else
-            $this->gamestate->nextState( 'endPhase' );
+        if ($this->isGreatWallEvent()) {
+            $this->gamestate->nextState( 'greatWall' );
+        } else {
+            if( self::activeNextPlayerInPlayOrder() ) {
+                $this->gamestate->nextState( 'nextPlayer' );
+            } else {
+                $this->gamestate->nextState( 'endPhase' );
+            }
+        }
     }
     
     function stRelease()
@@ -1589,13 +1594,7 @@ class InTheYearOfTheDragonExp extends Table
                                               WHERE palace_player='$player_id' " );
         
         if( $count == 0 ) {
-            if ($this->isGreatWallEvent()) {
-                $this->gamestate->nextState( 'greatWall' );
-            } else {
                 $this->gamestate->nextState( 'endRelease' );
-            }
-        } else {
-            $this->gamestate->nextState( 'continueRelease' );
         }
     }
     
