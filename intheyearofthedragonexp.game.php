@@ -32,8 +32,10 @@ class InTheYearOfTheDragonExp extends Table
                 "toRelease" => 16,
                 "lowerHelmet" => 17,
                 "wallLength" => 20,
+                "minWalls" => 21, // minimum number of Wall tiles built in current turn
                 "largePrivilegeCost" => 100,
-                "expansions" => 101
+                "greatWall" => 101,
+                "superEvents" => 102,
             ));
     
         $this->tie_breaker_description = self::_("Position on the person track (descending order)");                
@@ -168,6 +170,7 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'toRelease', 0 );
         self::setGameStateInitialValue( 'lowerHelmet', 0 );
         self::setGameStateInitialValue( 'wallLength', 0 );
+        self::setGameStateInitialValue( 'minWalls', 0 );
 
         // Statistics
         self::initStat( 'table', 'person_lost_events_allplayers', 0 );
@@ -185,7 +188,7 @@ class InTheYearOfTheDragonExp extends Table
         self::initStat( 'player', 'points_remaining', 0 );
         self::initStat( 'player', 'points_mongol', 0 );
 
-        if ($this->isGreatWall()) {
+        if ($this->useGreatWall()) {
             self::initStat('table', 'walls_built_allplayers', 0);
             self::initStat( 'player', 'walls_built', 0 );
             self::initStat( 'player', 'points_wall', 0 );
@@ -310,7 +313,7 @@ class InTheYearOfTheDragonExp extends Table
         $result['largePrivilegeCost'] = $this->getLargePrivilegeCost();
 
 
-        if ($this->isGreatWall()) {
+        if ($this->useGreatWall()) {
             $result['greatWall'] = $this->getWallTiles();
         }
   
@@ -349,9 +352,8 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * Are we using the Great Wall expansion?
      */
-    function isGreatWall() {
-        $exp = self::getGameStateValue( 'expansions' );
-        return $exp == 2 || $exp == 4;
+    function useGreatWall() {
+        return self::getGameStateValue( 'greatWall' ) == 2;
     }
 
     /**
@@ -360,7 +362,7 @@ class InTheYearOfTheDragonExp extends Table
      */
     function isGreatWallEvent() {
         $gw = false;
-        if ($this->isGreatWall()) {
+        if ($this->useGreatWall()) {
             $month = self::getGameStateValue( 'month' );
             $event = self::getUniqueValueFromDB( "SELECT year_event FROM year WHERE year_id='$month'" );
             $gw = ($event == 5);
@@ -372,7 +374,7 @@ class InTheYearOfTheDragonExp extends Table
      * Get the correct set of action groups.
      */
     function getActionGroups() {
-        if ($this->isGreatWall()) {
+        if ($this->useGreatWall()) {
             return $this->action_to_actiongroup_8;
         } else{
             return $this->action_to_actiongroup_7;
@@ -382,9 +384,9 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * Are we using the Super-Events?
      */
-    function isSuperEvents() {
-        $exp = self::getGameStateValue( 'expansions' );
-        return $exp == 3 || $exp == 4;
+    function useSuperEvents() {
+        $supev = self::getGameStateValue( 'superEvents' );
+        return $supev > 1;
     }
 
     function getEvents()
@@ -1210,7 +1212,7 @@ class InTheYearOfTheDragonExp extends Table
         self::DbQuery( "DELETE FROM action WHERE 1" );
         
         // Place action cards randomly
-        $actioncards = $this->isGreatWall() ? 8 : 7;
+        $actioncards = $this->useGreatWall() ? 8 : 7;
 
         $actions = range(1, $actioncards);
         $newactions = array();
@@ -1573,28 +1575,33 @@ class InTheYearOfTheDragonExp extends Table
     function stEventPhaseNextPlayer()
     {
         // Done ! => next player
-        if ($this->isGreatWallEvent()) {
+        if( self::activeNextPlayerInPlayOrder() ) {
+            $this->gamestate->nextState( 'nextPlayer' );
+        } else if ($this->isGreatWallEvent()) {
             $this->gamestate->nextState( 'greatWall' );
         } else {
-            if( self::activeNextPlayerInPlayOrder() ) {
-                $this->gamestate->nextState( 'nextPlayer' );
-            } else {
-                $this->gamestate->nextState( 'endPhase' );
-            }
+            $this->gamestate->nextState( 'endPhase' );
         }
     }
-    
-    function stRelease()
-    {
-        // Check if player has at least 1 person left to release
-        $player_id = self::getActivePlayerId();
+
+    /**
+     * Check if player has at least 1 person left to release
+      * returns number of people left in palaces
+     */
+    function nbrPersonsLeft($player_id) {
         $count = self::getUniqueValueFromDB( "SELECT COUNT( palace_person_id )
                                               FROM palace_person
                                               INNER JOIN palace ON palace_id=palace_person_palace_id
                                               WHERE palace_player='$player_id' " );
+        return $count;
+    }
+
+    function stRelease() {
+        $player_id = self::getActivePlayerId();
+        $count = $this->nbrPersonsLeft($player_id);
         
-        if( $count == 0 ) {
-                $this->gamestate->nextState( 'endRelease' );
+        if ( $count == 0 ) {
+            $this->gamestate->nextState( 'endRelease' );
         }
     }
     
@@ -1602,41 +1609,56 @@ class InTheYearOfTheDragonExp extends Table
      * Done during Mongol Invasion and at game end.
      */
      function stGreatWall() {
-        $players = self::loadPlayersBasicInfos();
-        $player_id = self::getActivePlayerId();
-
         if (self::getGameStateValue("wallLength") < self::getGameStateValue("month")) {
             self::notifyAllPlayers( 'greatWallEvent', clienttranslate('The Great Wall is not long enough; player(s) with fewest wall sections built must lose 1 person'), array() );
 
-            // fewest walls loses person
-            $wallsBuilt = array();
+            // find the lowest number of walls
+            $players = self::loadPlayersBasicInfos();
             $min = 12;
             foreach( $players as $pid => $player ) {
                 $wb = $this->countWallTilesBuilt($pid);
-                $wallsBuilt[$pid] = $wb;
                 $min = min($min, $wb);
             }
-
-            if ($wallsBuilt[$player_id] == $min) {
-                self::incStat( 1, 'person_lost_events_allplayers'  );
-                self::incStat( 1, 'person_lost_events' , $player_id );
-            
-                self::setGameStateValue( 'toRelease', 1 );
-                $this->gamestate->nextState( 'releasePerson' );
-            } else {
-                // Jump to next player
-                $this->gamestate->nextState( 'noRelease' );
-            }
+            self::setGameStateValue('minWalls', $min);
+            $this->gamestate->nextState('losePerson');
         } else {
             // get points per wall
             self::notifyAllPlayers( 'greatWallEvent', clienttranslate('The Great Wall reaches the current month; players score 1 point per wall section built'), array() );
-
             foreach( $players as $pid => $player ) {
                 $vp = $this->countWallTilesBuilt($pid);
                 $this->addVictoryPoints($pid, $vp);
             }
             $this->gamestate->nextState('endPhase');
         }
+    }
+
+    /**
+     * Choose whether this player needs to lose someone.
+     */
+    function stGreatWallNext() {
+        $player_id = self::getActivePlayerId();
+        $wb = $this->countWallTilesBuilt($player_id);
+        if ($wb == self::getGameStateValue('minWalls') && $this->nbrPersonsLeft($player_id) > 0) {
+            
+            self::incStat( 1, 'person_lost_events_allplayers'  );
+            self::incStat( 1, 'person_lost_events' , $player_id );
+
+            self::setGameStateValue( 'toRelease', 1 );
+            $this->gamestate->nextState( 'releasePerson' );
+        } else {
+            if( self::activeNextPlayerInPlayOrder() ) {
+                $this->gamestate->nextState('nextPlayer');
+            } else {
+                $this->gamestate->nextState('endPhase');
+            }
+        }
+    }
+
+    /**
+     * Players with fewest walls lose a person.
+     */
+    function stGreatWallRelease() {
+
     }
 
     function endOfTurnScoring()

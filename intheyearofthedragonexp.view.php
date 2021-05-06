@@ -63,7 +63,7 @@
             ) );
         }
 
-        if ($this->game->isGreatWall()) {
+        if ($this->game->useGreatWall()) {
             $this->page->begin_block( "intheyearofthedragonexp_intheyearofthedragonexp", "wall" );
             for ($w = 1; $w <=12; $w++) {
                 $this->page->insert_block( 'wall', array(
@@ -102,7 +102,7 @@
         $actiongroups = $this->game->getActionGroups();
         $actionmap = $actiongroups[ count( $players ) ];
         $current_group = 1;
-        $actionct = $this->game->isGreatWall() ? 8 : 7;
+        $actionct = $this->game->useGreatWall() ? 8 : 7;
         for( $i=1; $i<=$actionct; $i++ )
         {
             $space_before = '';

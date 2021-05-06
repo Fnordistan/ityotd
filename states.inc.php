@@ -133,7 +133,7 @@ $machinestates = array(
     ),   
     22 => array(
         "name" => "personPhasePlace",
-        "description" => clienttranslate('${actplayer} must place his new person tile in one of his palace'),
+        "description" => clienttranslate('${actplayer} must place a new person tile in a palace'),
         "descriptionmyturn" => clienttranslate('${you} must place your new person tile in one of your palace'),
         "possibleactions" => array( "place" ),
         "args" => "argPlaceTile",
@@ -167,8 +167,8 @@ $machinestates = array(
     ),           
     32 => array(
         "name" => "release",
-        "description" => clienttranslate('${actplayer} must choose ${nbr} person(s) to release from his palaces'),
-        "descriptionmyturn" => clienttranslate('${you} must choose ${nbr} person(s) to release from your palaces'),
+        "description" => clienttranslate('${actplayer} must choose ${nbr} person(s) to release'),
+        "descriptionmyturn" => clienttranslate('${you} must choose ${nbr} person(s) to release'),
         "possibleactions" => array( "release" ),
         "action" => "stRelease",
         "args" => "argNbrToRelease",
@@ -185,10 +185,29 @@ $machinestates = array(
 
     34 => array(
         "name" => "greatWallEvent",
-        "description" => '',
+        "description" => "",
         "type" => "game",
         "action" => "stGreatWall",
-        "transitions" => array( "releasePerson" => 32, "noRelease" => 33, "endPhase" => 39 )
+        "transitions" => array( "losePerson" => 35, "endPhase" => 39 )
+    ),
+
+    35 => array(
+        "name" => "greatWallNextPlayer",
+        "description" => "",
+        "action" => "stGreatWallNext",
+        "type" => "game",
+        "transitions" => array( "nextPlayer" => 35, "releasePerson" => 36, "endPhase" => 39 )
+    ),
+
+    36 => array(
+        "name" => "greatWallRelease",
+        "description" => clienttranslate('${actplayer} must choose 1 person to release'),
+        "descriptionmyturn" => clienttranslate('${you} must choose 1 person to release'),
+        "possibleactions" => array( "release" ),
+        "action" => "stGreatWallRelease",
+        "args" => "argNbrToRelease",
+        "type" => "activeplayer",
+        "transitions" => array( "endRelease" => 35 )
     ),
 
     39 => array(

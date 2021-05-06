@@ -36,13 +36,31 @@ $game_options = array(
     ),
 
     101 => array(
-                'name' => totranslate('Expansions'),
+                'name' => totranslate('Great Wall expansion'),
                 'values' => array(
-                    1 => array( 'name' => totranslate('None'), 'description' => totranslate('No expansions)')),
+                    1 => array( 'name' => totranslate('None'), 'description' => totranslate('Do not use Great Wall')),
                     2 => array( 'name' => totranslate('Great Wall'), 'description' => totranslate('Use Great Wall expansion'), 'alpha' => true, 'nobeginner' => true ),
-                    3 => array( 'name' => totranslate('Super-Events'), 'description' => totranslate('Use Super-Events expansion'), 'alpha' => true, 'nobeginner' => true ),
-                    4 => array( 'name' => totranslate('Great Wall and Super-Events'), 'description' => totranslate('Use BOTH Great Wall AND Super-Events expansions'), 'alpha' => true, 'nobeginner' => true )
                 ),
                 'default' => 1
             ),
+
+    102 => array(
+        'name' => totranslate('Super Events expansion'),
+        'values' => array(
+            1 => array( 'name' => totranslate('None'), 'description' => totranslate('Do not use Super Events')),
+            2 => array( 'name' => totranslate('Random'), 'description' => totranslate('Use random Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            3 => array( 'name' => totranslate('Lanternfest'), 'description' => totranslate('Use Lanternfest Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            4 => array( 'name' => totranslate('Buddha'), 'description' => totranslate('Use Buddha Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            5 => array( 'name' => totranslate('Earthquake'), 'description' => totranslate('Use Earthquake Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            6 => array( 'name' => totranslate('Flood'), 'description' => totranslate('Use Flood Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            7 => array( 'name' => totranslate('Solar Eclipse'), 'description' => totranslate('Use Solar Eclipse Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            8 => array( 'name' => totranslate('Volcanic Eruption'), 'description' => totranslate('Use Volcanic Eruption Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            9 => array( 'name' => totranslate('Tornado'), 'description' => totranslate('Use Tornado Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            10 => array( 'name' => totranslate('Sunrise'), 'description' => totranslate('Use Sunrise Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            11 => array( 'name' => totranslate('Assassination Attempt'), 'description' => totranslate('Use Assassination Attempt Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            12 => array( 'name' => totranslate('Charter'), 'description' => totranslate('Use Charter Super Event'), 'alpha' => true, 'nobeginner' => true ),
+            13 => array( 'name' => totranslate('HARD MODE!'), 'description' => totranslate('Use random hidden Super Event, revealed on Turn 7'), 'alpha' => true, 'nobeginner' => true ),
+        ),
+        'default' => 1
+    )
 );
