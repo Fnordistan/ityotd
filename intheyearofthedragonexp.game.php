@@ -359,15 +359,15 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
-     * Check whether this is a Mongol Invasion month AND we're using the Great Wall.
-     * @returns true if this is a Mongol Invasion and Great Wall is being used
+     * Check whether this is a Mongol Invasion month (or turn 12) AND we're using the Great Wall.
+     * @returns true if this is a Mongol Invasion/last turn and Great Wall is being used
      */
     function isGreatWallEvent() {
         $gw = false;
         if ($this->useGreatWall()) {
             $month = self::getGameStateValue( 'month' );
             $event = self::getUniqueValueFromDB( "SELECT year_event FROM year WHERE year_id='$month'" );
-            $gw = ($event == 5);
+            $gw = ($event == 5) || ($month == 12);
         }
         return $gw;
     }
