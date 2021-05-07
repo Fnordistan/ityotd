@@ -33,6 +33,7 @@ class InTheYearOfTheDragonExp extends Table
                 "lowerHelmet" => 17,
                 "wallLength" => 20,
                 "minWalls" => 21, // minimum number of Wall tiles built in current turn
+                "gwFirstPlayer" => 22, // flag for rotating releases in GW event
                 "largePrivilegeCost" => 100,
                 "greatWall" => 101,
                 "superEvents" => 102,
@@ -171,7 +172,8 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'lowerHelmet', 0 );
         self::setGameStateInitialValue( 'wallLength', 0 );
         self::setGameStateInitialValue( 'minWalls', 0 );
-
+        self::setGameStateInitialValue( 'gwFirstPlayer', 0 );
+        
         // Statistics
         self::initStat( 'table', 'person_lost_events_allplayers', 0 );
         self::initStat( 'player', 'person_lost_events', 0 );
@@ -427,9 +429,11 @@ class InTheYearOfTheDragonExp extends Table
     {
         $player_ids = self::getObjectListFromDB( "SELECT player_id FROM player
                                                   ORDER BY player_play_order", true );
-
+        self::dump("player_ids", $player_ids);
         $next_player = self::createNextPlayerTable( $player_ids, false );
+        self::dump("next_player", $next_player);
         $current_player = $next_player[ self::getActivePlayerId() ];
+        self::dump("current_player", $current_player);
         
         if( $current_player === null )
             return false;
@@ -1619,7 +1623,10 @@ class InTheYearOfTheDragonExp extends Table
                 $wb = $this->countWallTilesBuilt($pid);
                 $min = min($min, $wb);
             }
+            self::updatePlayerPlayOrder();
+            self::activeFirstPlayerInPlayOrder();
             self::setGameStateValue('minWalls', $min);
+            self::setGameStateValue('gwFirstPlayer', 1);
             $this->gamestate->nextState('losePerson');
         } else {
             // get points per wall
@@ -1636,21 +1643,29 @@ class InTheYearOfTheDragonExp extends Table
      * Choose whether this player needs to lose someone.
      */
     function stGreatWallNext() {
-        $player_id = self::getActivePlayerId();
-        $wb = $this->countWallTilesBuilt($player_id);
-        if ($wb == self::getGameStateValue('minWalls') && $this->nbrPersonsLeft($player_id) > 0) {
-            
-            self::incStat( 1, 'person_lost_events_allplayers'  );
-            self::incStat( 1, 'person_lost_events' , $player_id );
-
-            self::setGameStateValue( 'toRelease', 1 );
-            $this->gamestate->nextState( 'releasePerson' );
+        $continue = true;
+        if (self::getGameStateValue('gwFirstPlayer') == 1) {
+            self::setGameStateValue('gwFirstPlayer', 0);
         } else {
-            if( self::activeNextPlayerInPlayOrder() ) {
-                $this->gamestate->nextState('nextPlayer');
-            } else {
-                $this->gamestate->nextState('endPhase');
+            // means we need to transition to next player to check
+            if (!self::activeNextPlayerInPlayOrder()) {
+                $continue = false;
             }
+        }
+
+        if ( $continue ) {
+            $player_id = self::getActivePlayerId();
+            $wb = $this->countWallTilesBuilt($player_id);
+            if ($wb == self::getGameStateValue('minWalls')) {
+                self::incStat( 1, 'person_lost_events_allplayers'  );
+                self::incStat( 1, 'person_lost_events' , $player_id );
+                self::setGameStateValue( 'toRelease', 1 );
+                $this->gamestate->nextState( 'releasePerson' );
+            } else {
+                $this->gamestate->nextState( 'nextPlayer' );
+            }
+        } else {
+            $this->gamestate->nextState( 'endPhase' );
         }
     }
 
@@ -1658,7 +1673,12 @@ class InTheYearOfTheDragonExp extends Table
      * Players with fewest walls lose a person.
      */
     function stGreatWallRelease() {
-
+        $player_id = self::getActivePlayerId();
+        $count = $this->nbrPersonsLeft($player_id);
+        
+        if ( $count == 0 ) {
+            $this->gamestate->nextState( 'endRelease' );
+        }
     }
 
     function endOfTurnScoring()
