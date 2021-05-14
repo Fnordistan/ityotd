@@ -114,7 +114,7 @@ $this->event_types = array(
                 'description' => clienttranslate("Each player wins 1 point for each helmets on all warriors in his palaces. Additionally, the player or players with the fewest helmets must each release 1 person.") ),
     6 => array( 'name' => clienttranslate( 'Contagion' ),
                 'nametr' => self::_('Contagion'),
-                'description' => clienttranslate("Each player must release 3 persons of their choosing. For each mortar pictured on a player’s healers, he releases 1 fewer person.") )
+                'description' => clienttranslate("Each player must release 3 persons of their choosing. For each mortar pictured on a player's healers, he releases 1 fewer person.") )
 );
 
 $this->action_types = array(
@@ -172,6 +172,20 @@ $this->wall_tiles = array (
     6 => array( 'name' => clienttranslate('Victory Points'),
                 'nametr' => self::_('Victory Points'),
                 'description' => self::_("Gain 3 victory points")),
+);
+
+$this->superevents = array(
+    1 => array( 'name' => totranslate('Lanternfest'), 'nametr' => self::_("Lanternfest") ),
+    2 => array( 'name' => totranslate('Buddha'), 'nametr' => self::_("Buddha") ),
+    3 => array( 'name' => totranslate('Earthquake'), 'nametr' => self::_("Earthquake") ),
+    4 => array( 'name' => totranslate('Flood'), 'nametr' => self::_("Flood") ),
+    5 => array( 'name' => totranslate('Solar Eclipse'), 'nametr' => self::_("Solar Eclipse") ),
+    6 => array( 'name' => totranslate('Volcanic Eruption'), 'nametr' => self::_("Volcanic Eruption") ),
+    7 => array( 'name' => totranslate('Tornado'), 'nametr' => self::_("Tornado") ),
+    8 => array( 'name' => totranslate('Sunrise'), 'nametr' => self::_("Sunrise") ),
+    9 => array( 'name' => totranslate('Assassination Attempt'), 'nametr' => self::_("Assassination Attempt") ),
+    10 => array( 'name' => totranslate('Charter'), 'nametr' => self::_("Charter") ),
+    11 => array( 'name' => totranslate('Random'), 'nametr' => self::_("Random") ),
 );
 
 // Action groups, depending on player number
