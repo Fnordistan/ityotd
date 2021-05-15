@@ -15,6 +15,7 @@
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
 define('SUPER_EVENT', "SUPER_EVENT");
+define('SUPER_EVENT_DONE', "SUPER_EVENT_DONE");
 
 class InTheYearOfTheDragonExp extends Table
 {
@@ -37,6 +38,7 @@ class InTheYearOfTheDragonExp extends Table
                 "minWalls" => 21, // minimum number of Wall tiles built in current turn
                 "gwFirstPlayer" => 22, // flag for rotating releases in GW event
                 SUPER_EVENT => 23,
+                SUPER_EVENT_DONE => 24,
                 "largePrivilegeCost" => 100,
                 "greatWall" => 101,
                 "superEvents" => 102,
@@ -177,6 +179,7 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'minWalls', 0 );
         self::setGameStateInitialValue( 'gwFirstPlayer', 0 );
         self::setGameStateInitialValue( SUPER_EVENT, 0 ); // note this is different from "superEvents" which is the gameoptions value
+        self::setGameStateInitialValue( SUPER_EVENT_DONE, 0 );
 
         // Statistics
         self::initStat( 'table', 'person_lost_events_allplayers', 0 );
@@ -398,6 +401,19 @@ class InTheYearOfTheDragonExp extends Table
             $gw = ($event == 5) || ($month == 12);
         }
         return $gw;
+    }
+
+    /**
+     * Check whether this is Month 7 and Super Events are enabled.
+     */
+    function isSuperEvent() {
+        $s_ev = false;
+        if (self::getGameStateValue('month') == 7) {
+            if (self::getGameStateValue(SUPER_EVENT) != 0) {
+                return true;
+            }
+        }
+        return $s_ev;
     }
 
     /**
@@ -1593,7 +1609,6 @@ class InTheYearOfTheDragonExp extends Table
                
             $this->gamestate->nextState( 'notPossible' );
         }
-      
     }
 
     function stEventPhaseNextPlayer()
@@ -1602,7 +1617,7 @@ class InTheYearOfTheDragonExp extends Table
         if( self::activeNextPlayerInPlayOrder() ) {
             $this->gamestate->nextState( 'nextPlayer' );
         } else if ($this->isGreatWallEvent()) {
-            $this->gamestate->nextState( 'greatWall' );
+            $this->gamestate->nextState( "greatWall" );
         } else {
             $this->gamestate->nextState( 'endPhase' );
         }
@@ -1699,6 +1714,21 @@ class InTheYearOfTheDragonExp extends Table
         if ( $count == 0 ) {
             $this->gamestate->nextState( 'endRelease' );
         }
+    }
+
+    /**
+     * Inseted before endphase, check if we have to do a Super Event before end of turn scoring.
+     */
+    function stSuperEvent() {
+        $state = "endPhase";
+        if ($this->isSuperEvent()) {
+            if (self::getGameStateValue(SUPER_EVENT_DONE) == 0) {
+                self::setGameStateValue(SUPER_EVENT_DONE, 1);
+                // do Super Event
+
+            }
+        }
+        $this->gamestate->nextState( $state );
     }
 
     function endOfTurnScoring()

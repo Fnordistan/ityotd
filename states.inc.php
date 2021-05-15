@@ -211,6 +211,14 @@ $machinestates = array(
     ),
 
     39 => array(
+        "name" => "superEvent",
+        "description" => '',
+        "type" => "game",
+        "action" => "stSuperEvent",
+        "transitions" => array( "endPhase" => 40 )
+    ),
+
+    40 => array(
         "name" => "decayAndScoring",
         "description" => '',
         "type" => "game",
