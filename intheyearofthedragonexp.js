@@ -15,6 +15,7 @@ function (dojo, declare) {
               
 
         },
+
         setup: function( gamedatas )
         {
             console.log( "start creating player boards" );
@@ -109,6 +110,8 @@ function (dojo, declare) {
             }
             
             this.setCurrentMonth( this.gamedatas.month );
+
+            this.placeSuperEvent( this.gamedatas.superEvent);
                         
             // Tooltips
             this.addTooltipToClass( 'ttyuan', _('Yuan'), '' );
@@ -164,6 +167,40 @@ function (dojo, declare) {
                 this.addTooltip(wall.id, _("Great Wall section built by "+this.gamedatas.players[ player_id ].name), '');
             }
             this.addTooltip('great_wall', _("Great Wall"), '');
+        },
+
+        /**
+         * Place SuperEvent tile (or not if value is 0) on Event 7.
+         * @param {int*} superevent 
+         */
+        placeSuperEvent: function(superevent) {
+            if (superevent != 0) {
+                var superevent_div = this.getSuperEventTile("superevent", superevent, 0.3);
+                var event_7 = document.getElementById("event_7");
+                dojo.place(superevent_div, event_7);
+
+                var tooltip_icon = this.getSuperEventTile("superevent_tt", superevent, 1);
+                tooltip_icon = tooltip_icon.replace("class=\"superevent\"", "class=\"superevent_icon\"");
+                var tooltip = '<div>'
+                            + '<div id="superevent_tooltip" style="position: relative;"><b>'+this.gamedatas.super_events[ superevent ].nametr+'</b><hr/>'+_(this.gamedatas.super_events[ superevent ].description)+'</div>'
+                            + tooltip_icon;
+                            + '</div>';
+
+                this.addTooltipToClass( 'superevent', tooltip, '' );
+            }
+        },
+
+        /**
+         * Get div tile with superevent icon.
+         * @param {string} id
+         * @param {int} superevent 
+         * @param {int} scale 
+         * @returns html string
+         */
+        getSuperEventTile: function(id, superevent, scale) {
+            var xoff = -80 * scale * (superevent-1);
+            var superevent_div = this.format_block('jstpl_super_event', {id: id, x: xoff, scale: scale});
+            return superevent_div;
         },
 
         ///////////////////////////////////////////////////

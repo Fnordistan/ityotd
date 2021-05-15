@@ -14,6 +14,8 @@
 
 require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
+define('SUPER_EVENT', "SUPER_EVENT");
+
 class InTheYearOfTheDragonExp extends Table
 {
 	function __construct( )
@@ -34,6 +36,7 @@ class InTheYearOfTheDragonExp extends Table
                 "wallLength" => 20,
                 "minWalls" => 21, // minimum number of Wall tiles built in current turn
                 "gwFirstPlayer" => 22, // flag for rotating releases in GW event
+                SUPER_EVENT => 23,
                 "largePrivilegeCost" => 100,
                 "greatWall" => 101,
                 "superEvents" => 102,
@@ -173,7 +176,8 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'wallLength', 0 );
         self::setGameStateInitialValue( 'minWalls', 0 );
         self::setGameStateInitialValue( 'gwFirstPlayer', 0 );
-        
+        self::setGameStateInitialValue( SUPER_EVENT, 0 ); // note this is different from "superEvents" which is the gameoptions value
+
         // Statistics
         self::initStat( 'table', 'person_lost_events_allplayers', 0 );
         self::initStat( 'player', 'person_lost_events', 0 );
@@ -196,12 +200,13 @@ class InTheYearOfTheDragonExp extends Table
             self::initStat( 'player', 'points_wall', 0 );
             $this->initializeWall();
         }
+        $this->initializeSuperEvent();
 
         self::activeNextPlayer();
     }
 
     /**
-     * Create certificates, 8 for each currency.
+     * Initialize the wall tiles for Great Wall
      */
      protected function initializeWall() {
         $players = self::loadPlayersBasicInfos();
@@ -210,6 +215,24 @@ class InTheYearOfTheDragonExp extends Table
             foreach ($this->wall_tiles as $w => $wall) {
                 self::DbQuery( "INSERT INTO WALL (player_id, bonus, location) VALUES($player_id, $w, 0)" );
             }
+        }
+    }
+
+    /**
+     * Maps the SuperEvents option to the Materials ordinals.
+     * Sets superEvent gamestate value.
+     * Sets to 1-10 (for event), 0 (for no Superevents) or 11 (if it's hard mode random and not revealed yet)
+     */
+     protected function initializeSuperEvent() {
+        $se = self::getGameStateValue( 'superEvents' );
+        if ($se == 1) {
+            self::setGameStateValue(SUPER_EVENT, 0);
+        } else if ($se == 2) {
+            self::setGameStateValue(SUPER_EVENT, rand(1,10));
+        } else if ($se == 13) {
+            self::setGameStateValue(SUPER_EVENT, 11);
+        } else {
+            self::setGameStateValue(SUPER_EVENT, $se-2);
         }
     }
 
@@ -318,6 +341,11 @@ class InTheYearOfTheDragonExp extends Table
         if ($this->useGreatWall()) {
             $result['greatWall'] = $this->getWallTiles();
         }
+
+        $result['superEvent'] = self::getGameStateValue(SUPER_EVENT);
+        if (self::getGameStateValue(SUPER_EVENT) != 0) {
+            $result['super_events'] = $this->superevents;
+        }
   
         return $result;
     }
@@ -381,14 +409,6 @@ class InTheYearOfTheDragonExp extends Table
         } else{
             return $this->action_to_actiongroup_7;
         }
-    }
-
-    /**
-     * Are we using the Super-Events?
-     */
-    function useSuperEvents() {
-        $supev = self::getGameStateValue( 'superEvents' );
-        return $supev > 1;
     }
 
     function getEvents()

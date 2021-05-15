@@ -81,6 +81,8 @@ var jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag
 // Great Wall tile on player boards
 var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="wall" style="margin-top: 10px; background-position: ${x}px ${y}px; opacity: 1;"></div>';
 
+var jstpl_super_event = '<div id="${id}" class="superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
+
 </script>  
 
 {OVERALL_GAME_FOOTER}

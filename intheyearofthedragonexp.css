@@ -42,6 +42,24 @@
     margin: 4px;
 }
 
+.superevent {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background-image: url('img/superevents.png');
+    background-size: calc(var(--scale) * 880px) calc(var(--scale) * 80px);
+    height: calc(var(--scale) * 80px);
+    width: calc(var(--scale) * 80px);
+}
+
+.superevent_icon {
+    position: relative;
+    background-image: url('img/superevents.png');
+    background-size: calc(var(--scale) * 880px) calc(var(--scale) * 80px);
+    height: calc(var(--scale) * 80px);
+    width: calc(var(--scale) * 80px);
+}
+
 /*** person tiles ***/
 
 .persontile {
