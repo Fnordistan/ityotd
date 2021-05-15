@@ -257,6 +257,7 @@ class InTheYearOfTheDragonExp extends Table
         $result['superEvent'] = self::getGameStateValue(SUPER_EVENT);
         if (self::getGameStateValue(SUPER_EVENT) != 0) {
             $result['super_events'] = $this->superevents;
+            $result['super_event_done'] = self::getGameStateValue(SUPER_EVENT_DONE);
         }
   
         return $result;

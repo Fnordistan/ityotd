@@ -58,6 +58,7 @@
     background-size: calc(var(--scale) * 960px) calc(var(--scale) * 80px);
     height: calc(var(--scale) * 80px);
     width: calc(var(--scale) * 80px);
+    flex: 0 0 auto;
 }
 
 /*** person tiles ***/

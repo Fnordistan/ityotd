@@ -173,34 +173,40 @@ function (dojo, declare) {
 
         /**
          * Place SuperEvent tile (or not if value is 0) on Event 7.
-         * @param {int*} superevent 
+         * @param {int} se
          */
-        placeSuperEvent: function(superevent) {
-            if (superevent != 0) {
-                var superevent_div = this.getSuperEventTile("superevent", superevent, 0.3);
+        placeSuperEvent: function(se) {
+            if (se != 0) {
                 var event_7 = document.getElementById("event_7");
-                dojo.place(superevent_div, event_7);
-
-                var tooltip_icon = this.getSuperEventTile("superevent_tt", superevent, 1);
-                tooltip_icon = tooltip_icon.replace("class=\"superevent\"", "class=\"superevent_icon\"");
-                var tooltip = '<div>'
-                            + '<div id="superevent_tooltip" style="position: relative;"><b>'+this.gamedatas.super_events[ superevent ].nametr+'</b><hr/>'+_(this.gamedatas.super_events[ superevent ].description)+'</div>'
-                            + tooltip_icon;
-                            + '</div>';
-
-                this.addTooltipToClass( 'superevent', tooltip, '' );
+                if (this.gamedatas.super_event_done == 1) {
+                    var fin_event_div = this.getSuperEventTile("superevent", 12, 0.3);
+                    dojo.place(fin_event_div, event_7);
+                } else {
+                    var superevent = this.gamedatas.super_events[ se ];
+                    var superevent_div = this.getSuperEventTile("superevent", se, 0.3);
+                    dojo.place(superevent_div, event_7);
+    
+                    var tooltip_icon = this.getSuperEventTile("superevent_tt", se, 1);
+                    tooltip_icon = tooltip_icon.replace('class="superevent"', 'class="superevent_icon"');
+                    var tooltip = '<div style="display: flex;">'
+                                + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.nametr+'</b><hr/>'+_(superevent.description)+'</div>'
+                                + tooltip_icon;
+                                + '</div>';
+    
+                    this.addTooltipToClass( 'superevent', tooltip, '' );
+                }
             }
         },
 
         /**
          * Get div tile with superevent icon.
          * @param {string} id
-         * @param {int} superevent 
+         * @param {int} se
          * @param {int} scale 
          * @returns html string
          */
-        getSuperEventTile: function(id, superevent, scale) {
-            var xoff = -80 * scale * (superevent-1);
+        getSuperEventTile: function(id, se, scale) {
+            var xoff = -80 * scale * (se-1);
             var superevent_div = this.format_block('jstpl_super_event', {id: id, x: xoff, scale: scale});
             return superevent_div;
         },
@@ -251,7 +257,14 @@ function (dojo, declare) {
                     dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
                 }                
                 break;
-                
+            case 'decayAndScoring':
+                if (this.gamedatas.super_event_done && this.gamedatas.month == 7) {
+                    this.removeSuperEventTile();
+                    var event_7 = document.getElementById("event_7");
+                    var fin_event_div = this.getSuperEventTile("superevent", 12, 0.3);
+                    dojo.place(fin_event_div, event_7);
+                }
+                break;
             case 'dummmy':
                 break;
             }
