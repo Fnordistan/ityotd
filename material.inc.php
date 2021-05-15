@@ -205,9 +205,9 @@ $this->superevents = array(
     10 => array('name' => totranslate('Charter'),
                 'nametr' => self::_("Charter"),
                 'description' => self::_("Beginning with the starting player, each player selects one type of person in their realm and receives the advantages that type of person offers.") ),
-    11 => array('name' => totranslate('Random'),
-                'nametr' => self::_("Random"),
-                'description' => self::_("This Superevent is hidden until month 7.") ),
+    11 => array('name' => totranslate('Hidden'),
+                'nametr' => self::_("Hidden"),
+                'description' => self::_("Random super event, hidden until month 7.") ),
 );
 
 // Action groups, depending on player number

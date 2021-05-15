@@ -208,97 +208,6 @@ class InTheYearOfTheDragonExp extends Table
         self::activeNextPlayer();
     }
 
-    /**
-     * Initialize the wall tiles for Great Wall
-     */
-     protected function initializeWall() {
-        $players = self::loadPlayersBasicInfos();
-
-        foreach( $players as $player_id => $player ) {
-            foreach ($this->wall_tiles as $w => $wall) {
-                self::DbQuery( "INSERT INTO WALL (player_id, bonus, location) VALUES($player_id, $w, 0)" );
-            }
-        }
-    }
-
-    /**
-     * Maps the SuperEvents option to the Materials ordinals.
-     * Sets superEvent gamestate value.
-     * Sets to 1-10 (for event), 0 (for no Superevents) or 11 (if it's hard mode random and not revealed yet)
-     */
-     protected function initializeSuperEvent() {
-        $se = self::getGameStateValue( 'superEvents' );
-        if ($se == 1) {
-            self::setGameStateValue(SUPER_EVENT, 0);
-        } else if ($se == 2) {
-            self::setGameStateValue(SUPER_EVENT, rand(1,10));
-        } else if ($se == 13) {
-            self::setGameStateValue(SUPER_EVENT, 11);
-        } else {
-            self::setGameStateValue(SUPER_EVENT, $se-2);
-        }
-    }
-
-    /**
-     * Get all the Wall tiles.
-     */
-    protected function getWallTiles() {
-        return self::getNonEmptyCollectionFromDB("SELECT * FROM WALL");
-    }
-
-    /**
-     * Returns all the unplayed Wall tiles for this player as an associative array.
-     */
-    function getAvailableWallTiles($player_id) {
-        $tiles = self::getCollectionFromDB("SELECT * from WALL WHERE player_id = $player_id AND location = 0");
-        return $tiles;
-    }
-
-    /**
-     * Count how many Great Wall sections were built by this player.
-     */
-    function countWallTilesBuilt($player_id) {
-        $tiles = self::getObjectListFromDB("SELECT id from WALL WHERE player_id = $player_id AND location != 0", true);
-        return count($tiles);
-    }
-
-    /**
-     * Give player bonus for their wall section.
-     * #return TRUE if we are entering build state, otherwise false
-     */
-    function assignWallBonus($wall) {
-        $tobuild = false;
-        $player_id = $wall['player_id'];
-        switch($wall['bonus']) {
-            case 1:
-                // PP
-                $this->addPersonPoints($player_id, 3);
-                break;
-            case 2:
-                // Rice
-                $this->addRice($player_id, 1);
-                break;
-            case 3:
-                // Palace
-                self::setGameStateValue( 'toBuild', 1 );
-                $tobuild = true;
-                break;
-            case 4:
-                // Yuan
-                $this->addYuan($player_id, 2);
-                break;
-            case 5:
-                // Fireworks
-                $this->addFireworks($player_id, 1);
-                break;
-            case 6:
-                // Gain 3 VP
-                $this->addVictoryPoints($player_id, 3);
-                break;
-        }
-        return $tobuild;
-    }
-
     // Get all datas (complete reset request from client side)
     protected function getAllDatas()
     {
@@ -370,6 +279,40 @@ class InTheYearOfTheDragonExp extends Table
         return round( ( ($month-1)*100/11 ) );
     }
 
+//////////////////////////////////////////////////////////////////////////////
+////// Setup Functions
+//////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Initialize the wall tiles for Great Wall
+     */
+     protected function initializeWall() {
+        $players = self::loadPlayersBasicInfos();
+
+        foreach( $players as $player_id => $player ) {
+            foreach ($this->wall_tiles as $w => $wall) {
+                self::DbQuery( "INSERT INTO WALL (player_id, bonus, location) VALUES($player_id, $w, 0)" );
+            }
+        }
+    }
+
+    /**
+     * Maps the SuperEvents option to the Materials ordinals.
+     * Sets superEvent gamestate value.
+     * Sets to 1-10 (for event), 0 (for no Superevents) or 11 (if it's hard mode random and not revealed yet)
+     */
+     protected function initializeSuperEvent() {
+        $se = self::getGameStateValue( 'superEvents' );
+        if ($se == 1) {
+            self::setGameStateValue(SUPER_EVENT, 0);
+        } else if ($se == 2) {
+            self::setGameStateValue(SUPER_EVENT, rand(1,10));
+        } else if ($se == 13) {
+            self::setGameStateValue(SUPER_EVENT, 11);
+        } else {
+            self::setGameStateValue(SUPER_EVENT, $se-2);
+        }
+    }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Utility functions    (functions used everywhere)
@@ -417,6 +360,136 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
+     * It's the Super Event phase.
+     * Return the next phase to go to
+     */
+    function doSuperEvent() {
+        $state = "endPhase";
+        switch (self::getGameStateValue(SUPER_EVENT)) {
+            case 0:
+                // this shouldn't happen, we shouldn't call this if not using Super Events
+                throw new BgaVisibleSystemException ( "Super Events called when that option was not enabled" );
+                break;
+            case 1:
+                // Lanternfest
+                $this->scorePersons();
+                break;
+            case 2:
+                // Buddha
+                $this->scoreMonks();
+                break;
+            case 3:
+                // Earthquake
+                $state = "earthquake";
+                break;
+            case 4:
+                // Flood
+                $state = "flood";
+                break;
+            case 5:
+                // Solar Eclipse
+                $state = "solar";
+                self::notifyAllPlayers( 'solarEclipse', clienttranslate( 'Solar eclipse repeats previous event' ), array());
+                break;
+            case 6:
+                // Volcanic Eruption
+                $this->resetPlayerPlayOrder();
+                self::notifyAllPlayers( 'volcanicEruption', clienttranslate( 'Volcanic eruption sets all players back to 0 on the person track' ), array());
+                break;
+            case 7:
+                // Tornado
+                $state = "tornado";
+                break;
+            case 8:
+                // Sunrise
+                $state = "sunrise";
+                break;
+            case 9:
+                // Assassination Attempt
+                $this->losePrivileges();
+                self::notifyAllPlayers( 'assassinationAttempt', clienttranslate( 'Assassination attempt discards ALL privileges' ), array());
+                break;
+            case 10:
+                // Charter
+                $state = "charter";
+                break;
+            case 11:
+                // Hard Mode random, determine event now
+                $se = rand(1,10);
+                self::setGameStateValue(SUPER_EVENT, $se);
+                $superevent_name = $this->superevents[$se]['nametr'];
+                self::notifyAllPlayers( 'superEventChosen', clienttranslate("Super event revealed: ${superevent_name}"), array(
+                    'superevent' => $se,
+                    'superevent_name' => $superevent_name,
+                ) );
+                $state = $this->doSuperEvent();
+                break;
+        }
+        return $state;
+    }
+
+
+    /**
+     * Get all the Wall tiles.
+     */
+     protected function getWallTiles() {
+        return self::getNonEmptyCollectionFromDB("SELECT * FROM WALL");
+    }
+
+    /**
+     * Returns all the unplayed Wall tiles for this player as an associative array.
+     */
+    function getAvailableWallTiles($player_id) {
+        $tiles = self::getCollectionFromDB("SELECT * from WALL WHERE player_id = $player_id AND location = 0");
+        return $tiles;
+    }
+
+    /**
+     * Count how many Great Wall sections were built by this player.
+     */
+    function countWallTilesBuilt($player_id) {
+        $tiles = self::getObjectListFromDB("SELECT id from WALL WHERE player_id = $player_id AND location != 0", true);
+        return count($tiles);
+    }
+
+    /**
+     * Give player bonus for their wall section.
+     * #return TRUE if we are entering build state, otherwise false
+     */
+    function assignWallBonus($wall) {
+        $tobuild = false;
+        $player_id = $wall['player_id'];
+        switch($wall['bonus']) {
+            case 1:
+                // PP
+                $this->addPersonPoints($player_id, 3);
+                break;
+            case 2:
+                // Rice
+                $this->addRice($player_id, 1);
+                break;
+            case 3:
+                // Palace
+                self::setGameStateValue( 'toBuild', 1 );
+                $tobuild = true;
+                break;
+            case 4:
+                // Yuan
+                $this->addYuan($player_id, 2);
+                break;
+            case 5:
+                // Fireworks
+                $this->addFireworks($player_id, 1);
+                break;
+            case 6:
+                // Gain 3 VP
+                $this->addVictoryPoints($player_id, 3);
+                break;
+        }
+        return $tobuild;
+    }
+
+    /**
      * Get the correct set of action groups.
      */
     function getActionGroups() {
@@ -451,7 +524,76 @@ class InTheYearOfTheDragonExp extends Table
             $playorder ++;
         }
     }
-    
+
+    /**
+     * For Lantern Festival super event.
+     */
+    function scorePersons() {
+        $players = self::loadPlayersBasicInfos();
+        $player_person = $this->countPersons();
+        foreach ($player_person as $player_id => $personct) {
+            $personscore = 2*$personcount;
+            self::incStat( $personscore, 'points_person', $player_id );
+            self::DbQuery( "UPDATE player SET player_score=player_score+$personscore WHERE player_id='$player_id' " );
+            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Lantern Festival' ), array(
+                'player_id' => $player_id,
+                'player_name' => $players[$player_id]['player_name'],
+                'nbr' => $personscore
+            ));
+        }
+    }
+
+    /**
+     * For Buddha super event.
+     */
+    function scoreMonks() {
+        $players = self::loadPlayersBasicInfos();
+
+        $monks = $this->countMonks();
+        $monk_points = array();
+        foreach( $monks as $monk ) {
+            $player_id = $monk['palace_player'];
+            $points = $monk['level'] * $monk['palace_size'];  // Note: 1 buddha on level 1, 2 buddhas on level 2
+            $monk_points[$player_id] += $points;
+        }
+        foreach( $monk_points as $player_id => $pts) {
+            self::incStat( $pts, 'points_monks', $player_id );
+            self::DbQuery( "UPDATE player SET player_score=player_score+$pts WHERE player_id='$player_id' " );
+            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Buddha super event' ), array(
+                'player_id' => $player_id,
+                'player_name' => $players[$player_id]['player_name'],
+                'nbr' => $pts
+            ));
+        }
+    }
+
+    /**
+     * For Volcanic Eruption, set all player person points to 0.
+     */
+    function resetPlayerPlayOrder() {
+        $player_ids = self::getCollectionFromDB( "SELECT player_id, player_person_score pp FROM player
+                                                  ORDER BY player_person_score DESC, player_person_score_order DESC", true );
+        // reset all score orders to 0
+        self::DbQuery( "UPDATE player SET player_person_score_order=0" );
+        // iterate in reverse order so new player_person_score_order will be correctly incremented
+        foreach( array_reverse($player_ids, true) as $player_id => $pp ) {
+            $this->increasePersonScore($player_id, -$pp);
+        }
+    }
+
+    /**
+     * For Assassination Attempt, discard all privileges.
+     */
+    function losePrivileges() {
+        $players = self::loadPlayersBasicInfos();
+        foreach ($players as $player_id) {
+            self::DbQuery( "UPDATE player SET player_favor=0 WHERE player_id='$player_id' " );
+            self::notifyAllPlayers('losePrivileges', '', array(
+                'player_id' => $player_id
+            ));
+        }
+    }
+
     function activeFirstPlayerInPlayOrder()
     {
         $player_ids = self::getObjectListFromDB( "SELECT player_id FROM player
@@ -465,11 +607,8 @@ class InTheYearOfTheDragonExp extends Table
     {
         $player_ids = self::getObjectListFromDB( "SELECT player_id FROM player
                                                   ORDER BY player_play_order", true );
-        self::dump("player_ids", $player_ids);
         $next_player = self::createNextPlayerTable( $player_ids, false );
-        self::dump("next_player", $next_player);
         $current_player = $next_player[ self::getActivePlayerId() ];
-        self::dump("current_player", $current_player);
         
         if( $current_player === null )
             return false;
@@ -721,7 +860,6 @@ class InTheYearOfTheDragonExp extends Table
         // Player current person score
         $current_score = self::getUniqueValueFromDB( "SELECT player_person_score FROM player WHERE player_id='$player_id' " );
         $new_score = $current_score + $inc;
-        
         // Get "maximum" place at new_score
         $max_place = self::getUniqueValueFromDB( "SELECT COALESCE( MAX( player_person_score_order ), 0) FROM player WHERE player_person_score='$new_score'" );
         $place_id = $max_place+1;
@@ -745,7 +883,7 @@ class InTheYearOfTheDragonExp extends Table
         self::increasePersonScore( $player_id, $pp );
         $players = self::loadPlayersBasicInfos();
             
-        self::notifyAllPlayers( 'personPointMsg', clienttranslate( '${player_name} advances ${nbr} spaces on the Person track' ), array(
+        self::notifyAllPlayers( 'personPointMsg', clienttranslate( '${player_name} advances ${nbr} spaces on the person track' ), array(
             'player_id' => $player_id,
             'player_name' => $players[$player_id]['player_name'],
             'nbr' => $pp
@@ -1243,8 +1381,6 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState('nextPlayer');
         }
     }
-    
-  
 
     function stActionPhaseInit()
     {
@@ -1725,10 +1861,45 @@ class InTheYearOfTheDragonExp extends Table
             if (self::getGameStateValue(SUPER_EVENT_DONE) == 0) {
                 self::setGameStateValue(SUPER_EVENT_DONE, 1);
                 // do Super Event
-
+                $state = $this->doSuperEvent();
             }
         }
         $this->gamestate->nextState( $state );
+    }
+
+    /**
+     * From Earthquake super event.
+     */
+    function stRemovePalaces() {
+
+    }
+
+    /**
+     *From Flood super event.
+     */
+    function stRemoveResources() {
+
+    }
+
+    /**
+     * From Tornado super event.
+     */
+    function stDiscardCards() {
+
+    }
+
+    /**
+     * From Sunrise super event.
+     */
+    function stAddYoungPerson() {
+
+    }
+
+    /**
+     * From Charter super event.
+     */
+    function stCharter() {
+
     }
 
     function endOfTurnScoring()
@@ -1814,7 +1985,30 @@ class InTheYearOfTheDragonExp extends Table
             'player_to_score' => $player_to_score
         ) );    
     }
-    
+
+    /**
+     * Return an associated array of player_id => count of persons in palaces
+     */
+    function countPersons() {
+        $sql = "SELECT palace_player, COUNT( palace_person_id ) cnt
+                FROM palace_person
+                INNER JOIN palace ON palace_id = palace_person_palace_id
+                GROUP BY palace_player";
+        $playerperson = self::getCollectionFromDB( $sql, true );
+        return $playerperson;
+    }
+
+    /**
+     * Return an associated array of monks per player and palace level
+     */
+    function countMonks() {
+        $sql = "SELECT palace_player, palace_size, palace_person_level level
+                FROM palace_person
+                INNER JOIN palace ON palace_id=palace_person_palace_id
+                WHERE palace_person_type='6'";  // 6 = monks
+        $monks = self::getObjectListFromDB( $sql );
+    }
+
     function finalScoring()
     {
         $notification = array( 
@@ -1835,11 +2029,7 @@ class InTheYearOfTheDragonExp extends Table
         }
         
         // Persons (2pt/pers)
-        $sql = "SELECT palace_player, COUNT( palace_person_id ) cnt
-                FROM palace_person
-                INNER JOIN palace ON palace_id = palace_person_palace_id
-                GROUP BY palace_player";
-        $playerperson = self::getCollectionFromDB( $sql, true );
+        $playerperson = $this->countPersons();
         foreach( $playerperson as $player_id => $personcount )
         {
             $player_to_scoring[ $player_id ]['person'] = 2*$personcount;
@@ -1847,11 +2037,7 @@ class InTheYearOfTheDragonExp extends Table
         }
 
         // Monks
-        $sql = "SELECT palace_player, palace_size, palace_person_level level
-                FROM palace_person
-                INNER JOIN palace ON palace_id=palace_person_palace_id
-                WHERE palace_person_type='6'";  // 6 = monks
-        $monks = self::getObjectListFromDB( $sql );
+        $monks = $this->countMonks();
         foreach( $monks as $monk )        
         {
             $points = $monk['level']*$monk['palace_size'];  // Note: 1 buddha on level 1, 2 buddhas on level 2

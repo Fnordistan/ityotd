@@ -33,7 +33,7 @@ function (dojo, declare) {
                 
                 this.setPersonScore( player_id, player.person_score, player.person_score_order );
             }
-            
+
             this.setupNotifications();
             
             this.ensureSpecificImageLoading( ['../common/point.png'] );
@@ -123,6 +123,8 @@ function (dojo, declare) {
             // Great Wall
             if (this.gamedatas.greatWall) {
                 this.placeWallTiles(this.gamedatas.greatWall);
+            } else {
+                document.getElementById("great_wall").style["display"] = "none";
             }
         },
 
@@ -201,6 +203,16 @@ function (dojo, declare) {
             var xoff = -80 * scale * (superevent-1);
             var superevent_div = this.format_block('jstpl_super_event', {id: id, x: xoff, scale: scale});
             return superevent_div;
+        },
+
+        /**
+         * Remove previous superevent tile.
+         */
+        removeSuperEventTile: function() {
+            var superevent = document.getElementById("superevent");
+            if (superevent) {
+                superevent.remove();
+            }
         },
 
         ///////////////////////////////////////////////////
@@ -426,8 +438,10 @@ function (dojo, declare) {
         {
             dojo.query( '.nextevent' ).removeClass( 'nextevent' );
             dojo.addClass( 'event_'+month, 'nextevent' );
-            dojo.query( '.nextwall' ).removeClass( 'nextwall' );
-            dojo.addClass( 'wall_'+month, 'nextwall' );
+            if (this.gamedatas.greatWall) {
+                dojo.query( '.nextwall' ).removeClass( 'nextwall' );
+                dojo.addClass( 'wall_'+month, 'nextwall' );
+            }
             
             for( var i=1; i<month; i++ )
             {
@@ -609,6 +623,8 @@ function (dojo, declare) {
             dojo.subscribe( 'endOfGameScoring', this, "notif_endOfGameScoring" );
 
             dojo.subscribe( 'wallBuilt', this, "notif_wallBuilt");
+            dojo.subscribe( 'superEventChosen', this, "notif_superEventChosen");
+            dojo.subscribe( 'losePrivileges', this, 'notif_losePrivileges');
         },
         
         notif_placePerson: function( notif )
@@ -629,7 +645,6 @@ function (dojo, declare) {
         {
             console.log( 'notif_personScoreUpdate' );
             console.log( notif );
-            
             this.setPersonScore( notif.args.player_id, notif.args.person_score, notif.args.person_score_place );
 
         },
@@ -723,7 +738,12 @@ function (dojo, declare) {
             console.log( notif );
             $('privnbr_'+notif.args.player_id).innerHTML = ( toint( $('privnbr_'+notif.args.player_id).innerHTML ) + toint( notif.args.nbr ) );
             $('yuannbr_'+notif.args.player_id).innerHTML = ( toint( $('yuannbr_'+notif.args.player_id).innerHTML ) - toint( notif.args.price ) );
-        },              
+        },
+
+        notif_losePrivileges: function(notif) {
+            $('privnbr_'+notif.args.player_id).innerHTML = 0;
+        },
+
         notif_newPalace: function( notif )
         {
             console.log( 'notif_newPalace' );
@@ -764,7 +784,7 @@ function (dojo, declare) {
                 this.removeFloorToPalace( palace_id );
             }       
         
-        }, 
+        },
         notif_endOfTurnScoring: function( notif )
         {
             console.log( 'notif_endOfTurnScoring' );
@@ -804,6 +824,17 @@ function (dojo, declare) {
             const xoff = -60*(COLORS_PLAYER[pcolor]-1);
             const wall_tile = this.format_block('jstpl_player_wall', {id: player_id, type: 'temp', x: xoff, y: 0});
             this.slideTemporaryObject( wall_tile, 'player_board_'+player_id, 'player_wall_'+player_id+'_'+bonus, 'wall_'+newSec, 1000, 1000 ).play();
+        },
+
+        /**
+         * This happens in HARD MODE games where super event is revealed only on turn 7.
+         * Remove the hidden tile, replace with the chosen one.
+         * @param {Object} notif 
+         */
+        notif_superEventChosen: function(notif) {
+            const superevent = parseInt(notif.args.superevent);
+            this.removeSuperEventTile();
+            this.placeSuperEvent(superevent);
         },
   });      
 });

@@ -215,7 +215,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEvent",
-        "transitions" => array( "endPhase" => 40 )
+        "transitions" => array( "endPhase" => 40, "earthquake" => 41, "flood" => 50, "solar" => 30, "tornado" => 60, "sunrise" => 70, "charter" => 80 )
     ),
 
     40 => array(
@@ -225,7 +225,52 @@ $machinestates = array(
         "action" => "stDecayAndScoring",
         "transitions" => array( "nextTurn" => 10, "finalScoring" => 98 )
     ),
-    
+
+    // from Earthquake
+    41 => array(
+        "name" => "destroyPalaces",
+        "description" => '',
+        "type" => "game",
+        "action" => "stRemovePalaces",
+        "transitions" => array( "removePalace" => 42, "endPhase" => 40 )
+    ),
+
+    // from Flood
+    50 => array(
+        "name" => "removeResources",
+        "description" => '',
+        "type" => "game",
+        "action" => "stRemoveResources",
+        "transitions" => array( "endPhase" => 40 )
+    ),
+
+    // from Tornado
+    60 => array(
+        "name" => "discardPersonCards",
+        "description" => '',
+        "type" => "game",
+        "action" => "stDiscardCards",
+        "transitions" => array( "endPhase" => 40 )
+    ),
+
+    // from Sunrise
+    70 => array(
+        "name" => "addYoungPerson",
+        "description" => '',
+        "type" => "game",
+        "action" => "stAddYoungPerson",
+        "transitions" => array( "endPhase" => 40 )
+    ),
+
+    // from Charter
+    80 => array(
+        "name" => "charterPerson",
+        "description" => '',
+        "type" => "game",
+        "action" => "stCharter",
+        "transitions" => array( "endPhase" => 40 )
+    ),
+
     /// Final scoring //////
     98 => array(
         "name" => "finalScoring",
