@@ -407,7 +407,7 @@ class InTheYearOfTheDragonExp extends Table
                 break;
             case 9:
                 // Assassination Attempt
-                $this->losePrivileges();
+                self::DbQuery( "UPDATE player SET player_favor=0" );
                 self::notifyAllPlayers( 'assassinationAttempt', clienttranslate( 'Assassination attempt discards ALL privileges' ), array());
                 break;
             case 10:
@@ -560,7 +560,7 @@ class InTheYearOfTheDragonExp extends Table
         foreach( $monk_points as $player_id => $pts) {
             self::incStat( $pts, 'points_monks', $player_id );
             self::DbQuery( "UPDATE player SET player_score=player_score+$pts WHERE player_id='$player_id' " );
-            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Buddha super event' ), array(
+            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Buddha' ), array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]['player_name'],
                 'nbr' => $pts
@@ -579,19 +579,6 @@ class InTheYearOfTheDragonExp extends Table
         // iterate in reverse order so new player_person_score_order will be correctly incremented
         foreach( array_reverse($player_ids, true) as $player_id => $pp ) {
             $this->increasePersonScore($player_id, -$pp);
-        }
-    }
-
-    /**
-     * For Assassination Attempt, discard all privileges.
-     */
-    function losePrivileges() {
-        $players = self::loadPlayersBasicInfos();
-        foreach ($players as $player_id) {
-            self::DbQuery( "UPDATE player SET player_favor=0 WHERE player_id='$player_id' " );
-            self::notifyAllPlayers('losePrivileges', '', array(
-                'player_id' => $player_id
-            ));
         }
     }
 

@@ -637,7 +637,7 @@ function (dojo, declare) {
 
             dojo.subscribe( 'wallBuilt', this, "notif_wallBuilt");
             dojo.subscribe( 'superEventChosen', this, "notif_superEventChosen");
-            dojo.subscribe( 'losePrivileges', this, 'notif_losePrivileges');
+            dojo.subscribe( 'assassinationAttempt', this, 'notif_losePrivileges');
         },
         
         notif_placePerson: function( notif )
@@ -753,8 +753,14 @@ function (dojo, declare) {
             $('yuannbr_'+notif.args.player_id).innerHTML = ( toint( $('yuannbr_'+notif.args.player_id).innerHTML ) - toint( notif.args.price ) );
         },
 
+        /**
+         * Zero all privileges.
+         * @param {Object} notif 
+         */
         notif_losePrivileges: function(notif) {
-            $('privnbr_'+notif.args.player_id).innerHTML = 0;
+            for( var player_id in this.gamedatas.players ) {
+                $('privnbr_'+player_id).innerHTML = 0;
+            }
         },
 
         notif_newPalace: function( notif )
