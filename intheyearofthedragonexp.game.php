@@ -551,7 +551,7 @@ class InTheYearOfTheDragonExp extends Table
 
         $monks = $this->countMonks();
         $monk_points = array();
-        foreach( $monks as $monk ) {
+        foreach( $monks as $m => $monk ) {
             $player_id = $monk['palace_player'];
             $points = $monk['level'] * $monk['palace_size'];  // Note: 1 buddha on level 1, 2 buddhas on level 2
             $monk_points[$player_id] += $points;
@@ -1987,6 +1987,7 @@ class InTheYearOfTheDragonExp extends Table
 
     /**
      * Return an associated array of monks per player and palace level
+     * palace_player => [palace_size, palace_person_level]
      */
     function countMonks() {
         $sql = "SELECT palace_player, palace_size, palace_person_level level
@@ -1994,6 +1995,7 @@ class InTheYearOfTheDragonExp extends Table
                 INNER JOIN palace ON palace_id=palace_person_palace_id
                 WHERE palace_person_type='6'";  // 6 = monks
         $monks = self::getObjectListFromDB( $sql );
+        return $monks;
     }
 
     function finalScoring()
@@ -2025,11 +2027,12 @@ class InTheYearOfTheDragonExp extends Table
 
         // Monks
         $monks = $this->countMonks();
-        foreach( $monks as $monk )        
+        foreach( $monks as $m => $monk )        
         {
+            $mpid = $monk['palace_player'];
             $points = $monk['level']*$monk['palace_size'];  // Note: 1 buddha on level 1, 2 buddhas on level 2
-            $player_to_scoring[ $monk['palace_player'] ]['monk'] += $points;
-            self::incStat( $points, 'points_monks', $monk['palace_player'] );
+            $player_to_scoring[ $mpid ]['monk'] += $points;
+            self::incStat( $points, 'points_monks', $mpid );
         }
         
         // Money
