@@ -533,7 +533,7 @@ class InTheYearOfTheDragonExp extends Table
         $players = self::loadPlayersBasicInfos();
         $player_person = $this->countPersons();
         foreach ($player_person as $player_id => $personct) {
-            $personscore = 2*$personcount;
+            $personscore = 2*$personct;
             self::incStat( $personscore, 'points_person', $player_id );
             self::DbQuery( "UPDATE player SET player_score=player_score+$personscore WHERE player_id='$player_id' " );
             self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Lantern Festival' ), array(

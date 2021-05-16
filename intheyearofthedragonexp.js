@@ -179,14 +179,14 @@ function (dojo, declare) {
             if (se != 0) {
                 var event_7 = document.getElementById("event_7");
                 if (this.gamedatas.super_event_done == 1) {
-                    var fin_event_div = this.getSuperEventTile("superevent", 12, 0.3);
+                    var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
                 } else {
                     var superevent = this.gamedatas.super_events[ se ];
-                    var superevent_div = this.getSuperEventTile("superevent", se, 0.3);
+                    var superevent_div = this.createSuperEventTile("superevent", se, 0.3);
                     dojo.place(superevent_div, event_7);
     
-                    var tooltip_icon = this.getSuperEventTile("superevent_tt", se, 1);
+                    var tooltip_icon = this.createSuperEventTile("superevent_tt", se, 1);
                     tooltip_icon = tooltip_icon.replace('class="superevent"', 'class="superevent_icon"');
                     var tooltip = '<div style="display: flex;">'
                                 + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.nametr+'</b><hr/>'+_(superevent.description)+'</div>'
@@ -200,12 +200,12 @@ function (dojo, declare) {
 
         /**
          * Get div tile with superevent icon.
-         * @param {string} id
-         * @param {int} se
-         * @param {int} scale 
+         * @param {string} id for div
+         * @param {int} se index of super event
+         * @param {float} scale 
          * @returns html string
          */
-        getSuperEventTile: function(id, se, scale) {
+        createSuperEventTile: function(id, se, scale) {
             var xoff = -80 * scale * (se-1);
             var superevent_div = this.format_block('jstpl_super_event', {id: id, x: xoff, scale: scale});
             return superevent_div;
@@ -261,7 +261,7 @@ function (dojo, declare) {
                 if (this.gamedatas.super_event_done && this.gamedatas.month == 7) {
                     this.removeSuperEventTile();
                     var event_7 = document.getElementById("event_7");
-                    var fin_event_div = this.getSuperEventTile("superevent", 12, 0.3);
+                    var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
                 }
                 break;
