@@ -527,7 +527,7 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
-     * For Lantern Festival super event.
+     * For Lanternfest super event.
      */
     function scorePersons() {
         $players = self::loadPlayersBasicInfos();
@@ -536,7 +536,7 @@ class InTheYearOfTheDragonExp extends Table
             $personscore = 2*$personct;
             self::incStat( $personscore, 'points_person', $player_id );
             self::DbQuery( "UPDATE player SET player_score=player_score+$personscore WHERE player_id='$player_id' " );
-            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Lantern Festival' ), array(
+            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Lanternfest' ), array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]['player_name'],
                 'nbr' => $personscore
