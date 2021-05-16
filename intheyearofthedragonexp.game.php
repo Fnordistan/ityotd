@@ -257,7 +257,6 @@ class InTheYearOfTheDragonExp extends Table
         $result['superEvent'] = self::getGameStateValue(SUPER_EVENT);
         if (self::getGameStateValue(SUPER_EVENT) != 0) {
             $result['super_events'] = $this->superevents;
-            $result['super_event_done'] = self::getGameStateValue(SUPER_EVENT_DONE);
         }
   
         return $result;
@@ -2110,20 +2109,21 @@ class InTheYearOfTheDragonExp extends Table
             self::incStat( 1, 'decay', $palace_to_decay['player'] );
         }
         
+        $month = self::getGameStateValue( 'month');
+        
         // Notify
         self::notifyAllPlayers( "decay", clienttranslate('Decay: Uninhabited palaces are reduced by 1 floor'), array(
             'destroy' => $destroy_ids,
-            'reduce' => $reduce_size_ids
+            'reduce' => $reduce_size_ids,
+            'month' => $month, // for super events
         ) );
-        
+
         // Turn scoring: palaces, court ladies and privileges /////////////////////////////////////////
         self::endOfTurnScoring();
 
         
         /////// => next month ///////////
                 
-        $month = self::getGameStateValue( 'month');
-        
         // If final conditions are met (12th turn):
         if( $month == 12 )
             $this->gamestate->nextState( 'finalScoring' );

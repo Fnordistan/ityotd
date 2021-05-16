@@ -178,7 +178,7 @@ function (dojo, declare) {
         placeSuperEvent: function(se) {
             if (se != 0) {
                 var event_7 = document.getElementById("event_7");
-                if (this.gamedatas.super_event_done == 1) {
+                if (this.gamedatas.month > 7) {
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
                 } else {
@@ -257,14 +257,6 @@ function (dojo, declare) {
                     dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
                 }                
                 break;
-            case 'decayAndScoring':
-                if (this.gamedatas.super_event_done && this.gamedatas.month == 7) {
-                    this.removeSuperEventTile();
-                    var event_7 = document.getElementById("event_7");
-                    var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
-                    dojo.place(fin_event_div, event_7);
-                }
-                break;
             case 'dummmy':
                 break;
             }
@@ -272,7 +264,7 @@ function (dojo, declare) {
         onLeavingState: function( stateName )
         {
             console.log( 'Leaving state: '+stateName );
-             
+
             switch( stateName )
             {
             case 'initialPlace':
@@ -791,18 +783,26 @@ function (dojo, declare) {
         {
             console.log( 'notif_decay' );
             console.log( notif );
-            
+
             for( var i in notif.args.destroy )
             {
                 var palace_id = notif.args.destroy[ i ];
                 this.removePalace( palace_id );
-            }       
+            }
             for( var i in notif.args.reduce )
             {
                 var palace_id = notif.args.reduce[ i ];
                 this.removeFloorToPalace( palace_id );
-            }       
-        
+            }
+            if (this.gamedatas.superEvent) {
+                var month = parseInt(notif.args.month);
+                if (month == 7) {
+                    this.removeSuperEventTile();
+                    var event_7 = document.getElementById("event_7");
+                    var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
+                    dojo.place(fin_event_div, event_7);
+                }
+            }
         },
         notif_endOfTurnScoring: function( notif )
         {
