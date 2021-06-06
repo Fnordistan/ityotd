@@ -16,6 +16,7 @@ require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
 define('SUPER_EVENT', "SUPER_EVENT");
 define('SUPER_EVENT_DONE', "SUPER_EVENT_DONE");
+define('SUPER_EVENT_FIRST_PLAYER', "seFirstPlayer");
 
 class InTheYearOfTheDragonExp extends Table
 {
@@ -34,9 +35,10 @@ class InTheYearOfTheDragonExp extends Table
                 "month" => 15,
                 "toRelease" => 16,
                 "lowerHelmet" => 17,
+                "toRemove" => 18,
                 "wallLength" => 20,
                 "minWalls" => 21, // minimum number of Wall tiles built in current turn
-                "gwFirstPlayer" => 22, // flag for rotating releases in GW event
+                SUPER_EVENT_FIRST_PLAYER => 22, // flag for rotating players in super event
                 SUPER_EVENT => 23,
                 SUPER_EVENT_DONE => 24,
                 "largePrivilegeCost" => 100,
@@ -174,10 +176,11 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'toBuild', 0 );
         self::setGameStateInitialValue( 'month', 1 );
         self::setGameStateInitialValue( 'toRelease', 0 );
+        self::setGameStateInitialValue( 'toRemove', 0 );
         self::setGameStateInitialValue( 'lowerHelmet', 0 );
         self::setGameStateInitialValue( 'wallLength', 0 );
         self::setGameStateInitialValue( 'minWalls', 0 );
-        self::setGameStateInitialValue( 'gwFirstPlayer', 0 );
+        self::setGameStateInitialValue( SUPER_EVENT_FIRST_PLAYER, 0 );
         self::setGameStateInitialValue( SUPER_EVENT, 0 ); // note this is different from "superEvents" which is the gameoptions value
         self::setGameStateInitialValue( SUPER_EVENT_DONE, 0 );
 
@@ -306,7 +309,7 @@ class InTheYearOfTheDragonExp extends Table
         if ($se == 1) {
             self::setGameStateValue(SUPER_EVENT, 0);
         } else if ($se == 2) {
-            self::setGameStateValue(SUPER_EVENT, rand(1,10));
+            self::setGameStateValue(SUPER_EVENT, bga_rand(1,10));
         } else if ($se == 13) {
             self::setGameStateValue(SUPER_EVENT, 11);
         } else {
@@ -415,7 +418,7 @@ class InTheYearOfTheDragonExp extends Table
                 break;
             case 11:
                 // Hard Mode random, determine event now
-                $se = rand(1,10);
+                $se = bga_rand(1,10);
                 self::setGameStateValue(SUPER_EVENT, $se);
                 $superevent_name = $this->superevents[$se]['nametr'];
                 self::notifyAllPlayers( 'superEventChosen', clienttranslate("Super event revealed: ${superevent_name}"), array(
@@ -512,6 +515,10 @@ class InTheYearOfTheDragonExp extends Table
         return self::getCollectionFromDB( "SELECT personcard_id id, personcard_type type FROM personcard WHERE personcard_player='$player_id' " );
     }
     
+    /**
+     * Reorder player order, assigning player_play_order by player_person_score/player_person_score_order.
+     * 1 = 1st
+     */
     function updatePlayerPlayOrder()
     {
         $player_ids = self::getObjectListFromDB( "SELECT player_id FROM player
@@ -581,6 +588,9 @@ class InTheYearOfTheDragonExp extends Table
         }
     }
 
+    /**
+     * Set whoever is 1 in player_play_order as active player
+     */
     function activeFirstPlayerInPlayOrder()
     {
         $player_ids = self::getObjectListFromDB( "SELECT player_id FROM player
@@ -589,7 +599,11 @@ class InTheYearOfTheDragonExp extends Table
         $player_id = array_shift( $player_ids );
         $this->gamestate->changeActivePlayer( $player_id );
     }
-    
+
+    /**
+     * If a player has not gone yet in current rotation, set that player to the active player and return true.
+     * Otherwise return false.
+     */
     function activeNextPlayerInPlayOrder()
     {
         $player_ids = self::getObjectListFromDB( "SELECT player_id FROM player
@@ -1180,8 +1194,9 @@ class InTheYearOfTheDragonExp extends Table
             $sql = "SELECT palace_size FROM palace WHERE palace_id='$palace_id' AND palace_player='$player_id' ";
             $palace_size = self::getUniqueValueFromDb( $sql );
             
-            if( $palace_size === null )
-                throw new feException( 'This palace does not exists' );
+            if( $palace_size === null ) {
+                throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );
+            }
             
             if( $palace_size == 3 )
                 throw new feException( self::_("No palace can have more than 3 floors."), true );
@@ -1214,7 +1229,31 @@ class InTheYearOfTheDragonExp extends Table
         else
             $this->gamestate->nextState( 'buildAgain' );
     }
-    
+
+    function reducePalace($palace_id) {
+        self::checkAction( 'reduce' );
+        $player_id = self::getActivePlayerId();
+
+        $sql = "SELECT palace_size FROM palace WHERE palace_id='$palace_id' AND palace_player='$player_id' ";
+        $palace_size = self::getUniqueValueFromDb( $sql );
+        if( $palace_size === null ) {
+            throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );
+        }
+        $palace_size--;
+
+        if ($palace_size == 0) {
+            self::DbQuery( "DELETE FROM palace WHERE palace_id='$palace_id' " );
+        } else {
+            self::DbQuery( "UPDATE palace SET palace_size=$palace_size WHERE palace_id='$palace_id' " );
+        }
+
+        self::notifyAllPlayers( 'reducePalace', clienttranslate('${player_name} reduces a palace section'), array(
+            'player_name' => self::getActivePlayerName(),
+            'reduce' => $palace_id,
+            'size' => $palace_size
+        ) );
+    }
+
     function release( $person_id )
     {
         self::checkAction( 'release' );
@@ -1315,6 +1354,15 @@ class InTheYearOfTheDragonExp extends Table
     {
         return array(
             'nbr' => self::getGameStateValue( 'toRelease' )
+        );
+    }
+
+    /**
+     * For reducing palaces.
+     */
+    function argNbrToRemove() {
+        return array(
+            'nbr' => self::getGameStateValue( 'toRemove' )
         );
     }
     
@@ -1784,7 +1832,7 @@ class InTheYearOfTheDragonExp extends Table
             self::updatePlayerPlayOrder();
             self::activeFirstPlayerInPlayOrder();
             self::setGameStateValue('minWalls', $min);
-            self::setGameStateValue('gwFirstPlayer', 1);
+            self::setGameStateValue(SUPER_EVENT_FIRST_PLAYER, 1);
             $this->gamestate->nextState('losePerson');
         } else {
             // get points per wall
@@ -1798,18 +1846,26 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
+     * For checking next player in a Super Event. If SUPER_EVENT_FIRST_PLAYER has been initialized it, unflag it.
+     * If first player, or there is another player in player order, return true to continue.
+     * If all players have gone, return false.
+     */
+    function rotatePlayerSuperEvent() {
+        $continue = true;
+        if (self::getGameStateValue(SUPER_EVENT_FIRST_PLAYER) == 1) {
+            self::setGameStateValue(SUPER_EVENT_FIRST_PLAYER, 0);
+        } else {
+            // means we need to transition to next player to check
+            $continue = self::activeNextPlayerInPlayOrder();
+        }
+        return $continue;
+    }
+
+    /**
      * Choose whether this player needs to lose someone.
      */
     function stGreatWallNext() {
-        $continue = true;
-        if (self::getGameStateValue('gwFirstPlayer') == 1) {
-            self::setGameStateValue('gwFirstPlayer', 0);
-        } else {
-            // means we need to transition to next player to check
-            if (!self::activeNextPlayerInPlayOrder()) {
-                $continue = false;
-            }
-        }
+        $continue = $this->rotatePlayerSuperEvent();
 
         if ( $continue ) {
             $player_id = self::getActivePlayerId();
@@ -1855,10 +1911,45 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
-     * From Earthquake super event.
+     * Not used for all Super Events, but only those requiring we cycle through all players.
      */
-    function stRemovePalaces() {
+    function stSuperEventInit() {
+        self::updatePlayerPlayOrder();        
+        self::activeFirstPlayerInPlayOrder();
+        self::setGameStateValue(SUPER_EVENT_FIRST_PLAYER, 1);
+        $state = "";
+        $se = self::getGameStateValue(SUPER_EVENT);
+        switch ($se) {
+            case 3:
+                $state = "earthquake";
+                break;
+            default:
+                throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
 
+        }
+
+        $this->gamestate->nextState($state);
+    }
+
+    /**
+     * Rotate through players for Earthquake super event.
+     */
+    function stEarthquake() {
+        $continue = $this->rotatePlayerSuperEvent();
+
+        if ( $continue ) {
+            self::setGameStateValue('toRemove', 2);
+            // next player will reduce palaces
+            $this->gamestate->nextState( 'nextPlayer');
+        } else {
+            $this->gamestate->nextState( 'endPhase' );
+        }
+    }
+
+    function stReducePalace() {
+        if (self::getGameStateValue('toRemove') > 0) {
+            self::incGameStateValue('toRemove', -1);
+        }
     }
 
     /**
@@ -2080,7 +2171,7 @@ class InTheYearOfTheDragonExp extends Table
     
     function stDecayAndScoring()
     {
-        // Decay: innocupied palace loose a floor, and void palace are removed
+        // Decay: unoccupied palaces lose a floor, and void palaces are removed
         $sql = "SELECT palace_id, palace_size size, palace_player player, COUNT( palace_person_id ) cnt
                 FROM palace
                 LEFT JOIN palace_person ON palace_person_palace_id=palace_id
@@ -2137,7 +2228,7 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState( 'nextTurn' );
         }            
     }
-    
+
     function stFinalScoring()
     {
         // Final scoring: 

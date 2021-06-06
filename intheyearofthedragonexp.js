@@ -257,6 +257,13 @@ function (dojo, declare) {
                     dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
                 }                
                 break;
+            case 'reducePalace':
+                if( this.isCurrentPlayerActive() )
+                {
+                    // Show "place here" icons    
+                    dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
+                }                
+                break;
             case 'dummmy':
                 break;
             }
@@ -520,6 +527,14 @@ function (dojo, declare) {
                     id: palace_id   
                 }, this, function( result ) {  } );             
             }
+            else if (this.checkAction( 'reduce')) {
+                console.log('reduce palace');
+                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/reduce.html", { 
+                    lock: true, 
+                    id: palace_id   
+                }, this, function( result ) {  } );             
+
+            }
         },
         
         onAction: function( evt )
@@ -618,6 +633,7 @@ function (dojo, declare) {
             dojo.subscribe( 'buyPrivilege', this, "notif_buyPrivilege" );
             dojo.subscribe( 'newPalace', this, "notif_newPalace" );
             dojo.subscribe( 'buildPalace', this, "notif_buildPalace" );
+            dojo.subscribe( 'reducePalace', this, "notif_reducePalace" );
             dojo.subscribe( 'newMonth', this, "notif_newMonth" );
             dojo.subscribe( 'release', this, "notif_release" );
             dojo.subscribe( 'eventPayYuan', this, "notif_eventPayYuan" );
@@ -767,6 +783,21 @@ function (dojo, declare) {
             console.log( notif );
             this.addFloorToPalace( notif.args.palace_id );
         },
+
+        notif_reducePalace: function(notif) {
+            console.log( 'notif_reducePalace' );
+            console.log( notif );
+            var palace_id = notif.args.reduce;
+            var newsize = parseInt(notif.args.size);
+
+            if (newsize == 0) {
+                this.removePalace( palace_id );
+            } else {
+                this.removeFloorToPalace( palace_id );
+            }
+        },
+
+
         notif_newMonth:function( notif )
         {
             console.log( 'notif_newMonth' );

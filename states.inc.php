@@ -33,9 +33,40 @@
 *
 */
 
+if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since it is included multiple times
+    define("STATE_SETUP", 1);
+    define("STATE_INITIAL_CHOICE_NP", 5);
+    define("STATE_INITIAL_CHOICE", 6);
+    define("STATE_INITIAL_PLACE", 7);
+    define("STATE_START_GAME", 10);
+    define("STATE_ACTION_NP", 11);
+    define("STATE_ACTION_CHOOSE", 12);
+    define("STATE_BUILD", 13);
+    define("STATE_PRIVILEGE", 14);
+    define("STATE_NEXT_PHASE", 20);
+    define("STATE_RECRUIT_PERSON", 21);
+    define("STATE_PLACE_PERSON", 22);
+    define("STATE_REPLACE_PERSON", 23);
+    define("STATE_EVENT", 30);
+    define("STATE_EVENT_CONSEQUENCE", 31);
+    define("STATE_RELEASE_PERSON", 32);
+    define("STATE_NEXT_PLAYER", 33);
+    define("STATE_GREAT_WALL", 34);
+    define("STATE_GREAT_WALL_NP", 35);
+    define("STATE_GREAT_WALL_RELEASE", 36);
+    define("STATE_SUPER_EVENT", 37);
+    define("SUPER_EVENT_INIT", 38);
+    define("STATE_END_PHASE", 40);
+    define("STATE_EARTHQUAKE", 41);
+    define("STATE_REDUCE_PALACE", 42);
+    define("STATE_FINAL_SCORING", 98);
+    define("STATE_ENDGAME", 99);
+}
+
+
 $machinestates = array(
 
-    1 => array(
+    STATE_SETUP => array(
         "name" => "gameSetup",
         "description" => clienttranslate("Game setup"),
         "type" => "manager",
@@ -45,127 +76,127 @@ $machinestates = array(
     
     
     /// Initial choice of subjects /////////////////////::
-    5 => array(
+    STATE_INITIAL_CHOICE_NP => array(
         "name" => "initialChoiceNextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stInitialChoiceNextPlayer",
-        "transitions" => array( "startGame" => 10, "nextPlayer" => 6 )
+        "transitions" => array( "startGame" => STATE_START_GAME, "nextPlayer" => STATE_INITIAL_CHOICE )
     ),
-    6 => array(
+    STATE_INITIAL_CHOICE => array(
         "name" => "initialChoice",
-        "description" => clienttranslate('${actplayer} must summon his first 2 subjects to court'),
+        "description" => clienttranslate('${actplayer} must summon first 2 subjects to court'),
         "descriptionmyturn" => clienttranslate('${you} must summon your first 2 subjects to court'),
         "possibleactions" => array( "recruit" ),
         "type" => "activeplayer",
-        "transitions" => array( "chooseTile" => 7, "zombiePass" => 5 )
+        "transitions" => array( "chooseTile" => STATE_INITIAL_PLACE, "zombiePass" => STATE_INITIAL_CHOICE_NP )
     ),
-    7 => array(
+    STATE_INITIAL_PLACE => array(
         "name" => "initialPlace",
-        "description" => clienttranslate('${actplayer} must place his new person tile in one of his palaces'),
-        "descriptionmyturn" => clienttranslate('${you} must place your new person tile in one of your palaces'),
+        "description" => clienttranslate('${actplayer} must place new person tile in a palace'),
+        "descriptionmyturn" => clienttranslate('${you} must place new person tile in a palace'),
         "possibleactions" => array( "place" ),
         "args" => "argPlaceTile",
         "type" => "activeplayer",
-        "transitions" => array( "" => 5 )
+        "transitions" => array( "" => STATE_INITIAL_CHOICE_NP )
     ),
     
     /// 1st game phase: ACTIONS ///////////////////
     
-    10 => array(
+    STATE_START_GAME => array(
         "name" => "actionPhaseInit",
         "description" => '',
         "type" => "game",
         "updateGameProgression" => true,   
         "action" => "stActionPhaseInit",
-        "transitions" => array( "" => 12 )
+        "transitions" => array( "" => STATE_ACTION_CHOOSE )
     ),
-    11 => array(
+    STATE_ACTION_NP => array(
         "name" => "actionPhaseNextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stActionPhaseNextPlayer",
-        "transitions" => array( "nextPlayer" => 12, "endPhase" => 21 )
+        "transitions" => array( "nextPlayer" => STATE_ACTION_CHOOSE, "endPhase" => STATE_RECRUIT_PERSON )
     ),    
-    12 => array(
+    STATE_ACTION_CHOOSE => array(
         "name" => "actionPhaseChoose",
         "description" => clienttranslate('${actplayer} must choose an action to carry out'),
         "descriptionmyturn" => clienttranslate('${you} must choose an action to carry out'),
         "possibleactions" => array( "action", "refillyuan" ),
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => 11, "buildAction" => 13, "privilegeAction" => 14 )
+        "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAction" => STATE_BUILD, "privilegeAction" => STATE_PRIVILEGE )
     ),
-    13 => array(
+    STATE_BUILD => array(
         "name" => "actionPhaseBuild",
-        "description" => clienttranslate('${actplayer} must choose to extend an existing palace or to build a new one (x${toBuild})'),
-        "descriptionmyturn" => clienttranslate('${you} must choose to extend an existing palace or to build a new one (x${toBuild})'),
+        "description" => clienttranslate('${actplayer} must extend an existing palace or build a new one (x${toBuild})'),
+        "descriptionmyturn" => clienttranslate('${you} must extend an existing palace or build a new one (x${toBuild})'),
         "possibleactions" => array( "build" ),
         "args" => "argActionPhaseBuild",
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => 11, "buildAgain" => 13 )
+        "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAgain" => STATE_BUILD )
     ),    
-    14 => array(
+    STATE_PRIVILEGE => array(
         "name" => "actionPhasePrivilege",
-        "description" => clienttranslate('${actplayer} must choose to buy a small privilege (2 yuans) or a large privilege (${largePrivilegeCost} yuans)'),
-        "descriptionmyturn" => clienttranslate('${you} must choose to buy a small privilege (2 yuans) or a large privilege (${largePrivilegeCost} yuans)'),
+        "description" => clienttranslate('${actplayer} must buy a small privilege (2 yuans) or a large privilege (${largePrivilegeCost} yuans)'),
+        "descriptionmyturn" => clienttranslate('${you} must buy a small privilege (2 yuans) or a large privilege (${largePrivilegeCost} yuans)'),
         "args" => "argActionPhasePrivilege",
         "possibleactions" => array( "choosePrivilege" ),
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => 11 )
+        "transitions" => array( "nextPlayer" => STATE_ACTION_NP )
     ),  
     
     /// 2nd phase: PERSONS //////
-    20 => array(
+    STATE_NEXT_PHASE => array(
         "name" => "personPhaseNextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stPersonPhaseNextPlayer",
-        "transitions" => array( "nextPlayer" => 21, "endPhase" => 30 )
+        "transitions" => array( "nextPlayer" => STATE_RECRUIT_PERSON, "endPhase" => STATE_EVENT )
     ),      
-    21 => array(
+    STATE_RECRUIT_PERSON => array(
         "name" => "personPhaseChoosePerson",
         "description" => clienttranslate('${actplayer} must choose a person tile to recruit'),
         "descriptionmyturn" => clienttranslate('${you} must choose a person tile to recruit'),
         "possibleactions" => array( "recruit" ),
         "action" => "stPersonPhaseChoosePerson",
         "type" => "activeplayer",
-        "transitions" => array( "chooseTile" => 22, "palaceFull" => 23, "zombiePass" => 20, "notPossible" => 20 )
+        "transitions" => array( "chooseTile" => STATE_PLACE_PERSON, "palaceFull" => STATE_REPLACE_PERSON, "zombiePass" => STATE_NEXT_PHASE, "notPossible" => STATE_NEXT_PHASE )
     ),   
-    22 => array(
+    STATE_PLACE_PERSON => array(
         "name" => "personPhasePlace",
         "description" => clienttranslate('${actplayer} must place a new person tile in a palace'),
         "descriptionmyturn" => clienttranslate('${you} must place your new person tile in one of your palace'),
         "possibleactions" => array( "place" ),
         "args" => "argPlaceTile",
         "type" => "activeplayer",
-        "transitions" => array( "" => 20 )
+        "transitions" => array( "" => STATE_NEXT_PHASE )
     ),      
-    23 => array(
+    STATE_REPLACE_PERSON => array(
         "name" => "palaceFull",
         "description" => clienttranslate('${actplayer} must choose which person to replace with the new one'),
         "descriptionmyturn" => clienttranslate('${you} must choose which person to replace with the new one'),
         "possibleactions" => array( "releaseReplace", "place" ),
         "args" => "argPlaceTile",
         "type" => "activeplayer",
-        "transitions" => array( "" => 20 )
+        "transitions" => array( "" => STATE_NEXT_PHASE )
     ), 
 
     /// 3rd phase: EVENTS //////
-    30 => array(
+    STATE_EVENT => array(
         "name" => "eventPhase",
         "description" => '',
         "type" => "game",
         "action" => "stEventPhase",
-        "transitions" => array( "releaseRound" => 31 )
+        "transitions" => array( "releaseRound" => STATE_EVENT_CONSEQUENCE )
     ),      
-    31 => array(
+    STATE_EVENT_CONSEQUENCE => array(
         "name" => "eventPhaseApplyConsequences",
         "description" => '',
         "type" => "game",
         "action" => "stEventPhaseApplyConsequences",
-        "transitions" => array( "releasePerson" => 32, "noRelease" => 33 )
+        "transitions" => array( "releasePerson" => STATE_RELEASE_PERSON, "noRelease" => STATE_NEXT_PLAYER )
     ),           
-    32 => array(
+    STATE_RELEASE_PERSON => array(
         "name" => "release",
         "description" => clienttranslate('${actplayer} must choose ${nbr} person(s) to release'),
         "descriptionmyturn" => clienttranslate('${you} must choose ${nbr} person(s) to release'),
@@ -173,33 +204,35 @@ $machinestates = array(
         "action" => "stRelease",
         "args" => "argNbrToRelease",
         "type" => "activeplayer",
-        "transitions" => array( "continueRelease" => 32, "endRelease" => 33 )
-    ), 
-    33 => array(
+        "transitions" => array( "continueRelease" => STATE_RELEASE_PERSON, "endRelease" => STATE_NEXT_PLAYER )
+    ),
+    STATE_NEXT_PLAYER => array(
         "name" => "eventPhaseNextPlayer",
         "description" => '',
         "type" => "game",
         "action" => "stEventPhaseNextPlayer",
-        "transitions" => array( "endPhase" => 39, "nextPlayer" => 31, "greatWall" => 34 )
+        "transitions" => array( "endPhase" => STATE_SUPER_EVENT, "nextPlayer" => STATE_EVENT_CONSEQUENCE, "greatWall" => STATE_GREAT_WALL )
     ),
 
-    34 => array(
+    /// GREAT WALL expansion //////
+
+    STATE_GREAT_WALL => array(
         "name" => "greatWallEvent",
         "description" => "",
         "type" => "game",
         "action" => "stGreatWall",
-        "transitions" => array( "losePerson" => 35, "endPhase" => 39 )
+        "transitions" => array( "losePerson" => STATE_GREAT_WALL_NP, "endPhase" => STATE_SUPER_EVENT )
     ),
 
-    35 => array(
+    STATE_GREAT_WALL_NP => array(
         "name" => "greatWallNextPlayer",
         "description" => "",
         "action" => "stGreatWallNext",
         "type" => "game",
-        "transitions" => array( "nextPlayer" => 35, "releasePerson" => 36, "endPhase" => 39 )
+        "transitions" => array( "nextPlayer" => STATE_GREAT_WALL_NP, "releasePerson" => STATE_GREAT_WALL_RELEASE, "endPhase" => STATE_SUPER_EVENT )
     ),
 
-    36 => array(
+    STATE_GREAT_WALL_RELEASE => array(
         "name" => "greatWallRelease",
         "description" => clienttranslate('${actplayer} must choose 1 person to release'),
         "descriptionmyturn" => clienttranslate('${you} must choose 1 person to release'),
@@ -207,32 +240,53 @@ $machinestates = array(
         "action" => "stGreatWallRelease",
         "args" => "argNbrToRelease",
         "type" => "activeplayer",
-        "transitions" => array( "endRelease" => 35 )
+        "transitions" => array( "endRelease" => STATE_GREAT_WALL_NP )
     ),
 
-    39 => array(
+    /// SUPER EVENTS //////
+
+    STATE_SUPER_EVENT => array(
         "name" => "superEvent",
         "description" => '',
         "type" => "game",
         "action" => "stSuperEvent",
-        "transitions" => array( "endPhase" => 40, "earthquake" => 41, "flood" => 50, "solar" => 30, "tornado" => 60, "sunrise" => 70, "charter" => 80 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => 50, "solar" => STATE_EVENT, "tornado" => 60, "sunrise" => 70, "charter" => 80 )
     ),
 
-    40 => array(
+    STATE_END_PHASE => array(
         "name" => "decayAndScoring",
         "description" => '',
         "type" => "game",
         "action" => "stDecayAndScoring",
-        "transitions" => array( "nextTurn" => 10, "finalScoring" => 98 )
+        "transitions" => array( "nextTurn" => STATE_START_GAME, "finalScoring" => STATE_FINAL_SCORING )
+    ),
+
+    SUPER_EVENT_INIT => array(
+        "name" => "superEventInit",
+        "description" => '',
+        "type" => "game",
+        "action" => "stSuperEventInit",
+        "transitions" => array( "earthquake" => STATE_EARTHQUAKE )
     ),
 
     // from Earthquake
-    41 => array(
-        "name" => "destroyPalaces",
+    STATE_EARTHQUAKE => array(
+        "name" => "earthquakeSuperEvent",
         "description" => '',
         "type" => "game",
-        "action" => "stRemovePalaces",
-        "transitions" => array( "removePalace" => 42, "endPhase" => 40 )
+        "action" => "stEarthquake",
+        "transitions" => array( "nextPlayer" => STATE_REDUCE_PALACE, "endPhase" => STATE_END_PHASE )
+    ),
+
+    STATE_REDUCE_PALACE => array(
+        "name" => "reducePalace",
+        "description" => clienttranslate('${actplayer} must remove ${nbr} palace section(s)'),
+        "descriptionmyturn" => clienttranslate('${you} must remove ${nbr} palace section(s)'),
+        "possibleactions" => array( "reduce" ),
+        "action" => "stReducePalace",
+        "args" => "argNbrToRemove",
+        "type" => "activeplayer",
+        "transitions" => array( "endRemove" => STATE_EARTHQUAKE, "reducePalace" => STATE_REDUCE_PALACE, "releasePerson" => STATE_RELEASE_PERSON  )
     ),
 
     // from Flood
@@ -241,7 +295,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stRemoveResources",
-        "transitions" => array( "endPhase" => 40 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE )
     ),
 
     // from Tornado
@@ -250,7 +304,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stDiscardCards",
-        "transitions" => array( "endPhase" => 40 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE )
     ),
 
     // from Sunrise
@@ -259,7 +313,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stAddYoungPerson",
-        "transitions" => array( "endPhase" => 40 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE )
     ),
 
     // from Charter
@@ -268,19 +322,19 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stCharter",
-        "transitions" => array( "endPhase" => 40 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE )
     ),
 
     /// Final scoring //////
-    98 => array(
+    STATE_FINAL_SCORING => array(
         "name" => "finalScoring",
         "description" => '',
         "type" => "game",
         "action" => "stFinalScoring",
-        "transitions" => array( "" => 99 )
+        "transitions" => array( "" => STATE_ENDGAME )
     ),    
    
-    99 => array(
+    STATE_ENDGAME => array(
         "name" => "gameEnd",
         "description" => clienttranslate("End of game"),
         "type" => "manager",

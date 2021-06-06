@@ -183,7 +183,7 @@ $this->superevents = array(
                 'description' => self::_("Players score monks just as they would at game end: Buddhas x number of floors = victory points.") ),
     3 => array( 'name' => totranslate('Earthquake'),
                 'nametr' => self::_("Earthquake"),
-                'description' => self::_("Beginning with the starting player, each player loses any two palace sections (back to the supply). This may require players to release people.") ),
+                'description' => self::_("Beginning with the starting player, each player loses two palace sections (back to the supply). This may require players to release people.") ),
     4 => array( 'name' => totranslate('Flood'),
                 'nametr' => self::_("Flood"),
                 'description' => self::_("Beginning with the starting player, each player adds their yuan, rice tiles, and fireworks tiles, and returns half the total (rounded down).") ),
