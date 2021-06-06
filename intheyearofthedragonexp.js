@@ -260,7 +260,7 @@ function (dojo, declare) {
             case 'reducePalace':
                 if( this.isCurrentPlayerActive() )
                 {
-                    // Show "place here" icons    
+                    // Show "select here" icons    
                     dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
                 }                
                 break;
@@ -280,7 +280,6 @@ function (dojo, declare) {
                 dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
                 dojo.query( '.choosepalace' ).style( 'display', 'none' );
                 break;
-
             case 'actionPhaseBuild':
                 dojo.query( '.choosepalace' ).style( 'display', 'none' );
                 this.removePalace( 'new' );

@@ -35,7 +35,7 @@ class InTheYearOfTheDragonExp extends Table
                 "month" => 15,
                 "toRelease" => 16,
                 "lowerHelmet" => 17,
-                "toRemove" => 18,
+                "toReduce" => 18,
                 "wallLength" => 20,
                 "minWalls" => 21, // minimum number of Wall tiles built in current turn
                 SUPER_EVENT_FIRST_PLAYER => 22, // flag for rotating players in super event
@@ -176,7 +176,7 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'toBuild', 0 );
         self::setGameStateInitialValue( 'month', 1 );
         self::setGameStateInitialValue( 'toRelease', 0 );
-        self::setGameStateInitialValue( 'toRemove', 0 );
+        self::setGameStateInitialValue( 'toReduce', 0 );
         self::setGameStateInitialValue( 'lowerHelmet', 0 );
         self::setGameStateInitialValue( 'wallLength', 0 );
         self::setGameStateInitialValue( 'minWalls', 0 );
@@ -1252,6 +1252,13 @@ class InTheYearOfTheDragonExp extends Table
             'reduce' => $palace_id,
             'size' => $palace_size
         ) );
+
+        $remainingToReduce = self::incGameStateValue( 'toReduce', -1 );
+        if ($remainingToReduce == 0) {
+            $this->gamestate->nextState( 'nextPlayer' );
+        } else {
+            $this->gamestate->nextState( 'reducePalace' );
+        }
     }
 
     function release( $person_id )
@@ -1360,9 +1367,9 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * For reducing palaces.
      */
-    function argNbrToRemove() {
+    function argNbrToReduce() {
         return array(
-            'nbr' => self::getGameStateValue( 'toRemove' )
+            'nbr' => self::getGameStateValue( 'toReduce' )
         );
     }
     
@@ -1938,17 +1945,11 @@ class InTheYearOfTheDragonExp extends Table
         $continue = $this->rotatePlayerSuperEvent();
 
         if ( $continue ) {
-            self::setGameStateValue('toRemove', 2);
+            self::setGameStateValue('toReduce', 2);
             // next player will reduce palaces
             $this->gamestate->nextState( 'nextPlayer');
         } else {
             $this->gamestate->nextState( 'endPhase' );
-        }
-    }
-
-    function stReducePalace() {
-        if (self::getGameStateValue('toRemove') > 0) {
-            self::incGameStateValue('toRemove', -1);
         }
     }
 

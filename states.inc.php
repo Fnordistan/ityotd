@@ -283,10 +283,9 @@ $machinestates = array(
         "description" => clienttranslate('${actplayer} must remove ${nbr} palace section(s)'),
         "descriptionmyturn" => clienttranslate('${you} must remove ${nbr} palace section(s)'),
         "possibleactions" => array( "reduce" ),
-        "action" => "stReducePalace",
-        "args" => "argNbrToRemove",
+        "args" => "argNbrToReduce",
         "type" => "activeplayer",
-        "transitions" => array( "endRemove" => STATE_EARTHQUAKE, "reducePalace" => STATE_REDUCE_PALACE, "releasePerson" => STATE_RELEASE_PERSON  )
+        "transitions" => array( "nextPlayer" => STATE_EARTHQUAKE, "reducePalace" => STATE_REDUCE_PALACE, "releasePerson" => STATE_RELEASE_PERSON  )
     ),
 
     // from Flood
