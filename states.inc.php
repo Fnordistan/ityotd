@@ -285,7 +285,7 @@ $machinestates = array(
         "possibleactions" => array( "reduce" ),
         "args" => "argNbrToReduce",
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => STATE_EARTHQUAKE, "reducePalace" => STATE_REDUCE_PALACE, "releasePerson" => STATE_RELEASE_PERSON  )
+        "transitions" => array( "nextPlayer" => STATE_EARTHQUAKE, "nextReduce" => STATE_REDUCE_PALACE, "releasePerson" => STATE_RELEASE_PERSON  )
     ),
 
     // from Flood

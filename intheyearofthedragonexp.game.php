@@ -1230,7 +1230,7 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState( 'buildAgain' );
     }
 
-    function reducePalace($palace_id) {
+    function reduce($palace_id) {
         self::checkAction( 'reduce' );
         $player_id = self::getActivePlayerId();
 
@@ -1241,7 +1241,9 @@ class InTheYearOfTheDragonExp extends Table
         }
         $palace_size--;
 
+        $removedPersons = array();
         if ($palace_size == 0) {
+            $removedPersons = self::getObjectListFromDB("SELECT palace_person_id FROM palace_person WHERE palace_person_palace_id='$palace_id' ", true);
             self::DbQuery( "DELETE FROM palace WHERE palace_id='$palace_id' " );
         } else {
             self::DbQuery( "UPDATE palace SET palace_size=$palace_size WHERE palace_id='$palace_id' " );
@@ -1255,10 +1257,37 @@ class InTheYearOfTheDragonExp extends Table
 
         $remainingToReduce = self::incGameStateValue( 'toReduce', -1 );
         if ($remainingToReduce == 0) {
-            $this->gamestate->nextState( 'nextPlayer' );
+            // do we need to remove people?
+            foreach ($removedPersons as $person_id) {
+                self::doRelease( $person_id, false );
+            }
+            // now check for palaces that no longer have enough spaces
+            if ($this->markOverPopulatedPalaces($player_id)) {
+                $this->gamestate->nextState( 'releasePerson' );
+            } else {
+                $this->gamestate->nextState( 'nextPlayer' );
+            }
         } else {
-            $this->gamestate->nextState( 'reducePalace' );
+            $this->gamestate->nextState( 'nextReduce' );
         }
+    }
+
+    /**
+     * We're going to use the existing drought_affected flag to indicate overfilled palaces.
+     * Return true if there are any overfilled palaces belonging to this player.
+     */
+    function markOverPopulatedPalaces($player_id) {
+        $overFilled = false;
+        $palaces = self::getCollectionFromDB("SELECT palace_id, palace_size FROM palace WHERE palace_player='$player_id' ", true);
+        foreach ($palaces as $palace_id => $size) {
+            $persons = self::getObjectListFromDB("SELECT palace_person_id FROM palace_person WHERE palace_person_palace_id=$palace_id", true);
+            $diff = count($persons) - $size;
+            if ($diff > 0) {
+                self::DbQuery("UPDATE palace SET palace_drought_affected=$diff WHERE palace_id='$palace_id'");
+                $overFilled = true;
+            }
+        }
+        return $overFilled;
     }
 
     function release( $person_id )
@@ -1272,7 +1301,7 @@ class InTheYearOfTheDragonExp extends Table
         else    
             $this->gamestate->nextState( 'endRelease' ); 
     }
-    
+
     function doRelease( $person_id, $bAndReplace=false )
     {
         $player_id = self::getActivePlayerId();
@@ -1294,7 +1323,7 @@ class InTheYearOfTheDragonExp extends Table
             throw new feException( self::_("This person is not one of yours"), true );
 
         if( !$bAndReplace && $bDrought && $person['drought_affected'] )
-            throw new feException( self::_("You already release a person from this palace (see: Drought)"), true );
+            throw new feException( self::_("You already released a person from this palace (see: Drought)"), true );
         
         // Okay, let's release this one
         $sql = "DELETE FROM palace_person WHERE palace_person_id='$person_id' ";
@@ -1813,11 +1842,22 @@ class InTheYearOfTheDragonExp extends Table
         return $count;
     }
 
-    function stRelease() {
+    /**
+     * Check whether player still has people left in Palaces, so we won't
+     * try to go below 0.
+     * Return true if still 1 or more person lefts, otherwise false.
+     */
+    function hasPersonsLeft() {
         $player_id = self::getActivePlayerId();
         $count = $this->nbrPersonsLeft($player_id);
-        
-        if ( $count == 0 ) {
+        return ($count > 0);
+    }
+
+    /**
+     * Default release state.
+     */
+    function stRelease() {
+        if (!$this->hasPersonsLeft()) {
             $this->gamestate->nextState( 'endRelease' );
         }
     }
@@ -1892,12 +1932,10 @@ class InTheYearOfTheDragonExp extends Table
 
     /**
      * Players with fewest walls lose a person.
+     * Same method as stRelease, but differs in invocation from states.php.
      */
     function stGreatWallRelease() {
-        $player_id = self::getActivePlayerId();
-        $count = $this->nbrPersonsLeft($player_id);
-        
-        if ( $count == 0 ) {
+        if (!$this->hasPersonsLeft()) {
             $this->gamestate->nextState( 'endRelease' );
         }
     }
@@ -2263,28 +2301,6 @@ class InTheYearOfTheDragonExp extends Table
     
     protected function getGameRankInfos()
     {
-
-        //  $result = array(   "table" => array( "stats" => array( 1 => 0.554, 2 => 54, 3 => 56 ) ),       // game statistics
-        //                     "result" => array(
-        //                                     array( "rank" => 1,
-        //                                            "tie" => false,
-        //                                            "score" => 354,
-        //                                            "player" => 45,
-        //                                            "name" => "Kara Thrace",
-        //                                            "zombie" => 0,
-        //                                            "stats" => array( 1 => 0.554, 2 => 54, 3 => 56 ) ),
-        //                                     array( "rank" => 2,
-        //                                            "tie" => false,
-        //                                            "score" => 312,
-        //                                            "player" => 46,
-        //                                            "name" => "Lee Adama",
-        //                                            "zombie" => 0,
-        //                                            "stats" => array( 1 => 0.554, 2 => 54, 3 => 56 ) )
-        //                                     )
-        //              )
-        //
-
-
         // By default, common method uses 'player_rank' field to create this object
         $result = self::getStandardGameResultObject();
         

@@ -284,7 +284,9 @@ function (dojo, declare) {
                 dojo.query( '.choosepalace' ).style( 'display', 'none' );
                 this.removePalace( 'new' );
                 break;
-
+            case 'reducePalace':
+                dojo.query( '.choosepalace' ).style( 'display', 'none' );
+                break;
             }                
         }, 
         
@@ -302,7 +304,7 @@ function (dojo, declare) {
                     break;
 
                 case 'actionPhaseChoose':
-                    this.addActionButton( 'refillyuan', _('Take up money (up to 3 yuans)'), 'onTakeUpMoney' ); 
+                    this.addActionButton( 'refillyuan', _('Take money (up to 3 yuan)'), 'onTakeUpMoney' ); 
                     break;
                 case 'palaceFull':
                     this.addActionButton( 'noReplace', _('None ! Release the new one.'), 'onNoReplace' );                     
@@ -473,7 +475,6 @@ function (dojo, declare) {
         {
             console.log( 'onRecruit' );
             evt.preventDefault( );
-            
             if( ! this.checkAction( 'recruit' ) )
             {   return; }            
             
@@ -509,25 +510,27 @@ function (dojo, declare) {
             // choosepalace_<id>
             var palace_id = evt.currentTarget.id.substr( 13 );
 
-            if( this.checkAction( 'place', true ) )
+            if( this.checkAction('place', true))
             {
                 // Place a tile
-                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/place.html", { lock: true, 
+                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/place.html", { 
+                    lock: true, 
                     id: palace_id
                 }, this, function( result ) {  } );             
             } 
-            else if( this.checkAction( 'build' ) )
+            else if( this.checkAction('build', true))
             {
                 console.log('build palace');
                 // Build a floor
-                if( palace_id=='new' )
-                {   palace_id = 0;  }   // Note: meaning = "new palace"
-                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/build.html", { lock: true, 
+                if( palace_id == 'new' ) {   
+                    palace_id = 0;  // Note: meaning = "new palace"
+                }
+                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/build.html", { 
+                    lock: true, 
                     id: palace_id   
                 }, this, function( result ) {  } );             
             }
-            else if (this.checkAction( 'reduce')) {
-                console.log('reduce palace');
+            else if (this.checkAction('reduce')) {
                 this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/reduce.html", { 
                     lock: true, 
                     id: palace_id   
@@ -579,7 +582,6 @@ function (dojo, declare) {
         onReleasePerson: function( evt )
         {
             evt.preventDefault();
-
             // palacepersontile_${id}_inner
             var person_id = evt.currentTarget.id.substr( 17 );
             person_id = person_id.substr( 0, person_id.length-6 );
@@ -887,5 +889,3 @@ function (dojo, declare) {
         },
   });      
 });
-
-

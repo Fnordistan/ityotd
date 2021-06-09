@@ -73,7 +73,7 @@
     public function reduce() {
         self::setAjaxMode();     
         $palace_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->reducePalace( $palace_id );
+        $result = $this->game->reduce( $palace_id );
         self::ajaxResponse( );    
     }
 
