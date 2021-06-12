@@ -1280,11 +1280,6 @@ class InTheYearOfTheDragonExp extends Table
         }
     }
 
-
-    function reducePopulation() {
-
-    }
-
     /**
      * We're going to use the existing drought_affected flag to indicate overfilled palaces.
      * Set toRelease value.
@@ -1410,7 +1405,6 @@ class InTheYearOfTheDragonExp extends Table
         if( $toRelease > 0 ) {
             $this->gamestate->nextState( 'continueRelease' );
         } else {
-            self::activeNextPlayer();
             $this->gamestate->nextState( 'endRelease' );
         }
     }
