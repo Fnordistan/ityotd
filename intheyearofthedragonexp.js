@@ -593,13 +593,16 @@ function (dojo, declare) {
                     id: person_id
                 }, this, function( result ) {  } );                 
                 return;
+            } else if ( this.checkAction( 'release', true ) )
+            {
+                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/release.html", { lock: true,
+                    id: person_id
+                }, this, function( result ) {  } );
+            } else if ( this.checkAction('depopulate')) {
+                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/depopulate.html", { lock: true,
+                    id: person_id
+                }, this, function( result ) {  } );
             }
-            if( ! this.checkAction( 'release' ) )
-            {   return; } 
-            
-            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/release.html", { lock: true,
-                id: person_id
-            }, this, function( result ) {  } );                 
          },
          
          onNoReplace: function( evt )

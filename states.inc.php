@@ -59,6 +59,7 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_END_PHASE", 40);
     define("STATE_EARTHQUAKE", 41);
     define("STATE_REDUCE_PALACE", 42);
+    define("STATE_REDUCE_POPULATION", 43);
     define("STATE_FINAL_SCORING", 98);
     define("STATE_ENDGAME", 99);
 }
@@ -285,7 +286,17 @@ $machinestates = array(
         "possibleactions" => array( "reduce" ),
         "args" => "argNbrToReduce",
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => STATE_EARTHQUAKE, "nextReduce" => STATE_REDUCE_PALACE, "releasePerson" => STATE_RELEASE_PERSON  )
+        "transitions" => array( "nextPlayer" => STATE_EARTHQUAKE, "nextReduce" => STATE_REDUCE_PALACE, "releasePerson" => STATE_REDUCE_POPULATION  )
+    ),
+
+    STATE_REDUCE_POPULATION => array(
+        "name" => "reducePopulation",
+        "description" => clienttranslate('${actplayer} must choose ${nbr} person(s) to release'),
+        "descriptionmyturn" => clienttranslate('${you} must choose ${nbr} person(s) to release'),
+        "possibleactions" => array( "depopulate" ),
+        "args" => "argNbrToRelease",
+        "type" => "activeplayer",
+        "transitions" => array( "continueRelease" => STATE_REDUCE_POPULATION, "endRelease" => STATE_EARTHQUAKE )
     ),
 
     // from Flood

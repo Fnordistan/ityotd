@@ -1230,6 +1230,9 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState( 'buildAgain' );
     }
 
+    /**
+     * Player action to reduce a palace
+     */
     function reduce($palace_id) {
         self::checkAction( 'reduce' );
         $player_id = self::getActivePlayerId();
@@ -1241,28 +1244,33 @@ class InTheYearOfTheDragonExp extends Table
         }
         $palace_size--;
 
-        $removedPersons = array();
+        // putting this first to have the reduce palace log message appear before the people being removed
+        self::notifyAllPlayers( 'reducePalaceMsg', clienttranslate('${player_name} reduces a palace section'), array(
+            'player_name' => self::getActivePlayerName(),
+        ) );
+
         if ($palace_size == 0) {
+            // remove all people from this palace
             $removedPersons = self::getObjectListFromDB("SELECT palace_person_id FROM palace_person WHERE palace_person_palace_id='$palace_id' ", true);
+            foreach ($removedPersons as $person_id) {
+                self::doRelease( $person_id, false );
+            }
+            // then delete palace
             self::DbQuery( "DELETE FROM palace WHERE palace_id='$palace_id' " );
         } else {
             self::DbQuery( "UPDATE palace SET palace_size=$palace_size WHERE palace_id='$palace_id' " );
         }
 
-        self::notifyAllPlayers( 'reducePalace', clienttranslate('${player_name} reduces a palace section'), array(
-            'player_name' => self::getActivePlayerName(),
+        self::notifyAllPlayers( 'reducePalace', '', array(
             'reduce' => $palace_id,
             'size' => $palace_size
         ) );
 
         $remainingToReduce = self::incGameStateValue( 'toReduce', -1 );
         if ($remainingToReduce == 0) {
-            // do we need to remove people?
-            foreach ($removedPersons as $person_id) {
-                self::doRelease( $person_id, false );
-            }
-            // now check for palaces that no longer have enough spaces
+            // check for palaces that no longer have enough spaces
             if ($this->markOverPopulatedPalaces($player_id)) {
+                self::debug("overpopulated palace $player_id ");
                 $this->gamestate->nextState( 'releasePerson' );
             } else {
                 $this->gamestate->nextState( 'nextPlayer' );
@@ -1272,8 +1280,14 @@ class InTheYearOfTheDragonExp extends Table
         }
     }
 
+
+    function reducePopulation() {
+
+    }
+
     /**
      * We're going to use the existing drought_affected flag to indicate overfilled palaces.
+     * Set toRelease value.
      * Return true if there are any overfilled palaces belonging to this player.
      */
     function markOverPopulatedPalaces($player_id) {
@@ -1283,6 +1297,7 @@ class InTheYearOfTheDragonExp extends Table
             $persons = self::getObjectListFromDB("SELECT palace_person_id FROM palace_person WHERE palace_person_palace_id=$palace_id", true);
             $diff = count($persons) - $size;
             if ($diff > 0) {
+                self::incGameStateValue('toRelease', $diff);
                 self::DbQuery("UPDATE palace SET palace_drought_affected=$diff WHERE palace_id='$palace_id'");
                 $overFilled = true;
             }
@@ -1361,7 +1376,7 @@ class InTheYearOfTheDragonExp extends Table
             self::place( $palace_id );
         }
     }
-    
+
     function releaseReplace( $person_id )
     {
         self::checkAction( 'releaseReplace' );
@@ -1381,7 +1396,81 @@ class InTheYearOfTheDragonExp extends Table
         
         $this->gamestate->nextState( '' );
     }
-    
+
+
+    /**
+     * Release person but for Earthquakes.
+     */
+     function depopulate( $person_id ) {
+        self::checkAction( 'depopulate' );
+
+        $this->doDepopulate($person_id);
+        
+        $toRelease = self::incGameStateValue( 'toRelease', -1 );
+        if( $toRelease > 0 ) {
+            $this->gamestate->nextState( 'continueRelease' );
+        } else {
+            self::activeNextPlayer();
+            $this->gamestate->nextState( 'endRelease' );
+        }
+    }
+
+    /**
+     * Releasing a person as a result of Earthquake.
+     * palace_drought_affected is used to record how many people must be removed.
+     */
+    function doDepopulate($person_id) {
+        $player_id = self::getActivePlayerId();
+        
+        // Check if this person really exists and belong to this player
+        $sql = "SELECT palace_player player, palace_person_type type, palace_person_level level, palace_id, palace_drought_affected overpop FROM palace
+                INNER JOIN palace_person ON palace_person_palace_id=palace_id
+                WHERE palace_person_id='$person_id' ";
+        $person = self::getObjectFromDB( $sql );
+        
+        if( $person === null ) {
+            throw new BgaVisibleSystemException( 'This person does not exist' );
+        }
+        
+        if( $person['player'] != $player_id ) {
+            throw new BgaVisibleSystemException( 'This person is not one of yours' );
+        }
+
+        if ($person['overpop'] == 0) {
+            throw new BgaUserException(self::_("You must release a person from a palace without enough levels"));            
+        }
+
+        // is this a person in an overpopulated palace?
+        $palace_id = $person['palace_id'];
+
+        // we can release this person
+        self::DbQuery( "DELETE FROM palace_person WHERE palace_person_id='$person_id' " );
+        // and mark palace_drought_affected
+        self::DbQuery( "UPDATE palace SET palace_drought_affected=palace_drought_affected-1 WHERE palace_id='$palace_id'" );
+
+        // Notify
+        $tile_persontype = $this->person_types[ $person['type'] ];
+        $i18n = array( 'person_type_name' );
+        $details = '';
+        if( count( $tile_persontype['subtype'] ) > 1 )
+        {
+            $i18n[] = 'details';
+            if( $person['level'] == 1 )
+                $details = ' ('.clienttranslate('young').')';
+            else
+                $details = ' ('.clienttranslate('old').')';
+        }
+       
+        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${person_type_name}${details}'), array(
+            'i18n' => $i18n,
+            'player_id' => $player_id,
+            'player_name' => self::getCurrentPlayerName(),
+            'person_type_name' => $tile_persontype['name'],
+            'details' => $details,
+            'person_id' => $person_id
+        ) );
+    }
+
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state arguments
 ////////////

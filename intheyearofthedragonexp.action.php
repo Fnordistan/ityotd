@@ -77,6 +77,13 @@
         self::ajaxResponse( );    
     }
 
+    public function depopulate() {
+        self::setAjaxMode();     
+        $palace_id = self::getArg( "id", AT_posint, true );
+        $result = $this->game->depopulate( $palace_id );
+        self::ajaxResponse( );    
+    }
+
     public function release()
     {
         self::setAjaxMode();     
