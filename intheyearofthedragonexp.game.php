@@ -252,6 +252,7 @@ class InTheYearOfTheDragonExp extends Table
         
         $result['largePrivilegeCost'] = $this->getLargePrivilegeCost();
 
+        // $result['droughtPalaces'] = $this->getOverfilledPalaces();
 
         if ($this->useGreatWall()) {
             $result['greatWall'] = $this->getWallTiles();
@@ -659,7 +660,17 @@ class InTheYearOfTheDragonExp extends Table
         }
         
         return $result;
-    }    
+    }
+
+    // /**
+    //  * Get the palace ids of palaces to remove people from (Drought or Earthquake)
+    //  */
+    // function getOverfilledPalaces() {
+    //     $player_id = self::getActivePlayerId();
+    //     $sql = "SELECT palace_id FROM palace WHERE palace_player=$player_id AND palace_drought_affected != 0";
+    //     $palaces = self::getObjectListFromDB($sql, true);
+    //     return $palaces;
+    // }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions

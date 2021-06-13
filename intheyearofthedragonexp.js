@@ -85,6 +85,7 @@ function (dojo, declare) {
                 var person = this.gamedatas.personpalace[i];
                 this.addPersonToPalace( person.palace_id, person.id, person.type, person.level );
             }
+            // this.markPerishablePersons();
             
             // Actions
             for( var action_id in this.gamedatas.actions )
@@ -262,7 +263,11 @@ function (dojo, declare) {
                 {
                     // Show "select here" icons    
                     dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
-                }                
+                }
+                break;
+            case 'release':
+            case 'reducePopulation':
+                // this.markPerishablePersons();
                 break;
             case 'dummmy':
                 break;
@@ -376,19 +381,43 @@ function (dojo, declare) {
                 type: person_type,
                 level: person_level
             } ), $('palace_persons_'+palace_id) );
-            
+
+            const palace_person_tile = 'palacepersontile_'+person_id+'_inner';
+
             // Move this tile from corresponding stack
-            this.placeOnObject( $('palacepersontile_'+person_id+'_inner'), $('persontile_'+person_type+'_'+person_level) );
-            this.slideToObject( $('palacepersontile_'+person_id+'_inner'), $('palacepersontile_'+person_id) ).play();
+            this.placeOnObject( $(palace_person_tile), $('persontile_'+person_type+'_'+person_level) );
+            this.slideToObject( $(palace_person_tile), $('palacepersontile_'+person_id) ).play();
        
             // Tool tip
             var persontype = this.gamedatas.person_types[ person_type ];
             var html = '<b>'+persontype.nametr+'</b><hr/>'+persontype.description;
-            this.addTooltip( 'palacepersontile_'+person_id+'_inner', html, _('Release this person') );
+            this.addTooltip( palace_person_tile, html, _('Release this person') );
             
-            dojo.connect( $('palacepersontile_'+person_id+'_inner'), 'onclick', this, 'onReleasePerson' );
+            dojo.connect( $(palace_person_tile), 'onclick', this, 'onReleasePerson' );
+            var person_el = document.getElementById(palace_person_tile);
+            var player_palaces = document.getElementById("palaces_"+this.player_id);
+            if (player_palaces && player_palaces.contains(person_el)) {
+                person_el.classList.add("ityotd_hvr_pers");
+            }
         },
-        
+
+        // markPerishablePersons: function() {
+        //     const droughts = this.gamedatas.droughtPalaces;
+        //     debugger;
+        //     for( var p in this.gamedatas.personpalace )
+        //     {
+        //         var person = this.gamedatas.personpalace[p];
+        //         var person_el = document.getElementById('palacepersontile_'+person.id+'_inner');
+        //         for (var d of droughts) {
+        //             if (d == person.palace_id) {
+        //                 person_el.classList.add("palace_person_perish");
+        //             } else {
+        //                 person_el.classList.remove("palace_person_perish");
+        //             }
+        //         }
+        //     }
+        // },
+
         setAction: function( action_id, action_type )
         {
             dojo.place( this.format_block('jstpl_action', { 
@@ -604,7 +633,7 @@ function (dojo, declare) {
                 }, this, function( result ) {  } );
             }
          },
-         
+
          onNoReplace: function( evt )
          {
             evt.preventDefault();
@@ -812,7 +841,8 @@ function (dojo, declare) {
         {
             console.log( 'notif_release' );
             console.log( notif );
-            this.releasePerson( notif.args.person_id );        
+            this.releasePerson( notif.args.person_id );
+            // this.markPerishablePersons();
         },
         notif_decay: function( notif )
         {

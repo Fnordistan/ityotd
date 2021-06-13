@@ -194,6 +194,24 @@
     left: 0px;
 }
 
+.palace_person_perish {
+    outline: 2px solid red;
+}
+
+/* Float */
+.ityotd_hvr_pers {
+    display: inline-block;
+    vertical-align: middle;
+    transform: perspective(1px) translateZ(0);
+    box-shadow: 0 0 1px brown;
+    transition-duration: 0.3s;
+    transition-property: transform;
+    transition-timing-function: ease-out;
+}
+.ityotd_hvr_pers:hover, .ityotd_hvr_pers:focus, .ityotd_hvr_pers:active {
+    transform: translateX(8px);
+}
+
 .choosepalace{
     background-image: url('img/icons.png'); 
     width: 25px;   
