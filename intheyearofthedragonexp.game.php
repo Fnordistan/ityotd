@@ -662,6 +662,21 @@ class InTheYearOfTheDragonExp extends Table
         return $result;
     }
 
+    /**
+     * Count the rice+fireworks+yuan owned by current player, return half the total (rounded down).
+     */
+    function countResourcesToReduce() {
+        $player_id = self::getActivePlayerId();
+        $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$player_id' " );
+        $count = 0;
+        self::dump('resources', $resources);
+        foreach ($resources as $res => $ct ) {
+            $count += $ct;
+        }
+        $toReduce = floor($count/2);
+        return $toReduce;
+     }
+
     // /**
     //  * Get the palace ids of palaces to remove people from (Drought or Earthquake)
     //  */
@@ -1311,6 +1326,9 @@ class InTheYearOfTheDragonExp extends Table
         return $overFilled;
     }
 
+    /**
+     * Release a person.
+     */
     function release( $person_id )
     {
         self::checkAction( 'release' );
@@ -1323,6 +1341,9 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState( 'endRelease' ); 
     }
 
+    /**
+     * Actual release action.
+     */
     function doRelease( $person_id, $bAndReplace=false )
     {
         $player_id = self::getActivePlayerId();
@@ -1383,6 +1404,9 @@ class InTheYearOfTheDragonExp extends Table
         }
     }
 
+    /**
+     * Action for replacing one person with another.
+     */
     function releaseReplace( $person_id )
     {
         self::checkAction( 'releaseReplace' );
@@ -1402,7 +1426,6 @@ class InTheYearOfTheDragonExp extends Table
         
         $this->gamestate->nextState( '' );
     }
-
 
     /**
      * Release person but for Earthquakes.
@@ -1476,6 +1499,30 @@ class InTheYearOfTheDragonExp extends Table
         ) );
     }
 
+    /**
+     *From Flood super event. Player action.
+     */
+     function removeResources($rice, $fireworks, $yuan) {
+        $player_id = self::getActivePlayerId();
+        // do sanity check
+        $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$player_id' " );
+        self::dump('resources', $resources);
+        self::dump('rice', $rice);
+        self::dump('fireworks', $fireworks);
+        self::dump('yuan', $yuan);
+        if ($resources['rice'] < $rice) {
+            throw new BgaVisibleSystemException("Cannot remove more rice than available");
+        }
+        if ($resources['fireworks'] < $fireworks) {
+            throw new BgaVisibleSystemException("Cannot remove more fireworks than available");
+        }
+        if ($resources['yuan'] < $yuan) {
+            throw new BgaVisibleSystemException("Cannot remove more yuan than available");
+        }
+
+        self::DbQuery( "UPDATE player SET player_rice=player_rice-$rice, player_fireworks=player_fireworks-$fireworks, player_yuan=player_yuan-$yuan WHERE player_id='$player_id' " );
+    }
+
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state arguments
 ////////////
@@ -1488,7 +1535,7 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
-     * For reducing palaces.
+     * For reducing palaces or resources.
      */
     function argNbrToReduce() {
         return array(
@@ -1510,7 +1557,6 @@ class InTheYearOfTheDragonExp extends Table
             'toBuild' => self::getGameStateValue( 'toBuild' )
         );
     }
-
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state reactions   (reactions to game planned states from state machine
@@ -2035,7 +2081,7 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
-     * Inseted before endphase, check if we have to do a Super Event before end of turn scoring.
+     * Inserted before endphase, check if we have to do a Super Event before end of turn scoring.
      */
     function stSuperEvent() {
         $state = "endPhase";
@@ -2062,34 +2108,43 @@ class InTheYearOfTheDragonExp extends Table
             case 3:
                 $state = "earthquake";
                 break;
+            case 4:
+                $state = "flood";
+                break;
             default:
                 throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
-
         }
 
         $this->gamestate->nextState($state);
     }
 
     /**
-     * Rotate through players for Earthquake super event.
+     * Rotate through players for super event.
      */
-    function stEarthquake() {
+    function stSuperEventRotate() {
         $continue = $this->rotatePlayerSuperEvent();
 
         if ( $continue ) {
-            self::setGameStateValue('toReduce', 2);
+            $se = self::getGameStateValue(SUPER_EVENT);
+            switch ($se) {
+                case 3:
+                    // earthquake
+                    self::setGameStateValue('toReduce', 2);
+                    break;
+                case 4:
+                    // flood
+                    $toReduce = $this->countResourcesToReduce();
+                    self::setGameStateValue('toReduce', $toReduce);
+                    break;
+                default:
+                    throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
+            }
+
             // next player will reduce palaces
             $this->gamestate->nextState( 'nextPlayer');
         } else {
             $this->gamestate->nextState( 'endPhase' );
         }
-    }
-
-    /**
-     *From Flood super event.
-     */
-    function stRemoveResources() {
-
     }
 
     /**

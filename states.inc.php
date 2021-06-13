@@ -60,6 +60,8 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_EARTHQUAKE", 41);
     define("STATE_REDUCE_PALACE", 42);
     define("STATE_REDUCE_POPULATION", 43);
+    define("STATE_FLOOD", 50);
+    define("STATE_REDUCE_RESOURCES", 51);
     define("STATE_FINAL_SCORING", 98);
     define("STATE_ENDGAME", 99);
 }
@@ -251,7 +253,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEvent",
-        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => 50, "solar" => STATE_EVENT, "tornado" => 60, "sunrise" => 70, "charter" => 80 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => 60, "sunrise" => 70, "charter" => 80 )
     ),
 
     STATE_END_PHASE => array(
@@ -267,15 +269,15 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEventInit",
-        "transitions" => array( "earthquake" => STATE_EARTHQUAKE )
+        "transitions" => array( "earthquake" => STATE_EARTHQUAKE, "flood" => STATE_FLOOD )
     ),
 
     // from Earthquake
     STATE_EARTHQUAKE => array(
-        "name" => "earthquakeSuperEvent",
+        "name" => "earthquake",
         "description" => '',
         "type" => "game",
-        "action" => "stEarthquake",
+        "action" => "stSuperEventRotate",
         "transitions" => array( "nextPlayer" => STATE_REDUCE_PALACE, "endPhase" => STATE_END_PHASE )
     ),
 
@@ -300,12 +302,22 @@ $machinestates = array(
     ),
 
     // from Flood
-    50 => array(
-        "name" => "removeResources",
+    STATE_FLOOD => array(
+        "name" => "flood",
         "description" => '',
         "type" => "game",
-        "action" => "stRemoveResources",
-        "transitions" => array( "endPhase" => STATE_END_PHASE )
+        "action" => "stSuperEventRotate",
+        "transitions" => array( "nextPlayer" => STATE_REDUCE_RESOURCES, "endPhase" => STATE_END_PHASE )
+    ),
+
+    STATE_REDUCE_RESOURCES => array(
+        "name" => "reduceResources",
+        "description" => clienttranslate('${actplayer} must choose ${nbr} resource(s) to remove'),
+        "descriptionmyturn" => clienttranslate('${you} must choose ${nbr} resource(s) to remove'),
+        "possibleactions" => array( "removeResources" ),
+        "args" => "argNbrToReduce",
+        "type" => "activeplayer",
+        "transitions" => array( "" => STATE_FLOOD )
     ),
 
     // from Tornado

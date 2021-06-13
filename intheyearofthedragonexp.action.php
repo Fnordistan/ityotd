@@ -84,6 +84,15 @@
         self::ajaxResponse( );    
     }
 
+    public function removeResources() {
+        self::setAjaxMode();     
+        $rice = self::getArg( "rice", AT_posint, true );
+        $fw = self::getArg( "fireworks", AT_posint, true );
+        $yuan = self::getArg( "yuan", AT_posint, true );
+        $result = $this->game->removeResources( $rice, $fw, $yuan );
+        self::ajaxResponse( );    
+    }
+
     public function release()
     {
         self::setAjaxMode();     

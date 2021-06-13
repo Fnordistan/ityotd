@@ -314,10 +314,20 @@ function (dojo, declare) {
                 case 'palaceFull':
                     this.addActionButton( 'noReplace', _('None ! Release the new one.'), 'onNoReplace' );                     
                     break;
-
+                case 'reduceResources':
+                    this.createResourceButtons();
+                    break;
                 }
             }
-        },        
+        },   
+
+        createResourceButtons: function() {
+            var player_id = this.player_id;
+            var rice = toint( $('ricenbr_'+player_id).innerHTML);
+            var fw = toint( $('fwnbr_'+player_id).innerHTML);
+            var yn = toint( $('yuannbr_'+player_id).innerHTML);
+            this.addActionButton( 'reduceResource', _('Reduce Resources'), 'onRemoveResources' );                     
+        },
 
         ///////////////////////////////////////////////////
         //// Utility
@@ -640,6 +650,19 @@ function (dojo, declare) {
             this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/noReplace.html", { lock: true,
             }, this, function( result ) {  } );                 
             
+         },
+
+         onRemoveResources: function( evt ) {
+             debugger;
+            var r = 0;
+            var fw = 0;
+            var y = 0;
+            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/removeResources.html", { 
+                lock: true,
+                rice: r,
+                fireworks: fw,
+                yuan: y
+            }, this, function( result ) {  } );                 
          },
         
         ///////////////////////////////////////////////////
