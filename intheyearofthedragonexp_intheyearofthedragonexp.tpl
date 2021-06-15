@@ -83,6 +83,10 @@ var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="wall" style=
 
 var jstpl_super_event = '<div id="${id}" class="superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
 
+// a currency icon used as a button, either note or cert
+var jstpl_rsrc_btn = '<button id="${type}_${i}_btn" type="button" class="yd_icon icon_${type} tt${type}"></button>';
+
+
 </script>  
 
 {OVERALL_GAME_FOOTER}

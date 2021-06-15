@@ -222,6 +222,74 @@ function (dojo, declare) {
             }
         },
 
+        /* @Override */
+        format_string_recursive : function(log, args) {
+            try {
+                if (log && args && !args.processed) {
+                    args.processed = true;
+                }
+            } catch (e) {
+                console.error(log, args, "Exception thrown", e.stack);
+            }
+            return this.inherited(arguments);
+        },
+
+        /**
+         * Add text below the title banner.
+         * @param {string} html 
+         */
+         addToActionHeader : function(html) {
+            const main = $('pagemaintitletext');
+            main.innerHTML += html;
+        },
+
+        /**
+         * Puts top banner for active player.
+         * @param {string} text
+         * @param {Array} moreargs
+         */
+         setDescriptionOnMyTurn : function(text, moreargs) {
+            this.gamedatas.gamestate.descriptionmyturn = text;
+            let tpl = Object.assign({}, this.gamedatas.gamestate.args);
+
+            if (!tpl) {
+                tpl = {};
+            }
+            if (typeof moreargs != 'undefined') {
+                for ( const key in moreargs) {
+                    if (moreargs.hasOwnProperty(key)) {
+                        tpl[key]=moreargs[key];
+                    }
+                }
+            }
+ 
+            let title = "";
+            if (this.isCurrentPlayerActive() && text !== null) {
+                // tpl.you = this.spanYou();
+            }
+            if (text !== null) {
+                title = this.format_string_recursive(text, tpl);
+            }
+            if (title == "") {
+                this.setMainTitle("&nbsp;");
+            } else {
+                this.setMainTitle(title);
+            }
+        },
+
+        /**
+         * From BGA Cookbook. Return "You" in this player's color
+         */
+         spanYou : function() {
+            const color = this.gamedatas.players[this.player_id].color;
+            let color_bg = "";
+            if (this.gamedatas.players[this.player_id] && this.gamedatas.players[this.player_id].color_back) {
+                color_bg = "background-color:#" + this.gamedatas.players[this.player_id].color_back + ";";
+            }
+            const you = "<span style=\"font-weight:bold;color:#" + color + ";" + color_bg + "\">" + __("lang_mainsite", "You") + "</span>";
+            return you;
+        },
+
         ///////////////////////////////////////////////////
         //// Game & client states
         
@@ -319,13 +387,50 @@ function (dojo, declare) {
                     break;
                 }
             }
-        },   
+        },
+
+        /**
+         * Create div with buttons for resources
+         * @returns div html
+         */
+        getResourceIcons: function(rice, fw, yn) {
+            var rsrc_html = '<div id="yd_resources_div">';
+
+            for (let r = 0; r < rice; r++) {
+                rsrc_html += this.format_block('jstpl_rsrc_btn', {type: 'rice', i: r});
+            }
+            for (let f = 0; f < fw; f++) {
+                rsrc_html += this.format_block('jstpl_rsrc_btn', {type: 'fw', i: f});
+            }
+            for (let y = 0; y < yn; y++) {
+                rsrc_html += this.format_block('jstpl_rsrc_btn', {type: 'yuan', i: y});
+            }
+            rsrc_html += '</div>';
+            return rsrc_html;
+        },
 
         createResourceButtons: function() {
             var player_id = this.player_id;
             var rice = toint( $('ricenbr_'+player_id).innerHTML);
             var fw = toint( $('fwnbr_'+player_id).innerHTML);
             var yn = toint( $('yuannbr_'+player_id).innerHTML);
+
+            text = '<br/>';
+            text += this.getResourceIcons(rice, fw, yn);
+            text += '<br/>';
+
+            this.addToActionHeader(text);
+            // need to add tooltips to buttons
+            this.addTooltipToClass( 'ttyuan', _('Yuan'), '' );
+            this.addTooltipToClass( 'ttrice', _('Rice'), '' );
+            this.addTooltipToClass( 'ttfw', _('Fireworks'), '' );
+            for (let r = 0; r < rice; r++) {
+                var btn = document.getElementById("rice_"+r+"_btn");
+                btn.addEventListener("click", () => {btn.remove()});
+            }
+
+
+            // this.setDescriptionOnMyTurn(_("You must choose resources to reduce"));
             this.addActionButton( 'reduceResource', _('Reduce Resources'), 'onRemoveResources' );                     
         },
 
@@ -400,7 +505,7 @@ function (dojo, declare) {
        
             // Tool tip
             var persontype = this.gamedatas.person_types[ person_type ];
-            var html = '<b>'+persontype.nametr+'</b><hr/>'+persontype.description;
+            var html = '<br>'+persontype.nametr+'</br><hr/>'+persontype.description;
             this.addTooltip( palace_person_tile, html, _('Release this person') );
             
             dojo.connect( $(palace_person_tile), 'onclick', this, 'onReleasePerson' );

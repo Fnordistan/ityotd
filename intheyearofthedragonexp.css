@@ -276,6 +276,13 @@
 .icon_priv {    background-position: -75px 0px;   }
 .icon_pers {    background-position: -75px -125px;   }
 
+#yd_resources_div > button {
+    margin: 2px;
+}
+
+#yd_resources_div > button:hover, #yd_resources_div > button:focus, #yd_resources_div > button:active {
+    transform: scale(1.1);
+}
 .boardblock {
     margin-left: 32px;
 }
