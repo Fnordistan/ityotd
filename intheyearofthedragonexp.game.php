@@ -1506,10 +1506,6 @@ class InTheYearOfTheDragonExp extends Table
         $player_id = self::getActivePlayerId();
         // do sanity check
         $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$player_id' " );
-        self::dump('resources', $resources);
-        self::dump('rice', $rice);
-        self::dump('fireworks', $fireworks);
-        self::dump('yuan', $yuan);
         if ($resources['rice'] < $rice) {
             throw new BgaVisibleSystemException("Cannot remove more rice than available");
         }
@@ -1519,8 +1515,17 @@ class InTheYearOfTheDragonExp extends Table
         if ($resources['yuan'] < $yuan) {
             throw new BgaVisibleSystemException("Cannot remove more yuan than available");
         }
-
         self::DbQuery( "UPDATE player SET player_rice=player_rice-$rice, player_fireworks=player_fireworks-$fireworks, player_yuan=player_yuan-$yuan WHERE player_id='$player_id' " );
+
+        self::notifyAllPlayers( 'loseResources', clienttranslate( '${player_name} loses ${nbrrice} rice, ${nbrfw} fireworks, and ${nbryuan} yuan to Flood' ), array(
+            'player_id' => $player_id,
+            'player_name' => self::getCurrentPlayerName(),
+            'nbrrice' => $rice,
+            'nbrfw' => $fireworks,
+            'nbryuan' => $yuan
+        ) );
+        
+        $this->gamestate->nextState('');
     }
 
 //////////////////////////////////////////////////////////////////////////////

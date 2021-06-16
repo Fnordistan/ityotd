@@ -399,39 +399,122 @@ function (dojo, declare) {
             for (let r = 0; r < rice; r++) {
                 rsrc_html += this.format_block('jstpl_rsrc_btn', {type: 'rice', i: r});
             }
+            rsrc_html += '<span id="rice_top_mk"></span>';
             for (let f = 0; f < fw; f++) {
                 rsrc_html += this.format_block('jstpl_rsrc_btn', {type: 'fw', i: f});
             }
+            rsrc_html += '<span id="fw_top_mk"></span>';
             for (let y = 0; y < yn; y++) {
                 rsrc_html += this.format_block('jstpl_rsrc_btn', {type: 'yuan', i: y});
             }
-            rsrc_html += '</div>';
+            rsrc_html += '<span id="yuan_top_mk"></span>'+
+                        '</div>';
             return rsrc_html;
         },
 
+        /**
+         * Add buttons for removing resources.
+         */
         createResourceButtons: function() {
+            const main = $('pagemaintitletext');
+            const res_rx = /choose (\d+) resource/;
+            var toReduce = parseInt(main.innerHTML.match(res_rx)[1]);
+
             var player_id = this.player_id;
             var rice = toint( $('ricenbr_'+player_id).innerHTML);
             var fw = toint( $('fwnbr_'+player_id).innerHTML);
             var yn = toint( $('yuannbr_'+player_id).innerHTML);
 
-            text = '<br/>';
+            text = '<br/>'+
+                   '<div style="display: flex; flex-direction: column; align-items: center;">';
             text += this.getResourceIcons(rice, fw, yn);
-            text += '<br/>';
+            text += '<br/>'+
+                    '<div id="yd_rsrc_box"><span id="rice_bottom_mk"></span><span id="fw_bottom_mk"></span><span id="yuan_bottom_mk"></span></div>'+
+                    '</div>';
 
             this.addToActionHeader(text);
+
+            var rsrc_box = document.getElementById("yd_rsrc_box");
+            rsrc_box.style["width"] = toReduce*27 + "px";
+
             // need to add tooltips to buttons
             this.addTooltipToClass( 'ttyuan', _('Yuan'), '' );
             this.addTooltipToClass( 'ttrice', _('Rice'), '' );
             this.addTooltipToClass( 'ttfw', _('Fireworks'), '' );
-            for (let r = 0; r < rice; r++) {
-                var btn = document.getElementById("rice_"+r+"_btn");
-                btn.addEventListener("click", () => {btn.remove()});
-            }
-
 
             // this.setDescriptionOnMyTurn(_("You must choose resources to reduce"));
-            this.addActionButton( 'reduceResource', _('Reduce Resources'), 'onRemoveResources' );                     
+            this.addActionButton( 'reduceResource', _('Reduce Resources'), 'onRemoveResources' );
+            var resources = this.getResourcesSelected();
+            var total = resources["total"];
+
+            if (total < toReduce) {
+                document.getElementById("reduceResource").classList.add("disabled");
+            } else {
+                document.getElementById("reduceResource").classList.remove("disabled");
+            }
+
+            for (let r = 0; r < rice; r++) {
+                this.createResourceButton(rsrc_box, "rice", r, toReduce);
+            }
+            for (let f = 0; f < fw; f++) {
+                this.createResourceButton(rsrc_box, "fw", f, toReduce);
+            }
+            for (let y = 0; y < yn; y++) {
+                this.createResourceButton(rsrc_box, "yuan", y, toReduce);
+            }
+        },
+
+        /**
+         * Create each button which will go to or from resource box.
+         * @param {node*} rsrc_box 
+         * @param {string} type rice|fw|yuan
+         * @param {int} i 
+         * @param {int} toReduce
+         */
+        createResourceButton: function(rsrc_box, type, i, toReduce) {
+            var btn = document.getElementById(type+"_"+i+"_btn");
+            btn.addEventListener("click", () => {
+                let ibtn = document.getElementById(type+"_"+i+"_btn");
+                // are we adding or removing a resource to remove?
+                if (rsrc_box.contains(ibtn)) {
+                    // deselecting resource to remove
+                    document.getElementById("yd_resources_div").insertBefore(ibtn, document.getElementById(type+"_top_mk"));
+                    document.getElementById("reduceResource").classList.add("disabled");
+                } else {
+                    var resources = this.getResourcesSelected();
+                    var total = resources["total"];
+                    // selecting resource to lose
+                    if (total < toReduce) {
+                        rsrc_box.insertBefore(ibtn, document.getElementById(type+"_bottom_mk"));
+                        if (total === toReduce-1) {
+                            document.getElementById("reduceResource").classList.remove("disabled");
+                        }
+                    }
+                }
+            });
+        },
+
+        /**
+         * 
+         * @returns resources with rice|fw|yuan|total count
+         */
+        getResourcesSelected: function() {
+            var rsrc_box = document.getElementById("yd_rsrc_box");
+            var children = rsrc_box.children;
+            var resources = {"rice" : 0, "fw": 0, "yuan": 0, "total": 0};
+            for (c of children) {
+                if (c.classList.contains("ttrice")) {
+                    resources["rice"]++;
+                    resources["total"]++;
+                } else if (c.classList.contains("ttfw")) {
+                    resources["fw"]++;
+                    resources["total"]++;
+                } else if (c.classList.contains("ttyuan")) {
+                    resources["yuan"]++;
+                    resources["total"]++;
+                }
+            }
+            return resources;
         },
 
         ///////////////////////////////////////////////////
@@ -757,16 +840,17 @@ function (dojo, declare) {
             
          },
 
+         /**
+          * 
+          * @param {*} evt 
+          */
          onRemoveResources: function( evt ) {
-             debugger;
-            var r = 0;
-            var fw = 0;
-            var y = 0;
+            var resources = this.getResourcesSelected();
             this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/removeResources.html", { 
                 lock: true,
-                rice: r,
-                fireworks: fw,
-                yuan: y
+                rice: resources["rice"],
+                fireworks: resources["fw"],
+                yuan: resources["yuan"]
             }, this, function( result ) {  } );                 
          },
         
@@ -799,6 +883,7 @@ function (dojo, declare) {
             dojo.subscribe( 'release', this, "notif_release" );
             dojo.subscribe( 'eventPayYuan', this, "notif_eventPayYuan" );
             dojo.subscribe( 'eventPayRice', this, "notif_eventPayRice" );
+            dojo.subscribe( 'loseResources', this, "notif_loseResources" );
 
             dojo.subscribe( 'decay', this, "notif_decay" );
             dojo.subscribe( 'endOfTurnScoring', this, "notif_endOfTurnScoring" );
@@ -958,7 +1043,6 @@ function (dojo, declare) {
             }
         },
 
-
         notif_newMonth:function( notif )
         {
             console.log( 'notif_newMonth' );
@@ -1036,6 +1120,26 @@ function (dojo, declare) {
             const xoff = -60*(COLORS_PLAYER[pcolor]-1);
             const wall_tile = this.format_block('jstpl_player_wall', {id: player_id, type: 'temp', x: xoff, y: 0});
             this.slideTemporaryObject( wall_tile, 'player_board_'+player_id, 'player_wall_'+player_id+'_'+bonus, 'wall_'+newSec, 1000, 1000 ).play();
+        },
+
+        /**
+         * Flood SuperEvent.
+         * @param {Object*} notif 
+         */
+        notif_loseResources: function(notif) {
+            var player_id = notif.args.player_id;
+            var rice = parseInt(notif.args.nbrrice);
+            var fw = parseInt(notif.args.nbrfw);
+            var yuan = parseInt(notif.args.nbryuan);
+            if (rice > 0) {
+                $('ricenbr_'+player_id).innerHTML = ( toint( $('ricenbr_'+player_id).innerHTML ) - rice );
+            }
+            if (fw > 0) {
+                $('fwnbr_'+player_id).innerHTML = ( toint( $('fwnbr_'+player_id).innerHTML ) - fw );
+            }
+            if (yuan > 0) {
+                $('yuannbr_'+player_id).innerHTML = ( toint( $('yuannbr_'+player_id).innerHTML ) - yuan );
+            }
         },
 
         /**

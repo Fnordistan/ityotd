@@ -312,8 +312,8 @@ $machinestates = array(
 
     STATE_REDUCE_RESOURCES => array(
         "name" => "reduceResources",
-        "description" => clienttranslate('${actplayer} must choose ${nbr} resource(s) to remove'),
-        "descriptionmyturn" => clienttranslate('${you} must choose ${nbr} resource(s) to remove'),
+        "description" => clienttranslate('${actplayer} must choose ${nbr} resource(s) to lose'),
+        "descriptionmyturn" => clienttranslate('${you} must choose ${nbr} resource(s) to lose'),
         "possibleactions" => array( "removeResources" ),
         "args" => "argNbrToReduce",
         "type" => "activeplayer",
