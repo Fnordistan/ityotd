@@ -669,7 +669,6 @@ class InTheYearOfTheDragonExp extends Table
         $player_id = self::getActivePlayerId();
         $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$player_id' " );
         $count = 0;
-        self::dump('resources', $resources);
         foreach ($resources as $res => $ct ) {
             $count += $ct;
         }
@@ -1296,7 +1295,6 @@ class InTheYearOfTheDragonExp extends Table
         if ($remainingToReduce == 0) {
             // check for palaces that no longer have enough spaces
             if ($this->markOverPopulatedPalaces($player_id)) {
-                self::debug("overpopulated palace $player_id ");
                 $this->gamestate->nextState( 'releasePerson' );
             } else {
                 $this->gamestate->nextState( 'nextPlayer' );
