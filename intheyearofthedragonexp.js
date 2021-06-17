@@ -333,9 +333,10 @@ function (dojo, declare) {
                     dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
                 }
                 break;
-            case 'release':
-            case 'reducePopulation':
-                // this.markPerishablePersons();
+            case 'discardPersonCards':
+                if( this.isCurrentPlayerActive() ) {
+                    this.decoratePersonCards(true);
+                }
                 break;
             case 'dummmy':
                 break;
@@ -359,6 +360,9 @@ function (dojo, declare) {
                 break;
             case 'reducePalace':
                 dojo.query( '.choosepalace' ).style( 'display', 'none' );
+                break;
+            case 'discardPersonCards':
+                this.decoratePersonCards(false);
                 break;
             }                
         }, 
@@ -599,23 +603,6 @@ function (dojo, declare) {
             }
         },
 
-        // markPerishablePersons: function() {
-        //     const droughts = this.gamedatas.droughtPalaces;
-        //     debugger;
-        //     for( var p in this.gamedatas.personpalace )
-        //     {
-        //         var person = this.gamedatas.personpalace[p];
-        //         var person_el = document.getElementById('palacepersontile_'+person.id+'_inner');
-        //         for (var d of droughts) {
-        //             if (d == person.palace_id) {
-        //                 person_el.classList.add("palace_person_perish");
-        //             } else {
-        //                 person_el.classList.remove("palace_person_perish");
-        //             }
-        //         }
-        //     }
-        // },
-
         setAction: function( action_id, action_type )
         {
             dojo.place( this.format_block('jstpl_action', { 
@@ -695,6 +682,26 @@ function (dojo, declare) {
             this.fadeOutAndDestroy( 'palacepersontile_'+person_id );
         },
 
+        /**
+         * Decorate person cards to discardable or not discardable.
+         * @param {bool} toDiscard 
+         */
+        decoratePersonCards: function(toDiscard) {
+            const personcards = document.getElementsByClassName("personcard");
+            const ppid_rx = /_(\d+)$/;
+            for (let pp of personcards) {
+                if (toDiscard) {
+                    pp.classList.add("ityotd_person_discard");
+                    pp.addEventListener('click', () => {
+                        var id = parseInt(pp.id.match(ppid_rx)[1])
+                        this.discardPersonCard(id);
+                    });
+                } else {
+                    pp.classList.remove("ityotd_person_discard");
+                }
+            }
+        },
+
         ///////////////////////////////////////////////////
         //// UI
         
@@ -711,7 +718,7 @@ function (dojo, declare) {
             
             if( toint( $('persontile_nbr_'+type+'_'+level).innerHTML ) == 0 )
             {
-                this.confirmationDialog( _("There are no more person from this type and your card will be discarded: do you confirm?"),
+                this.confirmationDialog( _("There are no more persons of this type and your card will be discarded: do you confirm?"),
                     dojo.hitch( this, function() {
                            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/recruit.html", { lock: true, 
                             type: type,
@@ -845,6 +852,8 @@ function (dojo, declare) {
           * @param {*} evt 
           */
          onRemoveResources: function( evt ) {
+            if( ! this.checkAction( 'removeResources' ) )
+            {   return; } 
             var resources = this.getResourcesSelected();
             this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/removeResources.html", { 
                 lock: true,
@@ -854,6 +863,20 @@ function (dojo, declare) {
             }, this, function( result ) {  } );                 
          },
         
+         /**
+          * id for person card to discard.
+          * @param {int} pp 
+          */
+          discardPersonCard: function( pp ) {
+            if( ! this.checkAction( 'discard' ) )
+            {   return; } 
+            debugger;
+            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/discard.html", {
+                lock: true,
+                id: pp
+            }, this, function( result ) {  } );                 
+         },
+
         ///////////////////////////////////////////////////
         //// Reaction to cometD notifications
 

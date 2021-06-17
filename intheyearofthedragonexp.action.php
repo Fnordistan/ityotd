@@ -71,9 +71,16 @@
     }
 
     public function reduce() {
-        self::setAjaxMode();     
+        self::setAjaxMode();
         $palace_id = self::getArg( "id", AT_posint, true );
         $result = $this->game->reduce( $palace_id );
+        self::ajaxResponse( );    
+    }
+
+    public function discard() {
+        self::setAjaxMode();   
+        $id = self::getArg( "id", AT_posint, true );
+        $result = $this->game->discard( $id );
         self::ajaxResponse( );    
     }
 

@@ -157,6 +157,15 @@
 .personcard_0 {    background-position: -1020px; left: 584px; }
 .second_joker {    left: 649px; }
 
+.ityotd_person_discard {
+    outline: red 4px groove;
+}
+.ityotd_person_discard:hover, .ityotd_person_discard:focus, .ityotd_person_discard:active {
+    outline: goldenrod 2px solid;
+    box-shadow: 0 8px 16px 0 rgba(172, 149, 75, 0.8), 5px 6px 8px 6px;
+}
+
+
 /*** palace ***/
 
 .palaceswrap {
@@ -290,7 +299,7 @@
     margin-bottom: 20px;
 }
 
-yd_rsrc_box > button {
+#yd_rsrc_box > button {
     margin: 2px;
 }
 

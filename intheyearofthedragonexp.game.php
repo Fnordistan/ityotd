@@ -1501,6 +1501,7 @@ class InTheYearOfTheDragonExp extends Table
      *From Flood super event. Player action.
      */
      function removeResources($rice, $fireworks, $yuan) {
+        self::checkAction('removeResources');
         $player_id = self::getActivePlayerId();
         // do sanity check
         $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$player_id' " );
@@ -1526,6 +1527,38 @@ class InTheYearOfTheDragonExp extends Table
         $this->gamestate->nextState('');
     }
 
+    /**
+     * From Tornado super event.
+     * {int} $pid
+     */
+     function discard($pid) {
+        self::checkAction( 'discard' );
+        $player_id = self::getActivePlayerId();
+        $pp = self::getUniqueValueFromDB("SELECT personcard_type FROM personcard WHERE personcard_id=$pid AND personcard_player='$player_id'" );
+        if ($pp == null) {
+            throw new BgaVisibleSystemException("You do not have this person card in hand: $pid");
+        }
+        // Remove this personcard
+        self::DbQuery( "DELETE FROM personcard WHERE personcard_id='$pid' " );
+            
+        // Notify this player
+        self::notifyPlayer( $player_id, 'usePersonCard','',  array(
+            'personcard_id' => $pid
+        ) );
+        $person = ($pp == 0) ? "Wild" : $this->person_types[$pp]['name'];
+        self::notifyAllPlayers( 'discardCard', clienttranslate( '${player_name} discards ${persontype} card' ), array(
+            'player_name' => self::getCurrentPlayerName(),
+            'persontype' => $person
+        ) );
+
+        $toReduce = self::incGameStateValue('toReduce', -1);
+        if ($toReduce == 0) {
+            $this->gamestate->nextState('endDiscard');
+        } else {
+            $this->gamestate->nextState('continueDiscard');
+        }
+    }
+
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state arguments
 ////////////
@@ -1538,7 +1571,7 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
-     * For reducing palaces or resources.
+     * For reducing palaces or resources or person cards.
      */
     function argNbrToReduce() {
         return array(
@@ -2114,6 +2147,9 @@ class InTheYearOfTheDragonExp extends Table
             case 4:
                 $state = "flood";
                 break;
+            case 7:
+                $state = "tornado";
+                break;
             default:
                 throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
         }
@@ -2129,6 +2165,7 @@ class InTheYearOfTheDragonExp extends Table
 
         if ( $continue ) {
             $se = self::getGameStateValue(SUPER_EVENT);
+            $state = 'nextPlayer';
             switch ($se) {
                 case 3:
                     // earthquake
@@ -2138,23 +2175,23 @@ class InTheYearOfTheDragonExp extends Table
                     // flood
                     $toReduce = $this->countResourcesToReduce();
                     self::setGameStateValue('toReduce', $toReduce);
+                    if ($toReduce == 0) {
+                        $state = 'skipPlayer';
+                    }
+                    break;
+                case 7:
+                    // tornado
+                    self::setGameStateValue('toReduce', 2);
                     break;
                 default:
                     throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
             }
 
-            // next player will reduce palaces
-            $this->gamestate->nextState( 'nextPlayer');
+            // next player
+            $this->gamestate->nextState( $state );
         } else {
             $this->gamestate->nextState( 'endPhase' );
         }
-    }
-
-    /**
-     * From Tornado super event.
-     */
-    function stDiscardCards() {
-
     }
 
     /**

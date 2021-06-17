@@ -62,6 +62,8 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_REDUCE_POPULATION", 43);
     define("STATE_FLOOD", 50);
     define("STATE_REDUCE_RESOURCES", 51);
+    define("STATE_TORNADO", 60);
+    define("STATE_DISCARD", 61);
     define("STATE_FINAL_SCORING", 98);
     define("STATE_ENDGAME", 99);
 }
@@ -253,7 +255,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEvent",
-        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => 60, "sunrise" => 70, "charter" => 80 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => SUPER_EVENT_INIT, "sunrise" => 70, "charter" => 80 )
     ),
 
     STATE_END_PHASE => array(
@@ -269,7 +271,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEventInit",
-        "transitions" => array( "earthquake" => STATE_EARTHQUAKE, "flood" => STATE_FLOOD )
+        "transitions" => array( "earthquake" => STATE_EARTHQUAKE, "flood" => STATE_FLOOD, "tornado" => STATE_TORNADO )
     ),
 
     // from Earthquake
@@ -307,7 +309,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEventRotate",
-        "transitions" => array( "nextPlayer" => STATE_REDUCE_RESOURCES, "endPhase" => STATE_END_PHASE )
+        "transitions" => array( "nextPlayer" => STATE_REDUCE_RESOURCES, "skipPlayer" => STATE_FLOOD, "endPhase" => STATE_END_PHASE )
     ),
 
     STATE_REDUCE_RESOURCES => array(
@@ -321,12 +323,22 @@ $machinestates = array(
     ),
 
     // from Tornado
-    60 => array(
-        "name" => "discardPersonCards",
+    STATE_TORNADO => array(
+        "name" => "tornado",
         "description" => '',
         "type" => "game",
-        "action" => "stDiscardCards",
-        "transitions" => array( "endPhase" => STATE_END_PHASE )
+        "action" => "stSuperEventRotate",
+        "transitions" => array( "nextPlayer" => STATE_DISCARD, "endPhase" => STATE_END_PHASE )
+    ),
+
+    STATE_DISCARD => array(
+        "name" => "discardPersonCards",
+        "description" => clienttranslate('${actplayer} must discard ${nbr} person cards'),
+        "descriptionmyturn" => clienttranslate('${you} must discard ${nbr} person cards'),
+        "possibleactions" => array( "discard" ),
+        "args" => "argNbrToReduce",
+        "type" => "activeplayer",
+        "transitions" => array( "continueDiscard" => STATE_DISCARD, "endDiscard" => STATE_TORNADO )
     ),
 
     // from Sunrise
