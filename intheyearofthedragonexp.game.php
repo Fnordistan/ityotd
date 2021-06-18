@@ -1680,23 +1680,23 @@ class InTheYearOfTheDragonExp extends Table
             self::activeFirstPlayerInPlayOrder();
 
             self::giveExtraTime( self::getActivePlayerId() );            
-        
-            $this->gamestate->nextState('endPhase');
-            return;        
+            // need to check if there are still person cards, because Tornado might reduce to 0
+            $personcards = self::getObjectListFromDB( "SELECT personcard_id FROM personcard", true );
+            if (count($personcards) == 0) {
+                $this->gamestate->nextState('noRecruit');
+            } else {
+                $this->gamestate->nextState('endPhase');
+            }
         }
     }
-    
+
     function stPersonPhaseNextPlayer()
     {
-        // If all players recruit a person => end this phase
-        if( self::activeNextPlayerInPlayOrder() )
-        {
+        if( self::activeNextPlayerInPlayOrder() ) {
             // Active next player in turn order
             self::giveExtraTime( self::getActivePlayerId() );                        
             $this->gamestate->nextState( 'nextPlayer' );
-        }
-        else
-        {
+        } else {
             $this->gamestate->nextState('endPhase');        
         }
      }

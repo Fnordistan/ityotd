@@ -121,8 +121,8 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stActionPhaseNextPlayer",
-        "transitions" => array( "nextPlayer" => STATE_ACTION_CHOOSE, "endPhase" => STATE_RECRUIT_PERSON )
-    ),    
+        "transitions" => array( "nextPlayer" => STATE_ACTION_CHOOSE, "endPhase" => STATE_RECRUIT_PERSON, "noRecruit" => STATE_EVENT )
+    ),
     STATE_ACTION_CHOOSE => array(
         "name" => "actionPhaseChoose",
         "description" => clienttranslate('${actplayer} must choose an action to carry out'),

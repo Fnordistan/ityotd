@@ -85,7 +85,6 @@ function (dojo, declare) {
                 var person = this.gamedatas.personpalace[i];
                 this.addPersonToPalace( person.palace_id, person.id, person.type, person.level );
             }
-            // this.markPerishablePersons();
             
             // Actions
             for( var action_id in this.gamedatas.actions )
@@ -335,7 +334,7 @@ function (dojo, declare) {
                 break;
             case 'discardPersonCards':
                 if( this.isCurrentPlayerActive() ) {
-                    this.decoratePersonCards(true);
+                    this.makePersonsDiscardable(true);
                 }
                 break;
             case 'dummmy':
@@ -362,7 +361,7 @@ function (dojo, declare) {
                 dojo.query( '.choosepalace' ).style( 'display', 'none' );
                 break;
             case 'discardPersonCards':
-                this.decoratePersonCards(false);
+                this.makePersonsDiscardable(false);
                 break;
             }                
         }, 
@@ -686,16 +685,25 @@ function (dojo, declare) {
          * Decorate person cards to discardable or not discardable.
          * @param {bool} toDiscard 
          */
-        decoratePersonCards: function(toDiscard) {
-            const personcards = document.getElementsByClassName("personcard");
+        makePersonsDiscardable: function(toDiscard) {
+            const person_container = document.getElementById("personcards");
             const ppid_rx = /_(\d+)$/;
+            if (toDiscard) {
+                person_container.onclick = event => {
+                    var card = event.target;
+                    if (card.classList.contains("personcard")) {
+                        var id = parseInt(card.id.match(ppid_rx)[1])
+                        this.discardPersonCard(id);
+                    }
+                };
+            } else {
+                person_container.onclick = null;
+            }
+
+            const personcards = document.getElementsByClassName("personcard");
             for (let pp of personcards) {
                 if (toDiscard) {
                     pp.classList.add("ityotd_person_discard");
-                    pp.addEventListener('click', () => {
-                        var id = parseInt(pp.id.match(ppid_rx)[1])
-                        this.discardPersonCard(id);
-                    });
                 } else {
                     pp.classList.remove("ityotd_person_discard");
                 }
@@ -870,7 +878,6 @@ function (dojo, declare) {
           discardPersonCard: function( pp ) {
             if( ! this.checkAction( 'discard' ) )
             {   return; } 
-            debugger;
             this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/discard.html", {
                 lock: true,
                 id: pp
@@ -1077,7 +1084,6 @@ function (dojo, declare) {
             console.log( 'notif_release' );
             console.log( notif );
             this.releasePerson( notif.args.person_id );
-            // this.markPerishablePersons();
         },
         notif_decay: function( notif )
         {
