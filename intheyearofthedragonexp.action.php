@@ -5,7 +5,7 @@
   * @author Grégory Isabelli <gisabelli@gmail.com>
   * @copyright Grégory Isabelli <gisabelli@gmail.com>
   * @package Game kernel
-  * Implementation of Great Wall and Super-Events expansions: @David Edelstein <davidedelstein@gmail.com>
+  * Implementation of Great Wall and Super Events expansions: @David Edelstein <davidedelstein@gmail.com>
   *
   * intheyearofthedragon main action entry point
   *

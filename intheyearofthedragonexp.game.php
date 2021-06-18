@@ -5,7 +5,7 @@
   * @author Grégory Isabelli <gisabelli@gmail.com>
   * @copyright Grégory Isabelli <gisabelli@gmail.com>
   * @package Game kernel
-  * Implementation of Great Wall and Super-Events expansions: @David Edelstein <davidedelstein@gmail.com>
+  * Implementation of Great Wall and Super Events expansions: @David Edelstein <davidedelstein@gmail.com>
   *
   *
   * intheyearofthedragonexp main game core
@@ -16,6 +16,7 @@ require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
 define('SUPER_EVENT', "SUPER_EVENT");
 define('SUPER_EVENT_DONE', "SUPER_EVENT_DONE");
+define('SUNRISE_RECRUIT', "SUNRISE_RECRUIT");
 define('SUPER_EVENT_FIRST_PLAYER', "seFirstPlayer");
 
 class InTheYearOfTheDragonExp extends Table
@@ -41,6 +42,7 @@ class InTheYearOfTheDragonExp extends Table
                 SUPER_EVENT_FIRST_PLAYER => 22, // flag for rotating players in super event
                 SUPER_EVENT => 23,
                 SUPER_EVENT_DONE => 24,
+                SUNRISE_RECRUIT => 30,
                 "largePrivilegeCost" => 100,
                 "greatWall" => 101,
                 "superEvents" => 102,
@@ -183,6 +185,7 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( SUPER_EVENT_FIRST_PLAYER, 0 );
         self::setGameStateInitialValue( SUPER_EVENT, 0 ); // note this is different from "superEvents" which is the gameoptions value
         self::setGameStateInitialValue( SUPER_EVENT_DONE, 0 );
+        self::setGameStateInitialValue( SUNRISE_RECRUIT, 0 );
 
         // Statistics
         self::initStat( 'table', 'person_lost_events_allplayers', 0 );
@@ -431,7 +434,6 @@ class InTheYearOfTheDragonExp extends Table
         }
         return $state;
     }
-
 
     /**
      * Get all the Wall tiles.
@@ -708,83 +710,99 @@ class InTheYearOfTheDragonExp extends Table
         
         if( $nbr == 0 )
         {
-           // "No more person from this type" 
+           // "No more person from this type"
            
         }
         
         $state = $this->gamestate->state();
         $bInitialChoice = ( $state['name'] == 'initialChoice' );
+        $bSunrise = ( $state['name'] == 'sunriseRecruit' );
 
-        if( ! $bInitialChoice )
-        {
-            // Check there is some personcard available
-            // (note: not for initial recruitment)
-            
-            $personcard_id = self::getUniqueValueFromDB( "SELECT personcard_id FROM personcard WHERE personcard_type='$type' AND personcard_player='$player_id'" );
-            if( $personcard_id === null )
-            {
-                // No available card => we take a "joker" one
-                $personcard_id = self::getUniqueValueFromDB( "SELECT personcard_id FROM personcard WHERE personcard_type='0' AND personcard_player='$player_id' LIMIT 0,1" );
-
-                if( $personcard_id === null )
-                    throw new feException( self::_("You have no remaining valid person card to recruit this person"), true );
-            }            
-
-            // Remove this personcard
-            $sql = "DELETE FROM personcard WHERE personcard_id='$personcard_id' ";
-            self::DbQuery( $sql );
-            
-            // Notify this player
-            self::notifyPlayer( $player_id, 'usePersonCard','',  array(
-                'personcard_id' => $personcard_id
-            ) );
-        }
-        else
-        {        
+        if ( $bInitialChoice || $bSunrise ) {
             // If this is "initial" mode:
             // _ choose only level 1
             // _ choose 2 different persons
             // _ choose a different combination than another player
+            // Sunrise super event: choose only 1 person and don't use a card
             
-            if( $level != 1 )
-                throw new feException( self::_("During initial phase you must recruit younger persons"), true );
-                
+            if( $level != 1 ) {
+                if ($bInitialChoice) {
+                    throw new BgaUserException( self::_("During the initial phase you must recruit younger persons") );
+                } else {
+                    throw new BgaUserException( self::_("During the Sunrise super event you must recruit a younger person") );
+                }
+            }
+            if ($nbr == 0 && $bSunrise) {
+                throw new BgaUserException( self::_("There are no more young persons of this type available") );
+            }
+
             $first_type_chosen = self::getUniqueValueFromDB( "SELECT palace_person_type
                                                               FROM palace_person
                                                               INNER JOIN palace ON palace_id=palace_person_id
                                                               WHERE palace_player='$player_id' " );
                                                               
-            if( $first_type_chosen !== null && $first_type_chosen==$type )
-                throw new feException( self::_( "Your two initial persons must be different" ), true );
+            if( $first_type_chosen !== null && $first_type_chosen==$type ) {
+                throw new BgaUserException( self::_( "Your two initial persons must be different" ) );
+            }
 
-            $all_persons = self::getCollectionFromDB( "SELECT palace_person_id id, palace_person_palace_id palace_id, palace_person_type type, palace_person_level level,
-                                                       palace_player player
-                                                       FROM palace_person
-                                                       INNER JOIN palace ON palace_id=palace_person_id
-                                                       WHERE palace_player!='$player_id' " );
-                                                       
-            $players = self::loadPlayersBasicInfos();
-            foreach( $players as $opponent_id => $player )
-            {
-                if( $opponent_id != $player_id )    // Only opponents
-                {
-                    $nbr_person_in_common = 0;
+            if ($bInitialChoice) {
+                $all_persons = self::getCollectionFromDB( "SELECT palace_person_id id, palace_person_palace_id palace_id, palace_person_type type, palace_person_level level,
+                                                                palace_player player
+                                                                FROM palace_person
+                                                                INNER JOIN palace ON palace_id=palace_person_id
+                                                                WHERE palace_player!='$player_id' " );
                 
-                    foreach( $all_persons as $person )
+                $players = self::loadPlayersBasicInfos();
+                foreach( $players as $opponent_id => $player ) {
+                    if( $opponent_id != $player_id )    // Only opponents
                     {
-                        if( $person['player'] == $opponent_id )
-                        {
-                            if( $person['type'] == $first_type_chosen || $person['type'] == $type )
+                        $nbr_person_in_common = 0;
+
+                        foreach( $all_persons as $person ) {
+                            if( $person['player'] == $opponent_id ) {
+                                if( $person['type'] == $first_type_chosen || $person['type'] == $type )
                                 $nbr_person_in_common++;
+                            }
+                        }
+
+                        if( $nbr_person_in_common == 2 ) {
+                            throw new BgaUserException( sprintf( self::_("You cannot choose this combination of persons because %s chose the same one"), $player['player_name'] ) );
                         }
                     }
-                    
-                    if( $nbr_person_in_common == 2 )
-                        throw new feException( sprintf( self::_("You cannot choose this combination of persons because %s choosed the same one"), $player['player_name'] ), true );
                 }
-            }            
+            } else {
+                // sunrise
+                $sunrise = self::getUniqueValueFromDB( "SELECT personpool_sunrise FROM personpool WHERE personpool_type=$type AND personpool_level=$level");
+                if ($sunrise) {
+                    throw new BgaUserException( self::_("This person type was already chosen in the Sunrise phase") );
+                } else {
+                    self::DBQuery( "UPDATE personpool SET personpool_sunrise = 1 WHERE personpool_type=$type AND personpool_level=$level");
+                }
+            }
+        } else {
+                // Check there is some personcard available
+                // (note: not for initial recruitment)
+                
+                $personcard_id = self::getUniqueValueFromDB( "SELECT personcard_id FROM personcard WHERE personcard_type='$type' AND personcard_player='$player_id'" );
+                if( $personcard_id === null )
+                {
+                    // No available card => we take a "joker" one
+                    $personcard_id = self::getUniqueValueFromDB( "SELECT personcard_id FROM personcard WHERE personcard_type='0' AND personcard_player='$player_id' LIMIT 0,1" );
+    
+                    if( $personcard_id === null )
+                        throw new feException( self::_("You have no remaining valid person card to recruit this person"), true );
+                }            
+    
+                // Remove this personcard
+                $sql = "DELETE FROM personcard WHERE personcard_id='$personcard_id' ";
+                self::DbQuery( $sql );
+                
+                // Notify this player
+                self::notifyPlayer( $player_id, 'usePersonCard','',  array(
+                    'personcard_id' => $personcard_id
+                ) );
         }
-        
+            
         if( $nbr == 0 )
         {
             $this->gamestate->nextState( 'notPossible' );
@@ -876,7 +894,8 @@ class InTheYearOfTheDragonExp extends Table
             'person_type_name' => $tile_persontype['name'],
             'details' => $details
         ) );
-        $this->gamestate->nextState( '' );
+        $state = self::getGameStateValue(SUNRISE_RECRUIT) == 1 ? "sunrise" : "nextPhase";
+        $this->gamestate->nextState( $state );
     }
 
     // Increase person score of given player
@@ -1421,8 +1440,8 @@ class InTheYearOfTheDragonExp extends Table
             'player_id' => self::getActivePlayerId(),
             'player_name' => self::getActivePlayerName()
         ) );
-        
-        $this->gamestate->nextState( '' );
+        $state = self::getGameStateValue(SUNRISE_RECRUIT) == 1 ? "sunrise" : "nextPhase";
+        $this->gamestate->nextState( $state );
     }
 
     /**
@@ -2150,6 +2169,10 @@ class InTheYearOfTheDragonExp extends Table
             case 7:
                 $state = "tornado";
                 break;
+            case 8:
+                $state = "sunrise";
+                self::setGameStateValue(SUNRISE_RECRUIT, 1);
+                break;
             default:
                 throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
         }
@@ -2183,6 +2206,18 @@ class InTheYearOfTheDragonExp extends Table
                     // tornado
                     self::setGameStateValue('toReduce', 2);
                     break;
+                case 8:
+                    // Sunrise
+                    // check for (rare) case where no more young persons available
+                    $youngpers = self::getObjectListFromDB( "SELECT personpool_nbr FROM personpool WHERE personpool_level=1", true);
+                    $nbr = 0;
+                    foreach ($youngpers as $n) {
+                        $nbr += $n;
+                    }
+                    if ($nbr == 0) {
+                        $state = 'endPhase';
+                    }
+                    break;
                 default:
                     throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
             }
@@ -2190,15 +2225,11 @@ class InTheYearOfTheDragonExp extends Table
             // next player
             $this->gamestate->nextState( $state );
         } else {
+            if (self::getGameStateValue(SUNRISE_RECRUIT) == 1) {
+                self::setGameStateValue(SUNRISE_RECRUIT, 0);
+            }
             $this->gamestate->nextState( 'endPhase' );
         }
-    }
-
-    /**
-     * From Sunrise super event.
-     */
-    function stAddYoungPerson() {
-
     }
 
     /**
@@ -2548,7 +2579,17 @@ class InTheYearOfTheDragonExp extends Table
             throw new feException( "Zombie mode not supported at this game state:".$state['name'] );
     }
    
-   
+    function upgradeTableDb( $from_version )
+    {
+        // Example:
+       if( $from_version <= 2105120134 )
+       {
+           // ! important ! Use DBPREFIX_<table_name> for all tables
+
+           $sql = "ALTER TABLE DBPREFIX_personpool ADD personpool_sunrise BOOLEAN NOT NULL DEFAULT '0'";
+           self::applyDbUpgradeToAllDB( $sql );
+       }
+    }
 }
   
 ?>

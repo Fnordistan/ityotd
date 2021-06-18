@@ -2,7 +2,7 @@
 
 /*
 *   InTheYearOfDragon material
-* Implementation of Great Wall and Super-Events expansions: @David Edelstein <davidedelstein@gmail.com>
+* Implementation of Great Wall and Super Events expansions: @David Edelstein <davidedelstein@gmail.com>
 *
 */
 
@@ -198,7 +198,7 @@ $this->superevents = array(
                 'description' => self::_("Beginning with the starting player, each player must discard 2 of their person cards. This means that the players have only one card each for the months 8 and 9 - and skip the person phase in the months 10, 11, and 12.") ),
     8 => array( 'name' => totranslate('Sunrise'),
                 'nametr' => self::_("Sunrise"),
-                'description' => self::_("Beginning with the starting player, each player selects a young person to place (note: without the appropriate person card!) and plays it according to the 2nd phase rules. Then, the player moves their person marker forward along the person track the appropriate number of spaces.") ),
+                'description' => self::_("Beginning with the starting player, each player selects a young person (note: without using a person card!) and places it as usual. Each player must choose a different person type. Advance the appropriate number of spaces on the Person Track.") ),
     9 => array( 'name' => totranslate('Assassination Attempt'),
                 'nametr' => self::_("Assassination Attempt"),
                 'description' => self::_("All players must discard all their privileges - without compensation! - back into the supply. Thus, the privileges are not scored in the scoring phase that follows.") ),

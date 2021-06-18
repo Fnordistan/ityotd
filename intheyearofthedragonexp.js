@@ -723,16 +723,19 @@ function (dojo, declare) {
             // persontile_2_1
             var level = evt.currentTarget.id.substr( 13 );
             var type = evt.currentTarget.id.substr( 11, 1 );
-            
-            if( toint( $('persontile_nbr_'+type+'_'+level).innerHTML ) == 0 )
+
+            var isSunrise = this.gamedatas.gamestate.name == 'sunriseRecruit';
+            // skip warning dialog  in case of sunrise recruit because php game logic will throw error message
+            if(!isSunrise && toint( $('persontile_nbr_'+type+'_'+level).innerHTML ) == 0 )
             {
                 this.confirmationDialog( _("There are no more persons of this type and your card will be discarded: do you confirm?"),
-                    dojo.hitch( this, function() {
-                           this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/recruit.html", { lock: true, 
-                            type: type,
-                            level: level
-                            }, this, function( result ) {  } );             
-                    } ) );
+                dojo.hitch( this, function() {
+                    this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/recruit.html", {
+                        lock: true, 
+                        type: type,
+                        level: level
+                    }, this, function( result ) {  } );             
+                } ) );
             }
             else
             {                

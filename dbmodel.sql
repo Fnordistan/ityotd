@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS `personpool` (
   `personpool_type` int(10) unsigned NOT NULL,
   `personpool_level` tinyint(3) unsigned NOT NULL,
   `personpool_nbr` int(10) unsigned NOT NULL,
+  `personpool_sunrise` BOOLEAN NOT NULL DEFAULT '0',
   PRIMARY KEY (`personpool_type`,`personpool_level`)
 ) ENGINE=InnoDB ;
 

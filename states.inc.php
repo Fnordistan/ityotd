@@ -64,6 +64,8 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_REDUCE_RESOURCES", 51);
     define("STATE_TORNADO", 60);
     define("STATE_DISCARD", 61);
+    define("STATE_SUNRISE", 70);
+    define("STATE_PLACE_YOUNG", 71);
     define("STATE_FINAL_SCORING", 98);
     define("STATE_ENDGAME", 99);
 }
@@ -174,7 +176,7 @@ $machinestates = array(
         "possibleactions" => array( "place" ),
         "args" => "argPlaceTile",
         "type" => "activeplayer",
-        "transitions" => array( "" => STATE_NEXT_PHASE )
+        "transitions" => array( "nextPhase" => STATE_NEXT_PHASE, "sunrise" => STATE_SUNRISE )
     ),      
     STATE_REPLACE_PERSON => array(
         "name" => "palaceFull",
@@ -183,7 +185,7 @@ $machinestates = array(
         "possibleactions" => array( "releaseReplace", "place" ),
         "args" => "argPlaceTile",
         "type" => "activeplayer",
-        "transitions" => array( "" => STATE_NEXT_PHASE )
+        "transitions" => array( "nextPhase" => STATE_NEXT_PHASE, "sunrise" => STATE_SUNRISE )
     ), 
 
     /// 3rd phase: EVENTS //////
@@ -255,7 +257,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEvent",
-        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => SUPER_EVENT_INIT, "sunrise" => 70, "charter" => 80 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => SUPER_EVENT_INIT, "sunrise" => SUPER_EVENT_INIT, "charter" => 80 )
     ),
 
     STATE_END_PHASE => array(
@@ -271,7 +273,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEventInit",
-        "transitions" => array( "earthquake" => STATE_EARTHQUAKE, "flood" => STATE_FLOOD, "tornado" => STATE_TORNADO )
+        "transitions" => array( "earthquake" => STATE_EARTHQUAKE, "flood" => STATE_FLOOD, "tornado" => STATE_TORNADO, "sunrise" => STATE_SUNRISE )
     ),
 
     // from Earthquake
@@ -322,7 +324,6 @@ $machinestates = array(
         "transitions" => array( "" => STATE_FLOOD )
     ),
 
-    // from Tornado
     STATE_TORNADO => array(
         "name" => "tornado",
         "description" => '',
@@ -341,13 +342,22 @@ $machinestates = array(
         "transitions" => array( "continueDiscard" => STATE_DISCARD, "endDiscard" => STATE_TORNADO )
     ),
 
-    // from Sunrise
-    70 => array(
-        "name" => "addYoungPerson",
+    STATE_SUNRISE => array(
+        "name" => "sunrise",
         "description" => '',
         "type" => "game",
-        "action" => "stAddYoungPerson",
-        "transitions" => array( "endPhase" => STATE_END_PHASE )
+        "action" => "stSuperEventRotate",
+        "transitions" => array( "nextPlayer" => STATE_PLACE_YOUNG, "endPhase" => STATE_END_PHASE )
+    ),
+
+    // from Sunrise
+    STATE_PLACE_YOUNG => array(
+        "name" => "sunriseRecruit",
+        "description" => clienttranslate('${actplayer} must choose a young person to add'),
+        "descriptionmyturn" => clienttranslate('${you} must choose a young person to add'),
+        "possibleactions" => array( "recruit" ),
+        "type" => "activeplayer",
+        "transitions" => array( "chooseTile" => STATE_PLACE_PERSON, "palaceFull" => STATE_REPLACE_PERSON, "zombiePass" => STATE_SUNRISE )
     ),
 
     // from Charter
