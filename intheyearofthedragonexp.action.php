@@ -84,6 +84,13 @@
         self::ajaxResponse( );    
     }
 
+    public function charter() {
+        self::setAjaxMode();   
+        $type = self::getArg( "type", AT_posint, true );
+        $result = $this->game->charter( $type );
+        self::ajaxResponse( );    
+    }
+
     public function depopulate() {
         self::setAjaxMode();     
         $palace_id = self::getArg( "id", AT_posint, true );

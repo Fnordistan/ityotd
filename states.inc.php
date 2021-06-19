@@ -66,6 +66,8 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_DISCARD", 61);
     define("STATE_SUNRISE", 70);
     define("STATE_PLACE_YOUNG", 71);
+    define("STATE_CHARTER", 80);
+    define("STATE_CHARTER_PERSON", 81);
     define("STATE_FINAL_SCORING", 98);
     define("STATE_ENDGAME", 99);
 }
@@ -105,7 +107,7 @@ $machinestates = array(
         "possibleactions" => array( "place" ),
         "args" => "argPlaceTile",
         "type" => "activeplayer",
-        "transitions" => array( "" => STATE_INITIAL_CHOICE_NP )
+        "transitions" => array( "nextPhase" => STATE_INITIAL_CHOICE_NP )
     ),
     
     /// 1st game phase: ACTIONS ///////////////////
@@ -140,7 +142,7 @@ $machinestates = array(
         "possibleactions" => array( "build" ),
         "args" => "argActionPhaseBuild",
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAgain" => STATE_BUILD )
+        "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAgain" => STATE_BUILD, "charter" => STATE_CHARTER )
     ),    
     STATE_PRIVILEGE => array(
         "name" => "actionPhasePrivilege",
@@ -172,7 +174,7 @@ $machinestates = array(
     STATE_PLACE_PERSON => array(
         "name" => "personPhasePlace",
         "description" => clienttranslate('${actplayer} must place a new person tile in a palace'),
-        "descriptionmyturn" => clienttranslate('${you} must place your new person tile in one of your palace'),
+        "descriptionmyturn" => clienttranslate('${you} must place your new person tile in a palace'),
         "possibleactions" => array( "place" ),
         "args" => "argPlaceTile",
         "type" => "activeplayer",
@@ -257,7 +259,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEvent",
-        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => SUPER_EVENT_INIT, "sunrise" => SUPER_EVENT_INIT, "charter" => 80 )
+        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => SUPER_EVENT_INIT, "sunrise" => SUPER_EVENT_INIT, "charter" => SUPER_EVENT_INIT )
     ),
 
     STATE_END_PHASE => array(
@@ -273,7 +275,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEventInit",
-        "transitions" => array( "earthquake" => STATE_EARTHQUAKE, "flood" => STATE_FLOOD, "tornado" => STATE_TORNADO, "sunrise" => STATE_SUNRISE )
+        "transitions" => array( "earthquake" => STATE_EARTHQUAKE, "flood" => STATE_FLOOD, "tornado" => STATE_TORNADO, "sunrise" => STATE_SUNRISE, "charter" => STATE_CHARTER )
     ),
 
     // from Earthquake
@@ -292,7 +294,7 @@ $machinestates = array(
         "possibleactions" => array( "reduce" ),
         "args" => "argNbrToReduce",
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => STATE_EARTHQUAKE, "nextReduce" => STATE_REDUCE_PALACE, "releasePerson" => STATE_REDUCE_POPULATION  )
+        "transitions" => array( "nextPlayer" => STATE_EARTHQUAKE, "nextReduce" => STATE_REDUCE_PALACE, "releasePerson" => STATE_REDUCE_POPULATION, "zombiePass" => STATE_EARTHQUAKE )
     ),
 
     STATE_REDUCE_POPULATION => array(
@@ -302,7 +304,7 @@ $machinestates = array(
         "possibleactions" => array( "depopulate" ),
         "args" => "argNbrToRelease",
         "type" => "activeplayer",
-        "transitions" => array( "continueRelease" => STATE_REDUCE_POPULATION, "endRelease" => STATE_EARTHQUAKE )
+        "transitions" => array( "continueRelease" => STATE_REDUCE_POPULATION, "endRelease" => STATE_EARTHQUAKE, "zombiePass" => STATE_EARTHQUAKE )
     ),
 
     // from Flood
@@ -321,7 +323,7 @@ $machinestates = array(
         "possibleactions" => array( "removeResources" ),
         "args" => "argNbrToReduce",
         "type" => "activeplayer",
-        "transitions" => array( "" => STATE_FLOOD )
+        "transitions" => array( "nextPlayer" => STATE_FLOOD, "zombiePass" => STATE_FLOOD )
     ),
 
     STATE_TORNADO => array(
@@ -339,7 +341,7 @@ $machinestates = array(
         "possibleactions" => array( "discard" ),
         "args" => "argNbrToReduce",
         "type" => "activeplayer",
-        "transitions" => array( "continueDiscard" => STATE_DISCARD, "endDiscard" => STATE_TORNADO )
+        "transitions" => array( "continueDiscard" => STATE_DISCARD, "endDiscard" => STATE_TORNADO, "zombiePass" => STATE_TORNADO )
     ),
 
     STATE_SUNRISE => array(
@@ -361,12 +363,21 @@ $machinestates = array(
     ),
 
     // from Charter
-    80 => array(
-        "name" => "charterPerson",
+    STATE_CHARTER => array(
+        "name" => "charter",
         "description" => '',
         "type" => "game",
-        "action" => "stCharter",
-        "transitions" => array( "endPhase" => STATE_END_PHASE )
+        "action" => "stSuperEventRotate",
+        "transitions" => array( "nextPlayer" => STATE_CHARTER_PERSON, "endPhase" => STATE_END_PHASE )
+    ),
+
+    STATE_CHARTER_PERSON => array(
+        "name" => "charterPerson",
+        "description" => clienttranslate('${actplayer} must choose a person type in their realm to gain benefits'),
+        "descriptionmyturn" => clienttranslate('${you} must choose a person type in your realm to gain benefits'),
+        "possibleactions" => array( "charter" ),
+        "type" => "activeplayer",
+        "transitions" => array( "nextPlayer" => STATE_CHARTER, "buildAction" => STATE_BUILD, "zombiePass" => STATE_CHARTER )
     ),
 
     /// Final scoring //////

@@ -16,7 +16,7 @@ require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
 define('SUPER_EVENT', "SUPER_EVENT");
 define('SUPER_EVENT_DONE', "SUPER_EVENT_DONE");
-define('SUNRISE_RECRUIT', "SUNRISE_RECRUIT");
+define('SUPER_EVENT_ACTION', "SUPER_EVENT_ACTION");
 define('SUPER_EVENT_FIRST_PLAYER', "seFirstPlayer");
 
 class InTheYearOfTheDragonExp extends Table
@@ -42,7 +42,7 @@ class InTheYearOfTheDragonExp extends Table
                 SUPER_EVENT_FIRST_PLAYER => 22, // flag for rotating players in super event
                 SUPER_EVENT => 23,
                 SUPER_EVENT_DONE => 24,
-                SUNRISE_RECRUIT => 30,
+                SUPER_EVENT_ACTION => 30,
                 "largePrivilegeCost" => 100,
                 "greatWall" => 101,
                 "superEvents" => 102,
@@ -185,7 +185,7 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( SUPER_EVENT_FIRST_PLAYER, 0 );
         self::setGameStateInitialValue( SUPER_EVENT, 0 ); // note this is different from "superEvents" which is the gameoptions value
         self::setGameStateInitialValue( SUPER_EVENT_DONE, 0 );
-        self::setGameStateInitialValue( SUNRISE_RECRUIT, 0 );
+        self::setGameStateInitialValue( SUPER_EVENT_ACTION, 0 );
 
         // Statistics
         self::initStat( 'table', 'person_lost_events_allplayers', 0 );
@@ -383,7 +383,7 @@ class InTheYearOfTheDragonExp extends Table
                 break;
             case 2:
                 // Buddha
-                $this->scoreMonks();
+                $this->scoreMonks(0);
                 break;
             case 3:
                 // Earthquake
@@ -554,9 +554,10 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
-     * For Buddha super event.
+     * For Buddha or Charter event.
+     * If scoring_player=0, score all players. Otherwise, score only the player id passed.
      */
-    function scoreMonks() {
+    function scoreMonks($scoring_player) {
         $players = self::loadPlayersBasicInfos();
 
         $monks = $this->countMonks();
@@ -564,12 +565,21 @@ class InTheYearOfTheDragonExp extends Table
         foreach( $monks as $m => $monk ) {
             $player_id = $monk['palace_player'];
             $points = $monk['level'] * $monk['palace_size'];  // Note: 1 buddha on level 1, 2 buddhas on level 2
-            $monk_points[$player_id] += $points;
+
+            if (isset($monk_points[$player_id])) {
+                $monk_points[$player_id] += $points;
+            } else {
+                $monk_points[$player_id] = $points;
+            }
         }
         foreach( $monk_points as $player_id => $pts) {
+            // if there is a scoring_player that's the only one being scored
+            if ($scoring_player != 0 && $scoring_player != $player_id) {
+                continue;
+            }
             self::incStat( $pts, 'points_monks', $player_id );
             self::DbQuery( "UPDATE player SET player_score=player_score+$pts WHERE player_id='$player_id' " );
-            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Buddha' ), array(
+            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from Monks' ), array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]['player_name'],
                 'nbr' => $pts
@@ -736,10 +746,7 @@ class InTheYearOfTheDragonExp extends Table
                 throw new BgaUserException( self::_("There are no more young persons of this type available") );
             }
 
-            $first_type_chosen = self::getUniqueValueFromDB( "SELECT palace_person_type
-                                                              FROM palace_person
-                                                              INNER JOIN palace ON palace_id=palace_person_id
-                                                              WHERE palace_player='$player_id' " );
+            $first_type_chosen = self::getUniqueValueFromDB( "SELECT palace_person_type FROM palace_person INNER JOIN palace ON palace_id=palace_person_id WHERE palace_player=$player_id" );
                                                               
             if( $first_type_chosen !== null && $first_type_chosen==$type ) {
                 throw new BgaUserException( self::_( "Your two initial persons must be different" ) );
@@ -791,18 +798,20 @@ class InTheYearOfTheDragonExp extends Table
     
                     if( $personcard_id === null )
                         throw new feException( self::_("You have no remaining valid person card to recruit this person"), true );
-                }            
-    
-                // Remove this personcard
-                $sql = "DELETE FROM personcard WHERE personcard_id='$personcard_id' ";
-                self::DbQuery( $sql );
-                
-                // Notify this player
-                self::notifyPlayer( $player_id, 'usePersonCard','',  array(
-                    'personcard_id' => $personcard_id
-                ) );
+                }
+                // still need to check in case of zombie player
+                if ($personcard_id != null) {
+                    // Remove this personcard
+                    $sql = "DELETE FROM personcard WHERE personcard_id='$personcard_id' ";
+                    self::DbQuery( $sql );
+
+                    // Notify this player
+                    self::notifyPlayer( $player_id, 'usePersonCard','',  array(
+                        'personcard_id' => $personcard_id
+                    ) );
+                }
         }
-            
+
         if( $nbr == 0 )
         {
             $this->gamestate->nextState( 'notPossible' );
@@ -894,7 +903,7 @@ class InTheYearOfTheDragonExp extends Table
             'person_type_name' => $tile_persontype['name'],
             'details' => $details
         ) );
-        $state = self::getGameStateValue(SUNRISE_RECRUIT) == 1 ? "sunrise" : "nextPhase";
+        $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? 'sunrise' : 'nextPhase';
         $this->gamestate->nextState( $state );
     }
 
@@ -1267,11 +1276,13 @@ class InTheYearOfTheDragonExp extends Table
                 'palace_id' => $palace_id
             ) );
         }
-        
-        if( $remainingToBuild == 0 )
-            $this->gamestate->nextState( 'nextPlayer' );
-        else
+
+        if( $remainingToBuild == 0 ) {
+            $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? "charter" : "nextPlayer";
+            $this->gamestate->nextState( $state );
+        } else {
             $this->gamestate->nextState( 'buildAgain' );
+        }
     }
 
     /**
@@ -1440,7 +1451,7 @@ class InTheYearOfTheDragonExp extends Table
             'player_id' => self::getActivePlayerId(),
             'player_name' => self::getActivePlayerName()
         ) );
-        $state = self::getGameStateValue(SUNRISE_RECRUIT) == 1 ? "sunrise" : "nextPhase";
+        $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? "sunrise" : "nextPhase";
         $this->gamestate->nextState( $state );
     }
 
@@ -1543,7 +1554,7 @@ class InTheYearOfTheDragonExp extends Table
             'nbryuan' => $yuan
         ) );
         
-        $this->gamestate->nextState('');
+        $this->gamestate->nextState('nextPlayer');
     }
 
     /**
@@ -1576,6 +1587,73 @@ class InTheYearOfTheDragonExp extends Table
         } else {
             $this->gamestate->nextState('continueDiscard');
         }
+    }
+
+    /**
+     * From Charter super event.
+     */
+     function charter($type) {
+        self::checkAction( 'charter' );
+        $player_id = self::getActivePlayerId();
+    
+        self::notifyAllPlayers( 'charterPerson', clienttranslate( '${player_name} charters ${persontype}' ), array(
+            'player_name' => self::getCurrentPlayerName(),
+            'persontype' => $this->person_types[$type]['name']
+        ) );
+
+        $nextState = 'nextPlayer';
+   
+        switch($type) {
+            case 1:
+                // Craftsmen
+                $toBuild = self::countItemsByType( $player_id, $type );
+                self::setGameStateValue( 'toBuild', $toBuild );
+                $nextState = 'buildAction';
+                break;
+            case 2:
+                // Court Ladies
+                $vp = self::countItemsByType( $player_id, $type );
+                $this->addVictoryPoints($player_id, $vp);
+                self::incStat( $vp, 'points_court_ladies', $player_id );
+                break;
+            case 3:
+                // Pyrotechnists
+                $fw = self::countItemsByType( $player_id, $type );
+                $this->addFireworks($player_id, $fw);
+                break;
+            case 4:
+                // Tax Collectors
+                $yuan = self::countItemsByType( $player_id, $type );
+                $this->addYuan($player_id, $yuan);
+                break;
+            case 5:
+                // Warriors
+                $pp = self::countItemsByType( $player_id, $type );
+                $this->addPersonPoints($player_id, $pp);
+                break;
+            case 6:
+                // Monks
+                $this->scoreMonks($player_id);
+                break;
+            case 7:
+                // Healers - do nothing
+                break;
+            case 8:
+                // Farmers
+                $rice = self::countItemsByType( $player_id, $type );
+                $this->addRice($player_id, $rice);
+                break;
+            case 9:
+                // Scholars
+                $books = self::countItemsByType( $player_id, $type );
+                $this->addVictoryPoints($player_id, $books);
+                self::incStat( $books, 'points_scholars', $player_id );
+                break;
+            default:
+                throw new BgaVisibleSystemException("Invalid person type: $type");
+        }
+
+        $this->gamestate->nextState($nextState);
     }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2171,7 +2249,11 @@ class InTheYearOfTheDragonExp extends Table
                 break;
             case 8:
                 $state = "sunrise";
-                self::setGameStateValue(SUNRISE_RECRUIT, 1);
+                self::setGameStateValue(SUPER_EVENT_ACTION, 1);
+                break;
+            case 10:
+                $state = "charter";
+                self::setGameStateValue(SUPER_EVENT_ACTION, 1);
                 break;
             default:
                 throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
@@ -2218,6 +2300,13 @@ class InTheYearOfTheDragonExp extends Table
                         $state = 'endPhase';
                     }
                     break;
+                case 10:
+                    // charter
+                    // make sure we actually have persons
+                    if (!$this->hasPersonsLeft()) {
+                        $state = 'endPhase';
+                    }
+                    break;
                 default:
                     throw new BgaVisibleSystemException ( "Invalid Super Event value: $se" );
             }
@@ -2225,18 +2314,11 @@ class InTheYearOfTheDragonExp extends Table
             // next player
             $this->gamestate->nextState( $state );
         } else {
-            if (self::getGameStateValue(SUNRISE_RECRUIT) == 1) {
-                self::setGameStateValue(SUNRISE_RECRUIT, 0);
+            if (self::getGameStateValue(SUPER_EVENT_ACTION) == 1) {
+                self::setGameStateValue(SUPER_EVENT_ACTION, 0);
             }
             $this->gamestate->nextState( 'endPhase' );
         }
-    }
-
-    /**
-     * From Charter super event.
-     */
-    function stCharter() {
-
     }
 
     function endOfTurnScoring()
@@ -2540,7 +2622,7 @@ class InTheYearOfTheDragonExp extends Table
         }
         else if( $state['name'] == 'initialPlace' )
         {
-            $this->gamestate->nextState(  );
+            $this->gamestate->nextState( 'nextPhase' );
         }
         else if( $state['name'] == 'actionPhaseChoose' )
         {
@@ -2560,25 +2642,64 @@ class InTheYearOfTheDragonExp extends Table
         }
         else if( $state['name'] == 'personPhasePlace' )
         {
-            $this->gamestate->nextState( '' );
+            $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? 'sunrise' : 'nextPhase';
+            $this->gamestate->nextState( $state );
         }
         else if( $state['name'] == 'palaceFull' )
         {
-            $this->gamestate->nextState( '' );
+            $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? 'sunrise' : 'nextPhase';
+            $this->gamestate->nextState( $state );
         }
         else if( $state['name'] == 'release' )
         {
+            // Get one person from current player, random
+            $this->releaseRandomPerson($active_player);
+        }
+        else if ($state['name'] == 'greatWallRelease')
+        {
+            $this->releaseRandomPerson($active_player);
+        }
+        else if ($state['name'] == 'reducePalace')
+        {
+            $this->gamestate->nextState( 'zombiePass' );
+        }
+        else if ($state['name'] == 'reducePopulation')
+        {
+            $this->gamestate->nextState( 'zombiePass' );
+        }
+        else if ($state['name'] == 'reduceResources')
+        {
+            $this->gamestate->nextState( 'zombiePass' );
+        }
+        else if ($state['name'] == 'discardPersonCards')
+        {
+            $this->gamestate->nextState( 'zombiePass' );
+        }
+        else if ($state['name'] == 'sunriseRecruit')
+        {
+            $this->gamestate->nextState( 'zombiePass' );
+        }
+        else if ($state['name'] == 'charterPerson')
+        {
+            $this->gamestate->nextState( 'zombiePass' );
+        }
+        else
+            throw new feException( "Zombie mode not supported at this game state:".$state['name'] );
+    }
+
+    /**
+     * For zombie player release random person
+     */
+    function releaseRandomPerson($active_player) {
             // Get one person from current player, random
             $person_id = self::getUniqueValueFromDB( "SELECT palace_person_id
                                                       FROM palace_person
                                                       INNER JOIN palace ON palace_id=palace_person_palace_id
                                                       WHERE palace_player='$active_player' LIMIT 0,1" );
             self::release( $person_id );
-        }
-        else
-            throw new feException( "Zombie mode not supported at this game state:".$state['name'] );
     }
-   
+
+
     function upgradeTableDb( $from_version )
     {
         // Example:

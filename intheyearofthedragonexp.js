@@ -594,7 +594,7 @@ function (dojo, declare) {
             var html = '<br>'+persontype.nametr+'</br><hr/>'+persontype.description;
             this.addTooltip( palace_person_tile, html, _('Release this person') );
             
-            dojo.connect( $(palace_person_tile), 'onclick', this, 'onReleasePerson' );
+            dojo.connect( $(palace_person_tile), 'onclick', this, 'onSelectPalacePerson' );
             var person_el = document.getElementById(palace_person_tile);
             var player_palaces = document.getElementById("palaces_"+this.player_id);
             if (player_palaces && player_palaces.contains(person_el)) {
@@ -824,7 +824,7 @@ function (dojo, declare) {
             }, this, function( result ) {  } );                 
         },
         
-        onReleasePerson: function( evt )
+        onSelectPalacePerson: function( evt )
         {
             evt.preventDefault();
             // palacepersontile_${id}_inner
@@ -843,10 +843,27 @@ function (dojo, declare) {
                 this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/release.html", { lock: true,
                     id: person_id
                 }, this, function( result ) {  } );
-            } else if ( this.checkAction('depopulate')) {
+            } else if ( this.checkAction('depopulate', true)) {
                 this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/depopulate.html", { lock: true,
                     id: person_id
                 }, this, function( result ) {  } );
+            } else if ( this.checkAction('charter') ) {
+                const person_rx = /persontile_(\d+)_/;
+                var ptype = evt.currentTarget.className.match(person_rx)[1];
+                if (ptype == 7) {
+                    this.confirmationDialog( _("Chartering Healers has no effect: are you sure?"),
+                    dojo.hitch( this, function() {
+                        this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/charter.html", {
+                            lock: true,
+                            type: 7
+                        }, this, function( result ) {  } );
+                    } ) );
+                } else {
+                    this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/charter.html", {
+                        lock: true,
+                        type: ptype
+                    }, this, function( result ) {  } );
+                }
             }
          },
 
