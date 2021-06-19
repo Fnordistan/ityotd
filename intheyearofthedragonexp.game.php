@@ -1426,7 +1426,7 @@ class InTheYearOfTheDragonExp extends Table
         $person = self::getObjectFromDB( $sql );
         
         if( $person === null ) {
-            throw new BgaVisibleSystemException( 'This person does not exist' );
+            throw new BgaVisibleSystemException( 'This person does not exist' ); // NOI18N
         }
         
         if( $person['player'] != $player_id ) {
