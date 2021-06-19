@@ -372,62 +372,99 @@ class InTheYearOfTheDragonExp extends Table
      */
     function doSuperEvent() {
         $state = "endPhase";
-        switch (self::getGameStateValue(SUPER_EVENT)) {
+        $superevent = self::getGameStateValue(SUPER_EVENT);
+        switch ($superevent) {
             case 0:
                 // this shouldn't happen, we shouldn't call this if not using Super Events
                 throw new BgaVisibleSystemException ( "Super Events called when that option was not enabled" ); // NOI18N
                 break;
             case 1:
                 // Lanternfest
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players score their people' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $this->scorePersons();
                 break;
             case 2:
                 // Buddha
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players score their Monks' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $this->scoreMonks(0);
                 break;
             case 3:
                 // Earthquake
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players lose two palace sections' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $state = "earthquake";
                 break;
             case 4:
                 // Flood
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players lose half their resources (rounded down)' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $state = "flood";
                 break;
             case 5:
                 // Solar Eclipse
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: Repeat previous event' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $state = "solar";
-                self::notifyAllPlayers( 'solarEclipse', clienttranslate( 'Solar eclipse repeats previous event' ), array());
                 break;
             case 6:
                 // Volcanic Eruption
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players set back to 0 on the person track' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $this->resetPlayerPlayOrder();
-                self::notifyAllPlayers( 'volcanicEruption', clienttranslate( 'Volcanic eruption sets all players back to 0 on the person track' ), array());
                 break;
             case 7:
                 // Tornado
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players must discard two person cards' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $state = "tornado";
                 break;
             case 8:
                 // Sunrise
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players select one young person tile' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $state = "sunrise";
                 break;
             case 9:
                 // Assassination Attempt
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players lose all privileges' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 self::DbQuery( "UPDATE player SET player_favor=0" );
-                self::notifyAllPlayers( 'assassinationAttempt', clienttranslate( 'Assassination attempt discards ALL privileges' ), array());
                 break;
             case 10:
                 // Charter
+                self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players select one person type in their realm and gain the appropriate benefits' ), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_i' => $superevent,
+                ));
                 $state = "charter";
                 break;
             case 11:
                 // Hard Mode random, determine event now
                 $se = bga_rand(1,10);
                 self::setGameStateValue(SUPER_EVENT, $se);
-                $superevent_name = $this->superevents[$se]['nametr'];
                 self::notifyAllPlayers( 'superEventChosen', clienttranslate('Super event revealed: ${superevent_name}'), array(
+                    'superevent_name' => $this->superevents[$superevent]['nametr'],
                     'superevent' => $se,
-                    'superevent_name' => $superevent_name,
                 ) );
                 $state = $this->doSuperEvent();
                 break;
@@ -545,7 +582,7 @@ class InTheYearOfTheDragonExp extends Table
             $personscore = 2*$personct;
             self::incStat( $personscore, 'points_person', $player_id );
             self::DbQuery( "UPDATE player SET player_score=player_score+$personscore WHERE player_id='$player_id' " );
-            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from the Lanternfest' ), array(
+            self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points' ), array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]['player_name'],
                 'nbr' => $personscore
@@ -1388,18 +1425,20 @@ class InTheYearOfTheDragonExp extends Table
                 WHERE palace_person_id='$person_id' ";
         $person = self::getObjectFromDB( $sql );
         
-        if( $person === null )
-            throw new feException( 'This person does not exist' );
+        if( $person === null ) {
+            throw new BgaVisibleSystemException( 'This person does not exist' );
+        }
         
-        if( $person['player'] != $player_id )
-            throw new feException( self::_("This person is not one of yours"), true );
+        if( $person['player'] != $player_id ) {
+            throw new BgaUserException( self::_("This person is not one of yours") );
+        }
 
-        if( !$bAndReplace && $bDrought && $person['drought_affected'] )
-            throw new feException( self::_("You already released a person from this palace (see: Drought)"), true );
+        if( !$bAndReplace && $bDrought && $person['drought_affected'] ) {
+            throw new BgaUserException( self::_("You already released a person from this palace (see: Drought)") );
+        }
         
         // Okay, let's release this one
-        $sql = "DELETE FROM palace_person WHERE palace_person_id='$person_id' ";
-        self::DbQuery( $sql );
+        self::DbQuery( "DELETE FROM palace_person WHERE palace_person_id='$person_id' " );
         
         $palace_id = $person['palace_id'];
         if( $bDrought )
@@ -1412,10 +1451,11 @@ class InTheYearOfTheDragonExp extends Table
         if( count( $tile_persontype['subtype'] ) > 1 )
         {
             $i18n[] = 'details';
-            if( $person['level'] == 1 )
+            if( $person['level'] == 1 ) {
                 $details = ' ('.clienttranslate('young').')';
-            else
+            } else {
                 $details = ' ('.clienttranslate('old').')';
+            }
         }
        
         self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${person_type_name}${details}'), array(
@@ -2697,10 +2737,9 @@ class InTheYearOfTheDragonExp extends Table
             $person_id = self::getUniqueValueFromDB( "SELECT palace_person_id
                                                       FROM palace_person
                                                       INNER JOIN palace ON palace_id=palace_person_palace_id
-                                                      WHERE palace_player='$active_player' LIMIT 0,1" );
+                                                      WHERE palace_player='$active_player' AND palace_drought_affected=0 LIMIT 0,1" );
             self::release( $person_id );
     }
-
 
     function upgradeTableDb( $from_version )
     {
@@ -2714,5 +2753,3 @@ class InTheYearOfTheDragonExp extends Table
        }
     }
 }
-  
-?>

@@ -68,4 +68,3 @@ $stats_type = array(
                                 "type" => "int")
     )
 );
-?>

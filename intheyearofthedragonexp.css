@@ -39,7 +39,7 @@
 }
 
 .nextwall {
-    margin: 4px;
+    margin: 2px 4px;
 }
 
 .superevent {
@@ -59,6 +59,16 @@
     height: calc(var(--scale) * 80px);
     width: calc(var(--scale) * 80px);
     flex: 0 0 auto;
+}
+
+.superevent_log {
+    display: inline-block;
+    position: relative;
+    margin-right: 2px;
+    background-image: url('img/superevents.png');
+    background-size: calc(var(--scale) * 960px) calc(var(--scale) * 80px);
+    height: calc(var(--scale) * 80px);
+    width: calc(var(--scale) * 80px);
 }
 
 /*** person tiles ***/
@@ -164,7 +174,6 @@
     outline: goldenrod 2px solid;
     box-shadow: 0 8px 16px 0 rgba(172, 149, 75, 0.8), 5px 6px 8px 6px;
 }
-
 
 /*** palace ***/
 

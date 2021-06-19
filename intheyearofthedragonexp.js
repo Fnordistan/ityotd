@@ -227,6 +227,17 @@ function (dojo, declare) {
                 if (log && args && !args.processed) {
                     args.processed = true;
                 }
+                if (args.superevent_i) {
+                    var superevent = this.createSuperEventTile("superevent", args.superevent_i, 0.3);
+                    superevent = superevent.replace('class="superevent"', 'class="superevent_log"');
+                    args.superevent_i = superevent;
+                }
+                if (args.superevent_name) {
+                    args.superevent_name = '<b>'+args.superevent_name+'</b>';
+                }
+                if (args.event_name) {
+                    args.event_name = '<b>'+args.event_name+'</b>';
+                }
             } catch (e) {
                 console.error(log, args, "Exception thrown", e.stack);
             }
@@ -1163,12 +1174,12 @@ function (dojo, declare) {
             const newSec = parseInt(notif.args.length);
             const player_id = notif.args.player_id;
             const bonus = parseInt(notif.args.bonus);
-            this.placeWallTile(player_id, newSec, bonus);
 
             const pcolor = this.gamedatas.players[ player_id ].color;
             const xoff = -60*(COLORS_PLAYER[pcolor]-1);
             const wall_tile = this.format_block('jstpl_player_wall', {id: player_id, type: 'temp', x: xoff, y: 0});
             this.slideTemporaryObject( wall_tile, 'player_board_'+player_id, 'player_wall_'+player_id+'_'+bonus, 'wall_'+newSec, 1000, 1000 ).play();
+            this.placeWallTile(player_id, newSec, bonus);
         },
 
         /**

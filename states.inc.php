@@ -1,5 +1,5 @@
 <?php
-/**
+/*
   * states.game.php
   *
   * @author Grégory Isabelli <gisabelli@gmail.com>
@@ -70,8 +70,7 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_CHARTER_PERSON", 81);
     define("STATE_FINAL_SCORING", 98);
     define("STATE_ENDGAME", 99);
-}
-
+};
 
 $machinestates = array(
 
@@ -82,8 +81,7 @@ $machinestates = array(
         "action" => "stGameSetup",
         "transitions" => array( "" => 5 )
     ),
-    
-    
+
     /// Initial choice of subjects /////////////////////::
     STATE_INITIAL_CHOICE_NP => array(
         "name" => "initialChoiceNextPlayer",
@@ -398,5 +396,3 @@ $machinestates = array(
     )
 
 );
-
-?>

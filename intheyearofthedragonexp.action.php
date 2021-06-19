@@ -127,6 +127,4 @@
         $result = $this->game->noReplace(  );
         self::ajaxResponse( );    
     }
- }
-  
-?>
+}
