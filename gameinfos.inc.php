@@ -2,6 +2,8 @@
 
 $gameinfos = array( 
 
+// Name of the game in English (will serve as the basis for translation) 
+'game_name' => totranslate("In the Year of the Dragon"),
 
 // Game designer (or game designers, separated by commas)
 'designer' => 'Stefan Feld',       
@@ -21,8 +23,8 @@ $gameinfos = array(
 // Board Game Geek ID of the publisher
 'publisher_bgg_id' => 9,
 
-// Board game geek if of the game
-'bgg_id' => 2400,
+// Board game geek id of the game
+'bgg_id' => 214000,
 
 
 // Players configuration that can be played (ex: 2 to 4 players)

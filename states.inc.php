@@ -1,5 +1,5 @@
 <?php
- /**
+/**
   * states.game.php
   *
   * @author Grégory Isabelli <gisabelli@gmail.com>
@@ -9,7 +9,7 @@
   *
   * In the Year of the Dragon game states
   *
-  */
+*/
 
 /*
 *

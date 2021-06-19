@@ -1,9 +1,8 @@
 <?php
 
 /*
-*   InTheYearOfDragon material
-* Implementation of Great Wall and Super Events expansions: @David Edelstein <davidedelstein@gmail.com>
-*
+ InTheYearOfDragon material
+ Implementation of Great Wall and Super Events expansions: @David Edelstein <davidedelstein@gmail.com>
 */
 
 $this->person_types = array(

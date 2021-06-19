@@ -43,7 +43,7 @@ function (dojo, declare) {
             // Events
             for( var event=1;event<=6;event++ )
             {
-                var html = '<b>'+this.gamedatas.event_types[ event ].nametr+'</b><hr/>'+_(this.gamedatas.event_types[ event ].description);
+                var html = '<b>'+this.gamedatas.event_types[ event ].nametr+'</b><hr/>'+this.gamedatas.event_types[ event ].description;
                 this.addTooltipToClass( 'eventtype_'+event, html, '' );
             }
             
@@ -166,7 +166,7 @@ function (dojo, declare) {
                 const wall = document.getElementById('wall_'+location);
                 wall.style['opacity'] = 1;
                 wall.style['background-position'] = xoff+"px 0px";
-                this.addTooltip(wall.id, _("Great Wall section built by "+this.gamedatas.players[ player_id ].name), '');
+                this.addTooltip(wall.id, _("Great Wall section built by ")+this.gamedatas.players[ player_id ].name, '');
             }
             this.addTooltip('great_wall', _("Great Wall"), '');
         },
@@ -189,7 +189,7 @@ function (dojo, declare) {
                     var tooltip_icon = this.createSuperEventTile("superevent_tt", se, 1);
                     tooltip_icon = tooltip_icon.replace('class="superevent"', 'class="superevent_icon"');
                     var tooltip = '<div style="display: flex;">'
-                                + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.nametr+'</b><hr/>'+_(superevent.description)+'</div>'
+                                + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.nametr+'</b><hr/>'+superevent.description+'</div>'
                                 + tooltip_icon;
                                 + '</div>';
     
@@ -613,8 +613,8 @@ function (dojo, declare) {
             this.slideToObject( $('actioncard_'+action_type), $('actionplace_'+action_id) ).play();
             
             // Tooltip
-            var html = '<b>'+_( this.gamedatas.action_types[action_type].name )+'</b><hr/>';
-            html += _( this.gamedatas.action_types[action_type].description );
+            var html = '<b>'+this.gamedatas.action_types[action_type].name+'</b><hr/>';
+            html += this.gamedatas.action_types[action_type].description;
             
             if( this.gamedatas.largePrivilegeCost == 7 && action_type == 7 )
             {

@@ -375,7 +375,7 @@ class InTheYearOfTheDragonExp extends Table
         switch (self::getGameStateValue(SUPER_EVENT)) {
             case 0:
                 // this shouldn't happen, we shouldn't call this if not using Super Events
-                throw new BgaVisibleSystemException ( "Super Events called when that option was not enabled" );
+                throw new BgaVisibleSystemException ( "Super Events called when that option was not enabled" ); // NOI18N
                 break;
             case 1:
                 // Lanternfest
@@ -425,7 +425,7 @@ class InTheYearOfTheDragonExp extends Table
                 $se = bga_rand(1,10);
                 self::setGameStateValue(SUPER_EVENT, $se);
                 $superevent_name = $this->superevents[$se]['nametr'];
-                self::notifyAllPlayers( 'superEventChosen', clienttranslate("Super event revealed: ${superevent_name}"), array(
+                self::notifyAllPlayers( 'superEventChosen', clienttranslate('Super event revealed: ${superevent_name}'), array(
                     'superevent' => $se,
                     'superevent_name' => $superevent_name,
                 ) );
@@ -1143,7 +1143,7 @@ class InTheYearOfTheDragonExp extends Table
 
             self::DbQuery("UPDATE WALL SET location=$nextWall WHERE id=".$wall['id']);
             self::incGameStateValue("wallLength", 1);
-            self::notifyAllPlayers("wallBuilt", '${player_name} builds Great Wall section and receives ${reward} bonus', array(
+            self::notifyAllPlayers("wallBuilt", clienttranslate('${player_name} builds Great Wall section and receives ${reward} bonus'), array(
                 'player_name' => self::getActivePlayerName(),
                 'player_id' => $player_id,
                 'length' => $nextWall,
@@ -1192,6 +1192,8 @@ class InTheYearOfTheDragonExp extends Table
     
     function choosePrivilege( $bIsLarge )
     {
+        self::checkAction( 'choosePrivilege' );
+
         $player_id = self::getActivePlayerId();
         
         $remainingMoney = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id'" ); 
@@ -1248,7 +1250,7 @@ class InTheYearOfTheDragonExp extends Table
             $palace_size = self::getUniqueValueFromDb( $sql );
             
             if( $palace_size === null ) {
-                throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );
+                throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );// NOI18N
             }
             
             if( $palace_size == 3 )
@@ -1295,7 +1297,7 @@ class InTheYearOfTheDragonExp extends Table
         $sql = "SELECT palace_size FROM palace WHERE palace_id='$palace_id' AND palace_player='$player_id' ";
         $palace_size = self::getUniqueValueFromDb( $sql );
         if( $palace_size === null ) {
-            throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );
+            throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );// NOI18N
         }
         $palace_size--;
 
@@ -1485,11 +1487,11 @@ class InTheYearOfTheDragonExp extends Table
         $person = self::getObjectFromDB( $sql );
         
         if( $person === null ) {
-            throw new BgaVisibleSystemException( 'This person does not exist' );
+            throw new BgaVisibleSystemException( 'This person does not exist' );// NOI18N
         }
         
         if( $person['player'] != $player_id ) {
-            throw new BgaVisibleSystemException( 'This person is not one of yours' );
+            throw new BgaVisibleSystemException( 'This person is not one of yours' );// NOI18N
         }
 
         if ($person['overpop'] == 0) {
@@ -1536,13 +1538,13 @@ class InTheYearOfTheDragonExp extends Table
         // do sanity check
         $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$player_id' " );
         if ($resources['rice'] < $rice) {
-            throw new BgaVisibleSystemException("Cannot remove more rice than available");
+            throw new BgaVisibleSystemException("Cannot remove more rice than available");// NOI18N
         }
         if ($resources['fireworks'] < $fireworks) {
-            throw new BgaVisibleSystemException("Cannot remove more fireworks than available");
+            throw new BgaVisibleSystemException("Cannot remove more fireworks than available");// NOI18N
         }
         if ($resources['yuan'] < $yuan) {
-            throw new BgaVisibleSystemException("Cannot remove more yuan than available");
+            throw new BgaVisibleSystemException("Cannot remove more yuan than available");// NOI18N
         }
         self::DbQuery( "UPDATE player SET player_rice=player_rice-$rice, player_fireworks=player_fireworks-$fireworks, player_yuan=player_yuan-$yuan WHERE player_id='$player_id' " );
 
@@ -1806,7 +1808,7 @@ class InTheYearOfTheDragonExp extends Table
         
         $event_type = $this->event_types[ $event ];
         
-        self::notifyAllPlayers( 'eventDescription', '${event_name}: ${event_description}', array(
+        self::notifyAllPlayers( 'eventDescription', '${event_name}: ${event_description}', array(  // NOI18N
             'i18n' => array( 'event_name', 'event_description' ),
             'event_name' => $event_type['name'],
             'event_description' => $event_type['description']
