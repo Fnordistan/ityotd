@@ -9,7 +9,7 @@
     </div>
     <div id="great_wall">
         <!-- BEGIN wall -->
-        <div id="wall_{ID}" class="wall"></div>
+        <div id="wall_{ID}" class="ityotd_wall"></div>
         <!-- END wall -->
     </div>
 </div>
@@ -79,9 +79,10 @@ var jstpl_action  = '<div id="actioncard_${type}" class="actioncard actioncard_$
 var jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}"></div>';
 
 // Great Wall tile on player boards
-var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="wall" style="margin-top: 10px; background-position: ${x}px ${y}px; opacity: 1;"></div>';
+var jstpl_player_great_wall = '<div id="great_wall_${id}"></div>';
+var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall" style="margin-top: 10px; background-position: ${x}px ${y}px;"></div>';
 
-var jstpl_super_event = '<div id="${id}" class="superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
+var jstpl_super_event = '<div id="${id}" class="ityotd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
 
 // a currency icon used as a button, either note or cert
 var jstpl_rsrc_btn = '<button id="${type}_${i}_btn" type="button" class="yd_icon icon_${type} tt${type}"></button>';

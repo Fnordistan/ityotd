@@ -70,6 +70,14 @@
         self::ajaxResponse( );    
     }
 
+    public function buildWall()
+    {
+        self::setAjaxMode();     
+        $wall = self::getArg( "wall", AT_posint, true );
+        $result = $this->game->buildWall( $wall );
+        self::ajaxResponse( );    
+    }
+
     public function reduce() {
         self::setAjaxMode();
         $palace_id = self::getArg( "id", AT_posint, true );

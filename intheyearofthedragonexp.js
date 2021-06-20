@@ -128,6 +128,85 @@ function (dojo, declare) {
             }
         },
 
+        /* @Override */
+        format_string_recursive : function(log, args) {
+            try {
+                if (log && args && !args.processed) {
+                    args.processed = true;
+                }
+                if (args.superevent_i) {
+                    var superevent = this.createSuperEventTile("superevent", args.superevent_i, 0.3);
+                    superevent = superevent.replace('class="ityotd_superevent"', 'class="ityotd_superevent_log"');
+                    args.superevent_i = superevent;
+                }
+                if (args.superevent_name) {
+                    args.superevent_name = '<b>'+args.superevent_name+'</b>';
+                }
+                if (args.event_name) {
+                    args.event_name = '<b>'+args.event_name+'</b>';
+                }
+            } catch (e) {
+                console.error(log, args, "Exception thrown", e.stack);
+            }
+            return this.inherited(arguments);
+        },
+
+        /**
+         * Add text below the title banner.
+         * @param {string} html 
+         */
+         addToActionHeader : function(html) {
+            const main = $('pagemaintitletext');
+            main.innerHTML += html;
+        },
+
+        // /**
+        //  * Puts top banner for active player.
+        //  * @param {string} text
+        //  * @param {Array} moreargs
+        //  */
+        //  setDescriptionOnMyTurn : function(text, moreargs) {
+        //     this.gamedatas.gamestate.descriptionmyturn = text;
+        //     let tpl = Object.assign({}, this.gamedatas.gamestate.args);
+
+        //     if (!tpl) {
+        //         tpl = {};
+        //     }
+        //     if (typeof moreargs != 'undefined') {
+        //         for ( const key in moreargs) {
+        //             if (moreargs.hasOwnProperty(key)) {
+        //                 tpl[key]=moreargs[key];
+        //             }
+        //         }
+        //     }
+ 
+        //     let title = "";
+        //     // if (this.isCurrentPlayerActive() && text !== null) {
+        //     //     // tpl.you = this.spanYou();
+        //     // }
+        //     if (text !== null) {
+        //         title = this.format_string_recursive(text, tpl);
+        //     }
+        //     if (title == "") {
+        //         this.setMainTitle("&nbsp;");
+        //     } else {
+        //         this.setMainTitle(title);
+        //     }
+        // },
+
+        // /**
+        //  * From BGA Cookbook. Return "You" in this player's color
+        //  */
+        //  spanYou : function() {
+        //     const color = this.gamedatas.players[this.player_id].color;
+        //     let color_bg = "";
+        //     if (this.gamedatas.players[this.player_id] && this.gamedatas.players[this.player_id].color_back) {
+        //         color_bg = "background-color:#" + this.gamedatas.players[this.player_id].color_back + ";";
+        //     }
+        //     const you = "<span style=\"font-weight:bold;color:#" + color + ";" + color_bg + "\">" + __("lang_mainsite", "You") + "</span>";
+        //     return you;
+        // },
+
         /**
          * Place each Wall Tile, on player board and in Great Wall.
          * @param {Object} wallTiles 
@@ -154,6 +233,10 @@ function (dojo, declare) {
                 _("Gain 1 Firework"),
                 _("Gain 3 victory points"),
             ];
+            var wall_div = document.getElementById('great_wall_'+player_id);
+            if (!wall_div) {
+                wall_div = dojo.place(this.format_block('jstpl_player_great_wall', {'id': player_id}), 'player_board_'+player_id);
+            }
 
             const pcolor = this.gamedatas.players[ player_id ].color;
             const xoff = -60*(COLORS_PLAYER[pcolor]-1);
@@ -164,7 +247,7 @@ function (dojo, declare) {
                 if (wall_tile) {
                     wall_tile.style['background-position'] = xoff+"px "+yoff+"px";
                 } else {
-                    wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'player_board_'+player_id);
+                    wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'great_wall_'+player_id);
                 }
                 this.addTooltip(wall_tile.id, _("Wall tile bonus: ")+WALL_BONUS[bonus-1], '');
             } else {
@@ -172,12 +255,13 @@ function (dojo, declare) {
                 if (wall_tile) {
                     wall_tile.style['background-position'] = xoff+"px 0px";
                 } else {
-                    wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'player_board_'+player_id);
+                    wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'great_wall_'+player_id);
                 }
-                this.addTooltip(wall_tile.id, _("Wall tile (built)"), '');
+                wall_tile.classList.add("ityotd_wall_built");
+                this.addTooltip(wall_tile.id, _("Wall section (built)"), '');
                 // flip over the Great Wall tile
                 const wall = document.getElementById('wall_'+location);
-                wall.style['background-position'] = xoff+"px 0px";
+                wall.style['background-position-x'] = xoff+"px";
                 this.addTooltip(wall.id, _("Great Wall section built by ")+this.gamedatas.players[ player_id ].name, '');
             }
             this.addTooltip('great_wall', _("Great Wall"), '');
@@ -199,13 +283,13 @@ function (dojo, declare) {
                     dojo.place(superevent_div, event_7);
     
                     var tooltip_icon = this.createSuperEventTile("superevent_tt", se, 1);
-                    tooltip_icon = tooltip_icon.replace('class="superevent"', 'class="superevent_icon"');
+                    tooltip_icon = tooltip_icon.replace('class="ityotd_superevent"', 'class="ityotd_superevent_icon"');
                     var tooltip = '<div style="display: flex;">'
                                 + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.nametr+'</b><hr/>'+superevent.description+'</div>'
                                 + tooltip_icon;
                                 + '</div>';
     
-                    this.addTooltipToClass( 'superevent', tooltip, '' );
+                    this.addTooltipToClass( 'ityotd_superevent', tooltip, '' );
                 }
             }
         },
@@ -231,85 +315,6 @@ function (dojo, declare) {
             if (superevent) {
                 superevent.remove();
             }
-        },
-
-        /* @Override */
-        format_string_recursive : function(log, args) {
-            try {
-                if (log && args && !args.processed) {
-                    args.processed = true;
-                }
-                if (args.superevent_i) {
-                    var superevent = this.createSuperEventTile("superevent", args.superevent_i, 0.3);
-                    superevent = superevent.replace('class="superevent"', 'class="superevent_log"');
-                    args.superevent_i = superevent;
-                }
-                if (args.superevent_name) {
-                    args.superevent_name = '<b>'+args.superevent_name+'</b>';
-                }
-                if (args.event_name) {
-                    args.event_name = '<b>'+args.event_name+'</b>';
-                }
-            } catch (e) {
-                console.error(log, args, "Exception thrown", e.stack);
-            }
-            return this.inherited(arguments);
-        },
-
-        /**
-         * Add text below the title banner.
-         * @param {string} html 
-         */
-         addToActionHeader : function(html) {
-            const main = $('pagemaintitletext');
-            main.innerHTML += html;
-        },
-
-        /**
-         * Puts top banner for active player.
-         * @param {string} text
-         * @param {Array} moreargs
-         */
-         setDescriptionOnMyTurn : function(text, moreargs) {
-            this.gamedatas.gamestate.descriptionmyturn = text;
-            let tpl = Object.assign({}, this.gamedatas.gamestate.args);
-
-            if (!tpl) {
-                tpl = {};
-            }
-            if (typeof moreargs != 'undefined') {
-                for ( const key in moreargs) {
-                    if (moreargs.hasOwnProperty(key)) {
-                        tpl[key]=moreargs[key];
-                    }
-                }
-            }
- 
-            let title = "";
-            if (this.isCurrentPlayerActive() && text !== null) {
-                // tpl.you = this.spanYou();
-            }
-            if (text !== null) {
-                title = this.format_string_recursive(text, tpl);
-            }
-            if (title == "") {
-                this.setMainTitle("&nbsp;");
-            } else {
-                this.setMainTitle(title);
-            }
-        },
-
-        /**
-         * From BGA Cookbook. Return "You" in this player's color
-         */
-         spanYou : function() {
-            const color = this.gamedatas.players[this.player_id].color;
-            let color_bg = "";
-            if (this.gamedatas.players[this.player_id] && this.gamedatas.players[this.player_id].color_back) {
-                color_bg = "background-color:#" + this.gamedatas.players[this.player_id].color_back + ";";
-            }
-            const you = "<span style=\"font-weight:bold;color:#" + color + ";" + color_bg + "\">" + __("lang_mainsite", "You") + "</span>";
-            return you;
         },
 
         ///////////////////////////////////////////////////
@@ -360,6 +365,11 @@ function (dojo, declare) {
                     this.makePersonsDiscardable(true);
                 }
                 break;
+            case 'actionBuildWall':
+                if( this.isCurrentPlayerActive() ) {
+                    this.activateWallTiles(true);
+                }
+                break;
             case 'dummmy':
                 break;
             }
@@ -385,6 +395,9 @@ function (dojo, declare) {
                 break;
             case 'discardPersonCards':
                 this.makePersonsDiscardable(false);
+                break;
+            case 'actionBuildWall':
+                this.activateWallTiles(false);
                 break;
             }                
         }, 
@@ -468,7 +481,6 @@ function (dojo, declare) {
             this.addTooltipToClass( 'ttrice', _('Rice'), '' );
             this.addTooltipToClass( 'ttfw', _('Fireworks'), '' );
 
-            // this.setDescriptionOnMyTurn(_("You must choose resources to reduce"));
             this.addActionButton( 'reduceResource', _('Reduce Resources'), 'onRemoveResources' );
             var resources = this.getResourcesSelected();
             var total = resources["total"];
@@ -688,8 +700,8 @@ function (dojo, declare) {
             dojo.query( '.nextevent' ).removeClass( 'nextevent' );
             dojo.addClass( 'event_'+month, 'nextevent' );
             if (this.gamedatas.greatWall) {
-                dojo.query( '.nextwall' ).removeClass( 'nextwall' );
-                dojo.addClass( 'wall_'+month, 'nextwall' );
+                dojo.query( '.ityotd_nextwall' ).removeClass( 'ityotd_nextwall' );
+                dojo.addClass( 'wall_'+month, 'ityotd_nextwall' );
             }
             
             for( var i=1; i<month; i++ )
@@ -710,12 +722,12 @@ function (dojo, declare) {
          */
         makePersonsDiscardable: function(toDiscard) {
             const person_container = document.getElementById("personcards");
-            const ppid_rx = /_(\d+)$/;
+            const ppid_rx = /personcard_(\d+)/;
             if (toDiscard) {
                 person_container.onclick = event => {
                     var card = event.target;
                     if (card.classList.contains("personcard")) {
-                        var id = parseInt(card.id.match(ppid_rx)[1])
+                        var id = parseInt(card.id.match(ppid_rx)[1]);
                         this.discardPersonCard(id);
                     }
                 };
@@ -729,6 +741,35 @@ function (dojo, declare) {
                     pp.classList.add("ityotd_person_discard");
                 } else {
                     pp.classList.remove("ityotd_person_discard");
+                }
+            }
+        },
+
+        /**
+         * Decorate wall tiles to be selectable
+         * @param {bool*} enable 
+         */
+        activateWallTiles: function(enable) {
+            var player_id = this.player_id;
+            const wall_container = document.getElementById("great_wall_"+player_id);
+            const wallid_rx = /player_wall_.+_(\d+)/;
+            if (enable) {
+                wall_container.onclick = event => {
+                    var wall_tile = event.target;
+                    if (!wall_tile.classList.contains("ityotd_wall_built")) {
+                        var id = parseInt(wall_tile.id.match(wallid_rx)[1]);
+                        this.onChooseWall(id);
+                    }
+                };
+            } else {
+                wall_container.onclick = null;
+            }
+            const wall_tiles = wall_container.getElementsByClassName("ityotd_wall");
+            for (let w of wall_tiles) {
+                if (enable && !w.classList.contains("ityotd_wall_built")) {
+                    w.classList.add("ityotd_wall_active");
+                } else {
+                    w.classList.remove("ityotd_wall_active");
                 }
             }
         },
@@ -924,6 +965,19 @@ function (dojo, declare) {
             this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/discard.html", {
                 lock: true,
                 id: pp
+            }, this, function( result ) {  } );                 
+         },
+
+         /**
+          * Choose a Great Wall section to build.
+          * @param {int} wall_id 
+          */
+         onChooseWall: function(wall_id) {
+            if( ! this.checkAction( 'buildWall' ) )
+            {   return; } 
+            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/buildWall.html", {
+                lock: true,
+                wall: wall_id
             }, this, function( result ) {  } );                 
          },
 

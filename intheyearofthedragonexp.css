@@ -28,7 +28,7 @@
 }
 
 /** Great Wall */
-.wall {
+.ityotd_wall {
     display: inline-block;
     width: 60px;
     height: 36px;
@@ -37,11 +37,19 @@
     background-position: -300px -0px;
 }
 
-.nextwall {
+.ityotd_wall_built {
+    outline: ridge gray 2px;
+}
+
+.ityotd_wall_active {
+    cursor: grab;
+}
+
+.ityotd_nextwall {
     margin: 2px 4px;
 }
 
-.superevent {
+.ityotd_superevent {
     position: absolute;
     right: 0;
     top: 0;
@@ -51,7 +59,7 @@
     width: calc(var(--scale) * 80px);
 }
 
-.superevent_icon {
+.ityotd_superevent_icon {
     position: relative;
     background-image: url('img/superevents.png');
     background-size: calc(var(--scale) * 960px) calc(var(--scale) * 80px);
@@ -60,7 +68,7 @@
     flex: 0 0 auto;
 }
 
-.superevent_log {
+.ityotd_superevent_log {
     display: inline-block;
     position: relative;
     margin-right: 2px;

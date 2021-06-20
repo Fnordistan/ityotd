@@ -497,7 +497,7 @@ class InTheYearOfTheDragonExp extends Table
 
     /**
      * Give player bonus for their wall section.
-     * #return TRUE if we are entering build state, otherwise false
+     * @return TRUE if we are entering build state, otherwise false
      */
     function assignWallBonus($wall) {
         $tobuild = false;
@@ -1175,28 +1175,64 @@ class InTheYearOfTheDragonExp extends Table
             if (count($tiles) == 0) {
                 throw new BgaUserException( self::_("You have no more wall sections to build"));
             }
-            shuffle($tiles);
-            $wall = $tiles[0];
-
-            self::DbQuery("UPDATE WALL SET location=$nextWall WHERE id=".$wall['id']);
-            self::incGameStateValue("wallLength", 1);
-            self::notifyAllPlayers("wallBuilt", clienttranslate('${player_name} builds Great Wall section and receives ${reward} bonus'), array(
-                'player_name' => self::getActivePlayerName(),
-                'player_id' => $player_id,
-                'length' => $nextWall,
-                'bonus' => $wall['bonus'],
-                'reward' => $this->wall_tiles[$wall['bonus']]['name']
-            ));
-            $tobuild = $this->assignWallBonus($wall);
-            if ($tobuild) {
-                $nextState = 'buildAction';
+            // random bonus or chosen?
+            $gw_opt = self::getGameStateValue( 'greatWall' );
+            if ($gw_opt == 3) {
+                // random tile
+                shuffle($tiles);
+                $wall = $tiles[0];
+                $nextState = $this->buildGreatWall($wall['id']);
+            } else {
+                // choose tile
+                $nextState = "buildWallAction";
             }
         }
-        
-        // Next player (unless building)
+
+        // Next player (unless building or buying privilege)
         $this->gamestate->nextState( $nextState );
     }
-    
+
+    /**
+     * Active player choice of wall.
+     * @param wall_id the bonus number for this player
+     */
+    function buildWall($wall_id) {
+        self::checkAction( 'buildWall' );
+        $id = self::getUniqueValueFromDB("SELECT id from WALL WHERE bonus=$wall_id AND player_id=".self::getActivePlayerId());
+        $nextState = $this->buildGreatWall($id);
+        $this->gamestate->nextState( $nextState );
+    }
+
+    /**
+     * After a wall tile is chosen, apply effects.
+     */
+    function buildGreatWall($id) {
+        $player_id = self::getActivePlayerId();
+        $nextWall = self::getGameStateValue("wallLength")+1;
+        $nextState = 'nextPlayer';
+
+        $wall = self::getNonEmptyObjectFromDB("SELECT * FROM WALL WHERE id=$id");
+
+        if ($wall['location'] != 0) {
+            throw new BgaUserException( self::_("You have already built this wall section") );
+        }
+
+        self::DbQuery("UPDATE WALL SET location=$nextWall WHERE id=$id");
+        self::incGameStateValue("wallLength", 1);
+        self::notifyAllPlayers("wallBuilt", clienttranslate('${player_name} builds Great Wall section and receives ${reward} bonus'), array(
+            'player_name' => self::getActivePlayerName(),
+            'player_id' => $player_id,
+            'length' => $nextWall,
+            'bonus' => $wall['bonus'],
+            'reward' => $this->wall_tiles[$wall['bonus']]['name']
+        ));
+        $tobuild = $this->assignWallBonus($wall);
+        if ($tobuild) {
+            $nextState = 'buildAction';
+        }
+        return $nextState;
+    }
+
     function refillyuan()
     {
         self::checkAction( 'action' );

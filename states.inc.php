@@ -56,6 +56,7 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_GREAT_WALL_RELEASE", 36);
     define("STATE_SUPER_EVENT", 37);
     define("SUPER_EVENT_INIT", 38);
+    define("STATE_BUILD_WALL", 39);
     define("STATE_END_PHASE", 40);
     define("STATE_EARTHQUAKE", 41);
     define("STATE_REDUCE_PALACE", 42);
@@ -125,14 +126,16 @@ $machinestates = array(
         "action" => "stActionPhaseNextPlayer",
         "transitions" => array( "nextPlayer" => STATE_ACTION_CHOOSE, "endPhase" => STATE_RECRUIT_PERSON, "noRecruit" => STATE_EVENT )
     ),
+
     STATE_ACTION_CHOOSE => array(
         "name" => "actionPhaseChoose",
         "description" => clienttranslate('${actplayer} must choose an action to carry out'),
         "descriptionmyturn" => clienttranslate('${you} must choose an action to carry out'),
         "possibleactions" => array( "action", "refillyuan" ),
         "type" => "activeplayer",
-        "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAction" => STATE_BUILD, "privilegeAction" => STATE_PRIVILEGE )
+        "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAction" => STATE_BUILD, "privilegeAction" => STATE_PRIVILEGE, "buildWallAction" => STATE_BUILD_WALL )
     ),
+
     STATE_BUILD => array(
         "name" => "actionPhaseBuild",
         "description" => clienttranslate('${actplayer} must extend an existing palace or build a new one (x${toBuild})'),
@@ -249,6 +252,15 @@ $machinestates = array(
         "type" => "activeplayer",
         "transitions" => array( "endRelease" => STATE_GREAT_WALL_NP )
     ),
+
+    STATE_BUILD_WALL => array(
+        "name" => "actionBuildWall",
+        "description" => clienttranslate('${actplayer} must choose a Great Wall tile to build'),
+        "descriptionmyturn" => clienttranslate('${you} must choose a Great Wall tile to build'),
+        "possibleactions" => array( "buildWall" ),
+        "type" => "activeplayer",
+        "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAction" => STATE_BUILD )
+    ),    
 
     /// SUPER EVENTS //////
 
