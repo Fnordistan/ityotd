@@ -141,30 +141,42 @@ function (dojo, declare) {
 
         /**
          * Place a wall tile at the specified wall section.
-         * @param {string*} player_id 
+         * @param {string} player_id 
          * @param {int} location 
          * @param {int} bonus 
          */
         placeWallTile: function(player_id, location, bonus) {
+            const WALL_BONUS = [
+                _("Advance 3 spaces on the Person Track"),
+                _("Gain 1 Rice"),
+                _("Gain 1 palace section"),
+                _("Gain 2 yuan"),
+                _("Gain 1 Firework"),
+                _("Gain 3 victory points"),
+            ];
+
             const pcolor = this.gamedatas.players[ player_id ].color;
             const xoff = -60*(COLORS_PLAYER[pcolor]-1);
+            let wall_tile = document.getElementById('player_wall_'+player_id+'_'+bonus);
             if (location == 0) {
-                // face down on player board
-                let wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'player_board_'+player_id);
-                this.addTooltip(wall_tile.id, _("Wall tile (unbuilt)"), '');
-            } else {
                 // face up on player board
                 const yoff = -36*bonus;
-                let wall_tile = document.getElementById('player_wall_'+player_id+'_'+bonus);
                 if (wall_tile) {
                     wall_tile.style['background-position'] = xoff+"px "+yoff+"px";
                 } else {
                     wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'player_board_'+player_id);
                 }
+                this.addTooltip(wall_tile.id, _("Wall tile bonus: ")+WALL_BONUS[bonus-1], '');
+            } else {
+                // flip face down on player board
+                if (wall_tile) {
+                    wall_tile.style['background-position'] = xoff+"px 0px";
+                } else {
+                    wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'player_board_'+player_id);
+                }
                 this.addTooltip(wall_tile.id, _("Wall tile (built)"), '');
-                // flip up the wall tile
+                // flip over the Great Wall tile
                 const wall = document.getElementById('wall_'+location);
-                wall.style['opacity'] = 1;
                 wall.style['background-position'] = xoff+"px 0px";
                 this.addTooltip(wall.id, _("Great Wall section built by ")+this.gamedatas.players[ player_id ].name, '');
             }

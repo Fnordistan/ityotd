@@ -39,7 +39,8 @@ $game_options = array(
                 'name' => totranslate('Great Wall expansion'),
                 'values' => array(
                     1 => array( 'name' => totranslate('None'), 'description' => totranslate('Do not use Great Wall')),
-                    2 => array( 'name' => totranslate('Great Wall'), 'description' => totranslate('Use Great Wall expansion'), 'alpha' => true, 'nobeginner' => true ),
+                    2 => array( 'name' => totranslate('Great Wall'), 'description' => totranslate('Choose reward tile when Great Wall built'), 'alpha' => true, 'nobeginner' => true ),
+                    3 => array( 'name' => totranslate('Great Wall (HARD MODE!)'), 'description' => totranslate('Random reward tiles'), 'alpha' => true, 'nobeginner' => true ),
                 ),
                 'default' => 1
             ),

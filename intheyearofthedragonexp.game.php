@@ -336,7 +336,7 @@ class InTheYearOfTheDragonExp extends Table
      * Are we using the Great Wall expansion?
      */
     function useGreatWall() {
-        return self::getGameStateValue( 'greatWall' ) == 2;
+        return self::getGameStateValue( 'greatWall' ) > 1;
     }
 
     /**
@@ -834,7 +834,7 @@ class InTheYearOfTheDragonExp extends Table
                     $personcard_id = self::getUniqueValueFromDB( "SELECT personcard_id FROM personcard WHERE personcard_type='0' AND personcard_player='$player_id' LIMIT 0,1" );
     
                     if( $personcard_id === null )
-                        throw new feException( self::_("You have no remaining valid person card to recruit this person"), true );
+                        throw new BgaUserException( self::_("You have no remaining valid person card to recruit this person") );
                 }
                 // still need to check in case of zombie player
                 if ($personcard_id != null) {
@@ -897,7 +897,7 @@ class InTheYearOfTheDragonExp extends Table
         
         // Check if there is some space available
         if( $already_in_palace == $palace_size )
-            throw new feException( self::_("This palace is full"), true );
+            throw new BgaUserException( self::_("This palace is full") );
         
         // Okay !
         // Place this tile in this palace
@@ -913,7 +913,7 @@ class InTheYearOfTheDragonExp extends Table
 
         // Player current person score
         $tile_person_score = $tile_subtype['value'];
-        self::increasePersonScore( $player_id, $tile_person_score );                                
+        $this->increasePersonScore( $player_id, $tile_person_score );                                
 
         
         // Notify
@@ -971,7 +971,7 @@ class InTheYearOfTheDragonExp extends Table
      * Add to person track and send notification to players.
      */
     function addPersonPoints($player_id, $pp) {
-        self::increasePersonScore( $player_id, $pp );
+        $this->increasePersonScore( $player_id, $pp );
         $players = self::loadPlayersBasicInfos();
             
         self::notifyAllPlayers( 'personPointMsg', clienttranslate( '${player_name} advances ${nbr} spaces on the person track' ), array(
@@ -1072,10 +1072,10 @@ class InTheYearOfTheDragonExp extends Table
                 }
             }
         }
-        
+
         $moneycost = 0;
         $notiftext = clienttranslate( '${player_name} chooses action ${action_name}' );
-        
+
         if( $bOccupiedGroup )
         {
             // This player must pay 3 yuans to use this action
@@ -1436,7 +1436,7 @@ class InTheYearOfTheDragonExp extends Table
         if( !$bAndReplace && $bDrought && $person['drought_affected'] ) {
             throw new BgaUserException( self::_("You already released a person from this palace (see: Drought)") );
         }
-        
+
         // Okay, let's release this one
         self::DbQuery( "DELETE FROM palace_person WHERE palace_person_id='$person_id' " );
         
