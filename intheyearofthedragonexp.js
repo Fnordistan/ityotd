@@ -324,63 +324,83 @@ function (dojo, declare) {
         {
            console.log( 'Entering state: '+stateName );
             
-            switch( stateName )
-            {
-            case 'palaceFull':
-                // Add red border to tile to be placed
-                dojo.addClass( $('persontile_'+args.args.type+'_'+args.args.level), 'persontileToPlace' );
-            break;
+            switch( stateName ) {
+                case 'initialChoice':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.activatePersonTiles(true, 1);
+                    }
+                    break;
+                case 'palaceFull':
+                    // Add red border to tile to be placed
+                    dojo.addClass( $('persontile_'+args.args.type+'_'+args.args.level), 'persontileToPlace' );
+                break;
 
-            case 'initialPlace':
-            case 'personPhasePlace':
-                // Add red border to tile to be placed
-                dojo.addClass( $('persontile_'+args.args.type+'_'+args.args.level), 'persontileToPlace' );
+                case 'initialPlace':
+                case 'personPhasePlace':
+                    // Add red border to tile to be placed
+                    dojo.addClass( $('persontile_'+args.args.type+'_'+args.args.level), 'persontileToPlace' );
 
-                if( this.isCurrentPlayerActive() )
-                {
-                    // Show "place here" icons    
-                    dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
-                }                
-                break;
-                
-            case 'actionPhaseBuild':
-                if( this.isCurrentPlayerActive() )
-                {
-                    // Insert a new "pseudo" palace
-                    this.createNewPalace( this.player_id, 'new' );
-                
-                    // Show "place here" icons    
-                    dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
-                }                
-                break;
-            case 'reducePalace':
-                if( this.isCurrentPlayerActive() )
-                {
-                    // Show "select here" icons    
-                    dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
-                }
-                break;
-            case 'discardPersonCards':
-                if( this.isCurrentPlayerActive() ) {
-                    this.makePersonsDiscardable(true);
-                }
-                break;
-            case 'actionBuildWall':
-                if( this.isCurrentPlayerActive() ) {
-                    this.activateWallTiles(true);
-                }
-                break;
-            case 'dummmy':
-                break;
+                    if( this.isCurrentPlayerActive() )
+                    {
+                        // Show "place here" icons    
+                        dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
+                    }                
+                    break;
+                    
+                case 'actionPhaseBuild':
+                    if( this.isCurrentPlayerActive() )
+                    {
+                        // Insert a new "pseudo" palace
+                        this.createNewPalace( this.player_id, 'new' );
+                    
+                        // Show "place here" icons    
+                        dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
+                    }                
+                    break;
+                case 'reducePalace':
+                    if( this.isCurrentPlayerActive() )
+                    {
+                        // Show "select here" icons    
+                        dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', 'block' );
+                    }
+                    break;
+                case 'discardPersonCards':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.makePersonsDiscardable(true);
+                    }
+                    break;
+                case 'actionBuildWall':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.activateWallTiles(true);
+                    }
+                    break;
+                case 'personPhaseChoosePerson':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.activatePersonTiles(true, 2);
+                    }
+                    break;
+                case 'sunriseRecruit':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.activatePersonTiles(true, 1);
+                    }
+                    break;
+                case 'dummmy':
+                    break;
             }
         },
         onLeavingState: function( stateName )
         {
             console.log( 'Leaving state: '+stateName );
 
-            switch( stateName )
-            {
-            case 'initialPlace':
+            switch( stateName ) {
+                case 'initialChoice':
+                    this.activatePersonTiles(false);
+                break;
+                case 'initialPlace':
+                break;
+            case 'personPhaseChoosePerson':
+                this.activatePersonTiles(false);
+                break;
             case 'personPhasePlace':
             case 'palaceFull':
                 dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
@@ -399,7 +419,10 @@ function (dojo, declare) {
             case 'actionBuildWall':
                 this.activateWallTiles(false);
                 break;
-            }                
+            case 'sunriseRecruit':
+                this.activatePersonTiles(false);
+                break;
+            }
         }, 
         
         onUpdateActionButtons: function( stateName, args )
@@ -630,11 +653,6 @@ function (dojo, declare) {
             this.addTooltip( palace_person_tile, html, _('Release this person') );
             
             dojo.connect( $(palace_person_tile), 'onclick', this, 'onSelectPalacePerson' );
-            var person_el = document.getElementById(palace_person_tile);
-            var player_palaces = document.getElementById("palaces_"+this.player_id);
-            if (player_palaces && player_palaces.contains(person_el)) {
-                person_el.classList.add("ityotd_hvr_pers");
-            }
         },
 
         setAction: function( action_id, action_type )
@@ -774,6 +792,34 @@ function (dojo, declare) {
             }
         },
 
+        /**
+         * Decorate palace person tiles so it moves when you hover over it, or remove decoration.
+         * @param {boolean} activate true to add, false to remove
+         * @param {int} 0 if not recruiting, 1 if young people only, 2 if young or old
+         */
+        activatePersonTiles: function(activate, recruiting) {
+            var persontiles = document.getElementsByClassName('persontile');
+            if (!activate) {
+                for (let p of persontiles) {
+                    p.classList.remove("ityotd_hvr_pers");
+                }
+            } else {
+                if (recruiting == 1) {
+                    persontiles = Array.from(document.getElementById("persontiles").children).filter(p => p.id.endsWith("1"));
+                } else if (recruiting == 2) {
+                    persontiles = document.getElementById("persontiles").children;
+                } else {
+                    var player_palaces = document.getElementById("palaces_"+this.player_id);
+                    if (player_palaces) {
+                        persontiles = player_palaces.getElementsByClassName('persontile');
+                    }
+                }
+                for (let pp of persontiles) {
+                    pp.classList.add("ityotd_hvr_pers");
+                }
+            }
+        },
+
         ///////////////////////////////////////////////////
         //// UI
         
@@ -783,8 +829,7 @@ function (dojo, declare) {
             evt.preventDefault( );
             if( ! this.checkAction( 'recruit' ) )
             {   return; }            
-            
-            // persontile_2_1
+
             var level = evt.currentTarget.id.substr( 13 );
             var type = evt.currentTarget.id.substr( 11, 1 );
 
@@ -891,6 +936,10 @@ function (dojo, declare) {
         onSelectPalacePerson: function( evt )
         {
             evt.preventDefault();
+            if( !this.isCurrentPlayerActive() ) {
+                return;
+            }
+
             // palacepersontile_${id}_inner
             var person_id = evt.currentTarget.id.substr( 17 );
             person_id = person_id.substr( 0, person_id.length-6 );
@@ -1025,8 +1074,6 @@ function (dojo, declare) {
         {
             console.log( 'notif_placePerson' );
             console.log( notif );
-            
-            var player_id = notif.args.player_id;
             
             this.addPersonToPalace( notif.args.palace_id, notif.args.person_id, notif.args.person_type, notif.args.person_level );
             
