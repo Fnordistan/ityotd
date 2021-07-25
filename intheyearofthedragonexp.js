@@ -360,6 +360,14 @@ function (dojo, declare) {
                         this.displayPalacePlacement(true);
                     }                
                     break;
+                case 'actionPhaseChoose':
+                    if (this.isCurrentPlayerActive()) {
+                        const actioncards = document.getElementsByClassName('actioncard');
+                        for (let a of actioncards) {
+                            a.classList.add('ityotd_action_active');
+                        }
+                    }
+                    break;
                 case 'actionPhaseBuild':
                     if( this.isCurrentPlayerActive() ) {
                         // Insert a new "pseudo" palace
@@ -392,6 +400,11 @@ function (dojo, declare) {
                         this.activatePersonTiles(true, 1);
                     }
                     break;
+                case 'release':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.activatePersonTiles(true, 0);
+                    }
+                    break;
                 case 'dummmy':
                     break;
             }
@@ -420,6 +433,8 @@ function (dojo, declare) {
                     this.displayPalacePlacement(false);
                     dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
                     break;
+                case 'actionPhaseChoose':
+                    break;
                 case 'actionPhaseBuild':
                     this.displayPalacePlacement(false);
                     this.removePalace( 'new' );
@@ -434,6 +449,9 @@ function (dojo, declare) {
                     this.activateWallTiles(false);
                     break;
                 case 'sunriseRecruit':
+                    this.activatePersonTiles(false);
+                    break;
+                case 'release':
                     this.activatePersonTiles(false);
                     break;
             }
@@ -693,8 +711,15 @@ function (dojo, declare) {
             dojo.connect( $('actioncard_'+action_type), 'onclick', this, 'onAction' );
         },
         
-        setActionChoice: function( player_id, action_id )
-        {
+        /**
+         * Player chose an action tile.
+         * @param {int} player_id 
+         * @param {int} action_id 
+         */
+        setActionChoice: function( player_id, action_id ) {
+            // first remove the hover effect
+            dojo.query( '.actioncard' ).removeClass( 'ityotd_action_active' );
+
             if( action_id == null )
             {
                 // No action => do nothing
@@ -704,6 +729,7 @@ function (dojo, declare) {
                 // Place player flag on this action
                 var flagsAlreadyThere = dojo.query( '#actioncard_'+action_id+' .actionflag' ).length;
                 
+
                 dojo.place( this.format_block('jstpl_actionflag', { 
                     id: player_id,
                     color: this.gamedatas.players[ player_id ].color
@@ -785,6 +811,7 @@ function (dojo, declare) {
             var player_id = this.player_id;
             const wall_container = document.getElementById("great_wall_"+player_id);
             const wallid_rx = /player_wall_.+_(\d+)/;
+
             if (enable) {
                 wall_container.onclick = event => {
                     var wall_tile = event.target;
@@ -793,8 +820,11 @@ function (dojo, declare) {
                         this.onChooseWall(id);
                     }
                 };
+                const pcolor = '#'+this.gamedatas.players[ player_id ].color;
+                wall_container.style['border'] = '4px solid '+pcolor;
             } else {
                 wall_container.onclick = null;
+                wall_container.style['border'] = '';
             }
             const wall_tiles = wall_container.getElementsByClassName("ityotd_wall");
             for (let w of wall_tiles) {
@@ -911,8 +941,8 @@ function (dojo, declare) {
         {
             console.log( 'onAction' );
             evt.preventDefault( );    
-            
-            if( ! this.checkAction( 'action' ) )
+
+            if( ! (this.checkAction( 'action', true ) && this.isCurrentPlayerActive()) )
             {   return; }           
             
             // actioncard_<id>

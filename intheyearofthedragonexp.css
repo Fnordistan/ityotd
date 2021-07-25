@@ -257,7 +257,7 @@
     width: 60px;
     height: 100px;
     background-image: url('img/cards.png');
-    cursor: pointer;
+    cursor: default;
 }
 .actioncard_1 { background-position: -0px -0px; }
 .actioncard_2 { background-position: -60px -0px; }
@@ -281,6 +281,16 @@
 .actionflag_0000ff {    background-position: -50px -75px;   }
 .actionflag_ffa500 {    background-position: 0px -100px;   }
 .actionflag_ff00ff {    background-position: 0px -125px;   }
+
+.ityotd_action_active {
+    cursor: pointer;
+    box-shadow: 2px 2px 8px orangered;
+    transition: transform 0.5s;
+}
+
+.ityotd_action_active:hover {
+    transform: scale(1.1);
+}
 
 /*** player board ***/
 
