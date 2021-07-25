@@ -324,7 +324,6 @@ function (dojo, declare) {
          */
         displayPalacePlacement: function(show) {
             if (show) {
-                debugger;
                 dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( {'display': 'block', 'opacity' : 1} );
                 const fullpalaces = this.gamedatas.fullpalaces;
                 for (let p of fullpalaces) {

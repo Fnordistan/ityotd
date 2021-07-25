@@ -795,9 +795,12 @@ class InTheYearOfTheDragonExp extends Table
                 throw new BgaUserException( self::_("There are no more young persons of this type available") );
             }
 
-            $first_type_chosen = self::getUniqueValueFromDB( "SELECT palace_person_type FROM palace_person INNER JOIN palace ON palace_id=palace_person_id WHERE palace_player=$player_id" );
+            $first_type_chosen = null;
+            if (!$bSunrise) {
+                $first_type_chosen = self::getUniqueValueFromDB( "SELECT palace_person_type FROM palace_person INNER JOIN palace ON palace_id=palace_person_id WHERE palace_player=$player_id" );
+            }
                                                               
-            if( $first_type_chosen !== null && $first_type_chosen==$type ) {
+            if( $first_type_chosen != null && $first_type_chosen==$type ) {
                 throw new BgaUserException( self::_( "Your two initial persons must be different" ) );
             }
 
