@@ -317,13 +317,23 @@ function (dojo, declare) {
             }
         },
 
+
         /**
          * Show/Hide "select here" icons
          * @param show true to show, else hide
          */
         displayPalacePlacement: function(show) {
-            var display = show ? 'block' : 'none';
-            dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( 'display', display );
+            if (show) {
+                debugger;
+                dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( {'display': 'block', 'opacity' : 1} );
+                const fullpalaces = this.gamedatas.fullpalaces;
+                for (let p of fullpalaces) {
+                    document.getElementById('choosepalace_'+p).style['opacity'] = 0;
+                }
+            } else {
+                // hide all arrows
+                dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( "display", "none" );
+            }
         },
 
         /**
@@ -350,6 +360,7 @@ function (dojo, declare) {
                     break;
                 case 'palaceFull':
                     this.decoratePersonTileToPlace(args.args.type, args.args.level);
+                    this.activatePersonTiles(true, 0);
                     break;
                 case 'initialPlace':
                     // fall-thru!
@@ -432,6 +443,7 @@ function (dojo, declare) {
                 case 'palaceFull':
                     this.displayPalacePlacement(false);
                     dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
+                    this.activatePersonTiles(false);
                     break;
                 case 'actionPhaseChoose':
                     break;
