@@ -256,7 +256,7 @@ class InTheYearOfTheDragonExp extends Table
         $result['largePrivilegeCost'] = $this->getLargePrivilegeCost();
 
         // $result['droughtPalaces'] = $this->getOverfilledPalaces();
-        $result['fullpalaces'] = $this->getFilledPalaces();
+        // $result['fullpalaces'] = $this->getFilledPalaces();
 
         if ($this->useGreatWall()) {
             $result['greatWall'] = $this->getWallTiles();
@@ -726,26 +726,26 @@ class InTheYearOfTheDragonExp extends Table
         return $toReduce;
      }
 
-    /**
-     * Get ids of palaces that active player has that are full.
-     * @return palace_ids of full palaces for current player
-     */
-    function getFilledPalaces() {
-        $player_id = self::getActivePlayerId();
+    // /**
+    //  * Get ids of palaces that active player has that are full.
+    //  * @return palace_ids of full palaces for current player
+    //  */
+    // function getFilledPalaces() {
+    //     $player_id = self::getActivePlayerId();
 
-        $fullpalaces = array();
+    //     $fullpalaces = array();
 
-        $sql = "SELECT palace_id, palace_size FROM palace WHERE palace_player='$player_id' ";
-        $palaces = self::getCollectionFromDB( $sql, true );
-        foreach ($palaces as $palace_id => $size) {
-            // Get all persons in this palace
-            $persons = self::getUniqueValueFromDB( "SELECT COUNT( palace_person_id ) FROM palace_person WHERE palace_person_palace_id='$palace_id'" );
-            if (intval($persons) >= intval($size)) {
-                $fullpalaces[] = $palace_id;
-            }
-        }
-        return $fullpalaces;
-    }
+    //     $sql = "SELECT palace_id, palace_size FROM palace WHERE palace_player='$player_id' ";
+    //     $palaces = self::getCollectionFromDB( $sql, true );
+    //     foreach ($palaces as $palace_id => $size) {
+    //         // Get all persons in this palace
+    //         $persons = self::getUniqueValueFromDB( "SELECT COUNT( palace_person_id ) FROM palace_person WHERE palace_person_palace_id='$palace_id'" );
+    //         if (intval($persons) >= intval($size)) {
+    //             $fullpalaces[] = $palace_id;
+    //         }
+    //     }
+    //     return $fullpalaces;
+    // }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions

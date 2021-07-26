@@ -317,21 +317,43 @@ function (dojo, declare) {
             }
         },
 
-
         /**
-         * Show/Hide "select here" icons
-         * @param show true to show, else hide
+         * Show/Hide icons above palaces.
+         * @param {boolean} true to show, else hide
+         * @param {boolean} opt true to hide the ones over full palaces
          */
-        displayPalacePlacement: function(show) {
+        displayPalaceSelectors: function(show, checkfull) {
+
             if (show) {
-                dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( {'display': 'block', 'opacity' : 1} );
-                const fullpalaces = this.gamedatas.fullpalaces;
-                for (let p of fullpalaces) {
-                    document.getElementById('choosepalace_'+p).style['opacity'] = 0;
+                const player_palace = document.getElementById('palaces_'+this.player_id);
+                for (let palace of player_palace.getElementsByClassName("palace")) {
+                    const choosepalace = document.getElementById('choose'+palace.id);
+                    choosepalace.style['display'] = 'block';
+
+                    if (checkfull) {
+                        var size = 3;
+                        for (let f of palace.getElementsByClassName("palacefloor")) {
+                            if (f.style['display'] == 'none') {
+                                size--;
+                            }
+                        }
+                        var ppct = palace.getElementsByClassName("persontile").length;
+     
+                        if (ppct < size) {
+                            choosepalace.style['opacity'] = 1;
+                            choosepalace.style['cursor'] = 'pointer';
+                        } else {
+                            choosepalace.style['opacity'] = 0;
+                            choosepalace.style['cursor'] = 'default';
+                        }
+                    } else {
+                        choosepalace.style['opacity'] = 1;
+                        choosepalace.style['cursor'] = 'pointer';
+                    }
                 }
             } else {
                 // hide all arrows
-                dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( "display", "none" );
+                dojo.query( '#palaces_'+this.player_id+' .choosepalace' ).style( {'display': 'none', 'opacity' : 1, 'cursor': 'pointer'} );
             }
         },
 
@@ -367,7 +389,7 @@ function (dojo, declare) {
                     this.decoratePersonTileToPlace(args.args.type, args.args.level);
 
                     if( this.isCurrentPlayerActive() ) {
-                        this.displayPalacePlacement(true);
+                        this.displayPalaceSelectors(true, true);
                     }                
                     break;
                 case 'actionPhaseChoose':
@@ -382,12 +404,12 @@ function (dojo, declare) {
                     if( this.isCurrentPlayerActive() ) {
                         // Insert a new "pseudo" palace
                         this.createNewPalace( this.player_id, 'new' );
-                        this.displayPalacePlacement(true);
+                        this.displayPalaceSelectors(true);
                     }                
                     break;
                 case 'reducePalace':
                     if( this.isCurrentPlayerActive() ) {
-                        this.displayPalacePlacement(true);
+                        this.displayPalaceSelectors(true);
                     }
                     break;
                 case 'discardPersonCards':
@@ -429,29 +451,29 @@ function (dojo, declare) {
                     this.activatePersonTiles(false);
                     break;
                 case 'initialPlace':
-                    this.displayPalacePlacement(false);
+                    this.displayPalaceSelectors(false);
                     dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
                     break;
                 case 'personPhaseChoosePerson':
                     this.activatePersonTiles(false);
                     break;
                 case 'personPhasePlace':
-                    this.displayPalacePlacement(false);
+                    this.displayPalaceSelectors(false);
                     dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
                     break;
                 case 'palaceFull':
-                    this.displayPalacePlacement(false);
+                    this.displayPalaceSelectors(false);
                     dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
                     this.activatePersonTiles(false);
                     break;
                 case 'actionPhaseChoose':
                     break;
                 case 'actionPhaseBuild':
-                    this.displayPalacePlacement(false);
+                    this.displayPalaceSelectors(false);
                     this.removePalace( 'new' );
                     break;
                 case 'reducePalace':
-                    this.displayPalacePlacement(false);
+                    this.displayPalaceSelectors(false);
                     break;
                 case 'discardPersonCards':
                     this.makePersonsDiscardable(false);
@@ -915,6 +937,10 @@ function (dojo, declare) {
         {
             console.log( 'onChoosePalace' );
             evt.preventDefault( );
+            // hack to disable selecting the arrows that have been made invisible
+            if (evt.currentTarget.style['opacity'] == 0) {
+                return;
+            }
 
             // choosepalace_<id>
             var palace_id = evt.currentTarget.id.substr( 13 );
