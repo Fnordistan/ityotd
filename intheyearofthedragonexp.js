@@ -43,7 +43,7 @@ function (dojo, declare) {
             // Events
             for( var event=1;event<=6;event++ )
             {
-                var html = '<b>'+this.gamedatas.event_types[ event ].nametr+'</b><hr/>'+this.gamedatas.event_types[ event ].description;
+                var html = '<b>'+this.gamedatas.event_types[ event ].name+'</b><hr/>'+this.gamedatas.event_types[ event ].description;
                 this.addTooltipToClass( 'eventtype_'+event, html, '' );
             }
             
@@ -52,7 +52,7 @@ function (dojo, declare) {
             {
                 var persontype = this.gamedatas.person_types[ type ];
 
-                var html = '<b>'+persontype.nametr+'</b><hr/>'+persontype.description;
+                var html = '<b>'+persontype.name+'</b><hr/>'+persontype.description;
 
                 for( var level in persontype.subtype )
                 {
@@ -288,19 +288,20 @@ function (dojo, declare) {
          */
         placeSuperEvent: function(se) {
             if (se != 0) {
+                var superevent = this.gamedatas.super_events[ se ];
                 var event_7 = document.getElementById("event_7");
                 if (this.gamedatas.month > 7) {
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
+                    this.addTooltipToClass( 'ityotd_superevent', superevent.name, '' );
                 } else {
-                    var superevent = this.gamedatas.super_events[ se ];
                     var superevent_div = this.createSuperEventTile("superevent", se, 0.3);
                     dojo.place(superevent_div, event_7);
     
                     var tooltip_icon = this.createSuperEventTile("superevent_tt", se, 1);
                     tooltip_icon = tooltip_icon.replace('class="ityotd_superevent"', 'class="ityotd_superevent_icon"');
                     var tooltip = '<div style="display: flex;">'
-                                + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.nametr+'</b><hr/>'+superevent.description+'</div>'
+                                + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.name+'</b><hr/>'+superevent.description+'</div>'
                                 + tooltip_icon;
                                 + '</div>';
     
@@ -448,6 +449,11 @@ function (dojo, declare) {
                     }
                     break;
                 case 'release':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.activatePersonTiles(true, 0);
+                    }
+                    break;
+                case 'greatWallRelease':
                     if( this.isCurrentPlayerActive() ) {
                         this.activatePersonTiles(true, 0);
                     }
@@ -729,7 +735,7 @@ function (dojo, declare) {
        
             // Tool tip
             var persontype = this.gamedatas.person_types[ person_type ];
-            var html = '<br>'+persontype.nametr+'</br><hr/>'+persontype.description;
+            var html = '<br>'+persontype.name+'</br><hr/>'+persontype.description;
             this.addTooltip( palace_person_tile, html, _('Release this person') );
             
             dojo.connect( $(palace_person_tile), 'onclick', this, 'onSelectPalacePerson' );

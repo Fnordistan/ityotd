@@ -383,7 +383,7 @@ class InTheYearOfTheDragonExp extends Table
             case 1:
                 // Lanternfest
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players score their people' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $this->scorePersons();
@@ -391,7 +391,7 @@ class InTheYearOfTheDragonExp extends Table
             case 2:
                 // Buddha
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players score their Monks' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $this->scoreMonks(0);
@@ -399,7 +399,7 @@ class InTheYearOfTheDragonExp extends Table
             case 3:
                 // Earthquake
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players lose two palace sections' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $state = "earthquake";
@@ -407,7 +407,7 @@ class InTheYearOfTheDragonExp extends Table
             case 4:
                 // Flood
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players lose half their resources (rounded down)' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $state = "flood";
@@ -415,7 +415,7 @@ class InTheYearOfTheDragonExp extends Table
             case 5:
                 // Solar Eclipse
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: Repeat previous event' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $state = "solar";
@@ -423,7 +423,7 @@ class InTheYearOfTheDragonExp extends Table
             case 6:
                 // Volcanic Eruption
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players set back to 0 on the person track' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $this->resetPlayerPlayOrder();
@@ -431,7 +431,7 @@ class InTheYearOfTheDragonExp extends Table
             case 7:
                 // Tornado
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players must discard two person cards' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $state = "tornado";
@@ -439,7 +439,7 @@ class InTheYearOfTheDragonExp extends Table
             case 8:
                 // Sunrise
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players select one young person tile' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $state = "sunrise";
@@ -447,7 +447,7 @@ class InTheYearOfTheDragonExp extends Table
             case 9:
                 // Assassination Attempt
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players lose all privileges' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 self::DbQuery( "UPDATE player SET player_favor=0" );
@@ -455,7 +455,7 @@ class InTheYearOfTheDragonExp extends Table
             case 10:
                 // Charter
                 self::notifyAllPlayers( 'superEvent', '${superevent_i}'.clienttranslate( '${superevent_name}: All players select one person type in their realm and gain the appropriate benefits' ), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent_i' => $superevent,
                 ));
                 $state = "charter";
@@ -465,7 +465,7 @@ class InTheYearOfTheDragonExp extends Table
                 $se = bga_rand(1,10);
                 self::setGameStateValue(SUPER_EVENT, $se);
                 self::notifyAllPlayers( 'superEventChosen', clienttranslate('Super event revealed: ${superevent_name}'), array(
-                    'superevent_name' => $this->superevents[$superevent]['nametr'],
+                    'superevent_name' => $this->superevents[$superevent]['name'],
                     'superevent' => $se,
                 ) );
                 $state = $this->doSuperEvent();
