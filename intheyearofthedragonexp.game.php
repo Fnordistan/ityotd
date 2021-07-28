@@ -1235,6 +1235,9 @@ class InTheYearOfTheDragonExp extends Table
 
         self::DbQuery("UPDATE WALL SET location=$nextWall WHERE id=$id");
         self::incGameStateValue("wallLength", 1);
+        self::incStat(1, 'walls_built', $player_id );
+        self::incStat(1, 'walls_built_allplayers');
+
         self::notifyAllPlayers("wallBuilt", clienttranslate('${player_name} builds Great Wall section and receives ${reward} bonus'), array(
             'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
@@ -2254,6 +2257,7 @@ class InTheYearOfTheDragonExp extends Table
             foreach( $players as $pid => $player ) {
                 $vp = $this->countWallTilesBuilt($pid);
                 $this->addVictoryPoints($pid, $vp);
+                self::incStat($vp, 'points_wall', $pid);
             }
             $this->gamestate->nextState('endPhase');
         }
