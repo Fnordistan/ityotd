@@ -216,6 +216,8 @@ function (dojo, declare) {
                 const wallTile = wallTiles[w];
                 this.placeWallTile(wallTile['player_id'], wallTile['location'], wallTile['bonus']);
             }
+            const len = this.gamedatas.wallLength;
+            this.decorateUnbuiltWallSections(len);
         },
 
         /**
@@ -264,7 +266,20 @@ function (dojo, declare) {
                 wall.style['background-position-x'] = xoff+"px";
                 this.addTooltip(wall.id, _("Great Wall section built by ")+this.gamedatas.players[ player_id ].name, '');
             }
-            this.addTooltip('great_wall', _("Great Wall"), '');
+        },
+
+        /**
+         * Put tooltip on unbuilt wall sections.
+         * @param {int} len first unbuilt section 
+         */
+        decorateUnbuiltWallSections: function(len) {
+            if (len === "0") {
+                len = 0;
+            }
+            for (let ln = len+1; ln <= 12; ln++) {
+                const id = 'wall_'+ln;
+                this.addTooltip(id, _("Great Wall (unbuilt)"), '');
+            }
         },
 
         /**
@@ -848,7 +863,7 @@ function (dojo, declare) {
             if (enable) {
                 wall_container.onclick = event => {
                     var wall_tile = event.target;
-                    if (!wall_tile.classList.contains("ityotd_wall_built")) {
+                    if (wall_tile.classList.contains("ityotd_wall") && !wall_tile.classList.contains("ityotd_wall_built")) {
                         var id = parseInt(wall_tile.id.match(wallid_rx)[1]);
                         this.onChooseWall(id);
                     }
@@ -1117,13 +1132,11 @@ function (dojo, declare) {
         setupNotifications: function()
         {
             console.log( 'notifications subscriptions setup' );
-            
             dojo.subscribe( 'placePerson', this, "notif_placePerson" );
             dojo.subscribe( 'newActions', this, "notif_newActions" );
             dojo.subscribe( 'actionChoice', this, "notif_actionChoice" );
             dojo.subscribe( 'usePersonCard', this, "notif_usePersonCard" );
-            
-            
+
             dojo.subscribe( 'refillyuan', this, "notif_refillyuan" );
             dojo.subscribe( 'harvest', this, "notif_harvest" );
             dojo.subscribe( 'fireworks', this, "notif_fireworks" );
@@ -1374,6 +1387,7 @@ function (dojo, declare) {
             const wall_tile = this.format_block('jstpl_player_wall', {id: player_id, type: 'temp', x: xoff, y: 0});
             this.slideTemporaryObject( wall_tile, 'player_board_'+player_id, 'player_wall_'+player_id+'_'+bonus, 'wall_'+newSec, 1000, 1000 ).play();
             this.placeWallTile(player_id, newSec, bonus);
+            this.decorateUnbuiltWallSections(newSec);
         },
 
         /**

@@ -260,6 +260,7 @@ class InTheYearOfTheDragonExp extends Table
 
         if ($this->useGreatWall()) {
             $result['greatWall'] = $this->getWallTiles();
+            $result['wallLength'] = self::getGameStateValue('wallLength');
         }
 
         $result['superEvent'] = self::getGameStateValue(SUPER_EVENT);
