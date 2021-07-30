@@ -65,3 +65,18 @@ $game_options = array(
         'default' => 1
     )
 );
+
+$game_preferences = array(
+    100 => array(
+        'name' => totranslate('Confirmation dialogs'),
+        'values' => array(
+            1 => array( 'name' => totranslate('None'), 'description' => totranslate('Never ask for confirmation')),
+            2 => array( 'name' => totranslate('Recruiting'), 'description' => totranslate('Ask for confirmation after selecting a Person for recruitment')),
+            3 => array( 'name' => totranslate('Action'), 'description' => totranslate('Ask for confirmation after selecting an Action')),
+            4 => array( 'name' => totranslate('Select Person'), 'description' => totranslate('Ask for confirmation after selecting a Person in a palace')),
+            5 => array( 'name' => totranslate('All'), 'description' => totranslate('Ask for confirmation after Recruiting, Actions, and Select Person')),
+        ),
+        'needReload' => true,
+        'default' => 1
+    )
+);

@@ -8,6 +8,7 @@
 $this->person_types = array(
 
     1 => array( 'name' => clienttranslate( 'Craftsmen' ),
+                'label' => clienttranslate( 'Craftsman' ),
                 'description' => self::_("Build additional palaces floor during the Build action"),
                 'subtype' => array(
                     1 => array( 'value' => 2,
@@ -15,6 +16,7 @@ $this->person_types = array(
                 )
               ),
     2 => array( 'name' => clienttranslate( 'Court Ladies' ),
+                'label' => clienttranslate( 'Court Lady' ),
                 'description' => self::_("Win additional points at the end of each turn"),
                 'subtype' => array(
                     1 => array( 'value' => 1,
@@ -22,6 +24,7 @@ $this->person_types = array(
                 )
               ),
     3 => array( 'name' => clienttranslate( 'Pyrotechnists' ),
+                'label' => clienttranslate( 'Pyrotechnist' ),
                 'description' => self::_("Take additional fireworks tiles during the Fireworks Display action"),
                 'subtype' => array(
                     1 => array( 'value' => 5,
@@ -31,6 +34,7 @@ $this->person_types = array(
                 )
               ),
     4 => array( 'name' => clienttranslate( 'Tax Collectors' ),
+                'label' => clienttranslate( 'Tax Collector' ),
                 'description' => self::_("Take additional yuans during the Taxes action"),
                 'subtype' => array(
                     1 => array( 'value' => 3,
@@ -38,6 +42,7 @@ $this->person_types = array(
                 )
               ),
     5 => array( 'name' => clienttranslate( 'Warriors' ),
+                'label' => clienttranslate( 'Warrior' ),
                 'description' => self::_("Win additional person points during Military Parade action"),
                 'subtype' => array(
                     1 => array( 'value' => 5,
@@ -47,6 +52,7 @@ $this->person_types = array(
                 )
               ),
     6 => array( 'name' => clienttranslate( 'Monks' ),
+                'label' => clienttranslate( 'Monk' ),
                 'description' => self::_("Win additional points at the end of the game: number of Buddhas x number of floor of this palace"),
                 'subtype' => array(
                     1 => array( 'value' => 6,
@@ -56,6 +62,7 @@ $this->person_types = array(
                 )
               ),
     7 => array( 'name' => clienttranslate( 'Healers' ),
+                'label' => clienttranslate( 'Healer' ),
                 'description' => self::_("Release less person during the Contagion event"),
                 'subtype' => array(
                     1 => array( 'value' => 4,
@@ -65,6 +72,7 @@ $this->person_types = array(
                 )
               ),
     8 => array( 'name' => clienttranslate( 'Farmers' ),
+                'label' => clienttranslate( 'Farmer' ),
                 'description' => self::_("Take additional rice tiles during the Harvest action"),
                 'subtype' => array(
                     1 => array( 'value' => 4,
@@ -74,6 +82,7 @@ $this->person_types = array(
                 )
               ),
     9 => array( 'name' => clienttranslate( 'Scholars' ),
+                'label' => clienttranslate( 'Scholar' ),
                 'description' => self::_("Win additional points during the Research action"),
                 'subtype' => array(
                     1 => array( 'value' => 4,

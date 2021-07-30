@@ -752,17 +752,29 @@ function (dojo, declare) {
             this.slideToObject( $('actioncard_'+action_type), $('actionplace_'+action_id) ).play();
             
             // Tooltip
-            var html = '<b>'+this.gamedatas.action_types[action_type].name+'</b><hr/>';
+            var html = this.actionString(action_type);
+            
+            this.addTooltip( 'actioncard_'+action_type, html, _('Do this action') );
+            
+            dojo.connect( $('actioncard_'+action_type), 'onclick', this, 'onAction' );
+        },
+
+        /**
+         * <b>Action Name</b>
+         * <hr/>
+         * Description
+         * @param {int} action_type 
+         * @returns 
+         */
+        actionString: function(action_type) {
+            let html = '<b>'+this.gamedatas.action_types[action_type].name+'</b><hr/>';
             html += this.gamedatas.action_types[action_type].description;
             
             if( this.gamedatas.largePrivilegeCost == 7 && action_type == 7 )
             {
                 html = html.replace( '6','7' );
             }
-            
-            this.addTooltip( 'actioncard_'+action_type, html, _('Do this action') );
-            
-            dojo.connect( $('actioncard_'+action_type), 'onclick', this, 'onAction' );
+            return html;
         },
         
         /**
@@ -920,18 +932,78 @@ function (dojo, declare) {
 
         ///////////////////////////////////////////////////
         //// UI
-        
+
+        /**
+         * Create html with person tile.
+         * @param {string} action
+         * @param {string} level 
+         * @param {string} type 
+         * @returns html
+         */
+        personTileHtml: function(action, level, type) {
+            const persontype = this.gamedatas.person_types[type];
+            let person_str = '${persontype}';
+
+            if (persontype.subtype[2]) {
+                person_str = level == 1 ? _("Young ${persontype}") : _("Old ${persontype}");
+            }
+            const personname = this.gamedatas.person_types[type].label;
+            person_str = person_str.replace('${persontype}', personname);
+
+            let act_str = _('${action} a ${person}?');
+            act_str = act_str.replace('${action}', action);
+
+            person_str = '<b>'+person_str+'</b>';
+            act_str = act_str.replace('${person}', person_str);
+            let div_html = act_str +
+                            '<hr/>' +
+                            '<div class="persontile persontile_'+type+'_'+level+'"></div>';
+            return div_html;
+        },
+
+        /**
+         * Create Action tile confirmation HTML.
+         * @param {int} action_id 
+         * @returns html
+         */
+        actionTileHtml: function(action_id) {
+            let html = this.actionString(action_id)
+                + '<div class="actioncard actioncard_'+action_id+'" style="margin: 5px;"></div>'+
+                '<div style="height: 80px;"></div>';
+            return html;
+        },
+
+        ///////////////////////////////////////////////////
+        //// Action ajax calls
+
         onRecruit: function( evt )
         {
             console.log( 'onRecruit' );
             evt.preventDefault( );
             if( ! (this.isCurrentPlayerActive() && this.checkAction( 'recruit', true )) )
-            {   return; }            
+            {   
+                return; 
+            }
 
-            var level = evt.currentTarget.id.substr( 13 );
-            var type = evt.currentTarget.id.substr( 11, 1 );
+            const level = evt.currentTarget.id.substr( 13 );
+            const type = evt.currentTarget.id.substr( 11, 1 );
 
-            var isSunrise = this.gamedatas.gamestate.name == 'sunriseRecruit';
+            if (this.prefs[100].value == 2 || this.prefs[100].value == 5) {
+                const person_html = this.personTileHtml(_('Recruit'), level, type);
+                this.confirmationDialog( person_html, () => {this.recruitConfirmed(level, type)}, function() { return; });
+            } else {
+                // without confirmation dialog
+                this.recruitConfirmed(level, type);
+            }
+        },
+
+        /**
+         * After confirmation, recruit Person of level, type
+         * @param {string} level 
+         * @param {string} type 
+         */
+        recruitConfirmed: function(level, type) {
+            const isSunrise = this.gamedatas.gamestate.name == 'sunriseRecruit';
             // skip warning dialog  in case of sunrise recruit because php game logic will throw error message
             if(!isSunrise && toint( $('persontile_nbr_'+type+'_'+level).innerHTML ) == 0 )
             {
@@ -952,7 +1024,7 @@ function (dojo, declare) {
                 }, this, function( result ) {  } );             
             }
         },
-            
+
         // Choose a palace (ex: to place some tile)
         onChoosePalace: function( evt )
         {
@@ -1004,8 +1076,24 @@ function (dojo, declare) {
             {   return; }           
             
             // actioncard_<id>
-            var action_id = evt.currentTarget.id.substr( 11 );
-            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/action.html", { lock: true, 
+            const action_id = evt.currentTarget.id.substr( 11 );
+
+            if (this.prefs[100].value == 3 || this.prefs[100].value == 5) {
+                const action_html = this.actionTileHtml(action_id);
+                this.confirmationDialog( action_html, () => {this.actionConfirmed(action_id)}, function() { return; });
+            } else {
+                // without confirmation dialog
+                this.actionConfirmed(action_id);
+            }
+        },
+
+        /**
+         * Submit action choice.
+         * @param {int} action_id 
+         */
+        actionConfirmed: function(action_id) {
+            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/action.html", { 
+                lock: true, 
                 id: action_id
             }, this, function( result ) {  } );         
         },
@@ -1046,6 +1134,43 @@ function (dojo, declare) {
             var person_id = evt.currentTarget.id.substr( 17 );
             person_id = person_id.substr( 0, person_id.length-6 );
 
+            if (this.prefs[100].value == 4 || this.prefs[100].value == 5) {
+                const classname = evt.currentTarget.className;
+
+                const match = classname.match(/.*persontile_(\d+)_(\d+).*/);
+                if (match) {
+                    var person_type = match[1];
+                    var person_level = match[2];
+                } else {
+                    throw new Exception("Unknown person tile: "+className);
+                }
+
+                const state = this.gamedatas.gamestate.name;
+
+                let action = '';
+                if (state == 'release' || state == 'greatWallRelease' || state == 'reducePopulation') {
+                    action = _('Release');
+                } else if (state == 'palaceFull') {
+                    action = _('Release and replace');
+                } else if (state == 'charterPerson') {
+                    action = _('Charter');
+                }
+                const select_html = this.personTileHtml(action, person_level, person_type);
+                this.confirmationDialog( select_html, () => {this.confirmSelectPalacePerson(person_id, evt)}, function() { return; });
+            } else {
+                // without confirmation dialog
+                this.confirmSelectPalacePerson(person_id, evt);
+            }
+         },
+
+
+         /**
+          * 
+          * @param {string} person_id 
+          * @param {Object} evt 
+          * @returns 
+          */
+         confirmSelectPalacePerson: function(person_id, evt) {
             if( this.checkAction( 'releaseReplace', true ) )
             {
                 // Special case: release a person to replace it immediately by a new one
