@@ -46,6 +46,7 @@ class InTheYearOfTheDragonExp extends Table
                 "largePrivilegeCost" => 100,
                 "greatWall" => 101,
                 "superEvents" => 102,
+                "openHand" => 103,
             ));
     
         $this->tie_breaker_description = self::_("Position on the person track (descending order)");                
@@ -267,6 +268,11 @@ class InTheYearOfTheDragonExp extends Table
         if (self::getGameStateValue(SUPER_EVENT) != 0) {
             $result['super_events'] = $this->superevents;
         }
+
+        $result['openhand'] = $this->isOpenHand();
+        // if ($this->isOpenHand()) {
+        //     $result['personcards'] = self::getCollectionFromDB("SELECT personcard_player player_id, personcard_type type FROM personcard");
+        // }
   
         return $result;
     }
@@ -332,6 +338,13 @@ class InTheYearOfTheDragonExp extends Table
      */
     function getLargePrivilegeCost() {
         return self::getGameStateValue( 'largePrivilegeCost' ) == 1 ? 7 : 6;
+    }
+
+    /**
+     * Is the open hand option set?
+     */
+    function isOpenHand() {
+        return self::getGameStateValue('openHand') == 2;
     }
 
     /**
@@ -550,10 +563,8 @@ class InTheYearOfTheDragonExp extends Table
         return self::getCollectionFromDB( 'SELECT year_id,year_event FROM year ORDER BY year_id', true );
     }
 
-    function getPersoncards()
+    function getPersoncards($player_id)
     {
-        global $g_user;
-        $player_id = $g_user->get_id();
         return self::getCollectionFromDB( "SELECT personcard_id id, personcard_type type FROM personcard WHERE personcard_player='$player_id' " );
     }
     
@@ -1656,7 +1667,7 @@ class InTheYearOfTheDragonExp extends Table
 
     /**
      * From Tornado super event.
-     * {int} $pid
+     * @param {int} $pid
      */
      function discard($pid) {
         self::checkAction( 'discard' );

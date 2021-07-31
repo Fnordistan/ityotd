@@ -20,10 +20,13 @@
     }    
   	function build_page( $viewArgs )
   	{		
-        $this->page->begin_block( "intheyearofthedragonexp_intheyearofthedragonexp", "player" );
-        $this->page->begin_block( "intheyearofthedragonexp_intheyearofthedragonexp", "persontile" );
-        $this->page->begin_block( "intheyearofthedragonexp_intheyearofthedragonexp", "personcard" );
-        $this->page->begin_block( "intheyearofthedragonexp_intheyearofthedragonexp", "actionplace" );
+
+        $template = self::getGameName() . "_" . self::getGameName();
+
+        $this->page->begin_block( $template, "player" );
+        $this->page->begin_block( $template, "persontile" );
+        $this->page->begin_block( $template, "personcard" );
+        $this->page->begin_block( $template, "actionplace" );
 
 
   	    // Get players
@@ -53,7 +56,7 @@
         }
         
         // Events
-        $this->page->begin_block( "intheyearofthedragonexp_intheyearofthedragonexp", "event" );
+        $this->page->begin_block( $template, "event" );
         $events = $this->game->getEvents();
         foreach( $events as $event_id => $event_type )
         {
@@ -64,7 +67,7 @@
         }
 
         if ($this->game->useGreatWall()) {
-            $this->page->begin_block( "intheyearofthedragonexp_intheyearofthedragonexp", "wall" );
+            $this->page->begin_block( $template, "wall" );
             for ($w = 1; $w <=12; $w++) {
                 $this->page->insert_block( 'wall', array(
                     'ID' => $w,
@@ -84,7 +87,7 @@
         }
         
         // Personcard
-        $cards = $this->game->getPersoncards();
+        $cards = $this->game->getPersoncards($g_user->get_id());
         $second_joker = false;
         foreach( $cards as $card_id => $card )
         {
@@ -96,7 +99,37 @@
             
             if( $card['type'] == 0 )    // Joker
                 $second_joker = true;
-        }      
+        }
+        // open hands?
+        if ($this->game->isOpenhand()) {
+            $this->page->begin_block( $template, 'openhand_person');
+            $this->page->begin_block( $template, 'openhand_player');
+
+            foreach( $players as $player ) {
+                $this->page->reset_subblocks( 'openhand_person');
+                if( $player['player_id'] != $g_user->get_id() ) {
+                    $opencards = $this->game->getPersoncards($player['player_id']);
+                    $second_wild = false;
+                    foreach($opencards as $card_id => $card) {
+                        $this->page->insert_block( 'openhand_person', array(
+                            'PLAYER_ID' => $player['player_id'],
+                            'ID' => $card_id,
+                            'TYPE' => $card['type'],
+                            'SECONDJOKER' => ( $card['type']==0 && $second_wild ) ? 'second_joker' : ''
+                        ));
+                        if( $card['type'] == 0 ) {
+                            $second_wild = true;
+                        }
+                    }
+
+                    $this->page->insert_block('openhand_player', array(
+                        "PLAYER_ID" => $player['player_id'],
+                        "PLAYER_NAME" => $player['player_name'],
+                    ));
+    
+                }
+            }
+        }
         
         // Actions
         $actiongroups = $this->game->getActionGroups();

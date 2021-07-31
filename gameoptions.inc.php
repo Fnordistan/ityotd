@@ -63,7 +63,17 @@ $game_options = array(
             13 => array( 'name' => totranslate('HARD MODE!'), 'description' => totranslate('Random hidden super event, not revealed until turn 7'), 'alpha' => true, 'nobeginner' => true ),
         ),
         'default' => 1
+    ),
+
+    103 => array(
+        'name' => totranslate('Open hand display'),
+        'values' => array(
+            1 => array( 'name' => totranslate('No open hands'), 'description' => totranslate('Do not show cards in hand')),
+            2 => array( 'name' => totranslate('Open hands'), 'description' => totranslate('Show cards in hand for all players')),
+        ),
+        'default' => 1
     )
+
 );
 
 $game_preferences = array(

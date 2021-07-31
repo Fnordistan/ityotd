@@ -146,7 +146,7 @@
 
 /*** personcard ***/
 
-#personcards {
+.personcards_container {
     margin-top: 5px;
     position: relative;
     height: 100px;

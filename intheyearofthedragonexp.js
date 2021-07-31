@@ -126,6 +126,11 @@ function (dojo, declare) {
             } else {
                 document.getElementById("great_wall").style["display"] = "none";
             }
+
+            // openhand
+            if (!this.gamedatas.openhand) {
+                document.getElementById("openhands").style["display"] = "none";
+            }
         },
 
         /* @Override */
