@@ -303,21 +303,23 @@ function (dojo, declare) {
             if (se != 0) {
                 var superevent = this.gamedatas.super_events[ se ];
                 var event_7 = document.getElementById("event_7");
+
+                var desc = '<span class="ityotd_se_label">'+superevent.name+'</span>';
+                var se_label = dojo.place(desc, event_7);
                 if (this.gamedatas.month > 7) {
+                    se_label.style['text-decoration'] = 'line-through';
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
                     this.addTooltipToClass( 'ityotd_superevent', superevent.name, '' );
                 } else {
+                    se_label.style['font-weight'] = 'bold';
                     var superevent_div = this.createSuperEventTile("superevent", se, 0.3);
                     dojo.place(superevent_div, event_7);
     
                     var tooltip_icon = this.createSuperEventTile("superevent_tt", se, 1);
                     tooltip_icon = tooltip_icon.replace('class="ityotd_superevent"', 'class="ityotd_superevent_icon"');
-                    var tooltip = '<div style="display: flex;">'
-                                + '<div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>'+superevent.name+'</b><hr/>'+superevent.description+'</div>'
-                                + tooltip_icon;
-                                + '</div>';
-    
+                    var tooltip = this.format_block('jstpl_super_event_icon', {'name': superevent.name, 'description': superevent.description, 'icon': tooltip_icon});
+                    
                     this.addTooltipToClass( 'ityotd_superevent', tooltip, '' );
                 }
             }

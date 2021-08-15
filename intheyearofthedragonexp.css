@@ -292,6 +292,12 @@
     transform: scale(1.1);
 }
 
+.ityotd_se_label {
+    position: absolute;
+    transform: translateY(-25px);
+    font-size: 12px;
+}
+
 /*** player board ***/
 
 .yd_icon {

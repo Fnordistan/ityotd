@@ -94,9 +94,13 @@ var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall"
 
 var jstpl_super_event = '<div id="${id}" class="ityotd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
 
+var jstpl_super_event_icon = '<div style="display: flex;">\
+                                <div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>${name}</b><hr/>${description}</div>\
+                                ${icon}\
+                                </div>';
+
 // a currency icon used as a button, either note or cert
 var jstpl_rsrc_btn = '<button id="${type}_${i}_btn" type="button" class="yd_icon icon_${type} tt${type}"></button>';
-
 
 </script>  
 
