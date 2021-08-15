@@ -270,9 +270,6 @@ class InTheYearOfTheDragonExp extends Table
         }
 
         $result['openhand'] = $this->isOpenHand();
-        // if ($this->isOpenHand()) {
-        //     $result['personcards'] = self::getCollectionFromDB("SELECT personcard_player player_id, personcard_type type FROM personcard");
-        // }
   
         return $result;
     }
@@ -869,10 +866,7 @@ class InTheYearOfTheDragonExp extends Table
                     $sql = "DELETE FROM personcard WHERE personcard_id='$personcard_id' ";
                     self::DbQuery( $sql );
 
-                    // Notify this player
-                    self::notifyPlayer( $player_id, 'usePersonCard','',  array(
-                        'personcard_id' => $personcard_id
-                    ) );
+                    $this->playPersonCard($player_id, $personcard_id);
                 }
         }
 
@@ -942,19 +936,15 @@ class InTheYearOfTheDragonExp extends Table
         $tile_person_score = $tile_subtype['value'];
         $this->increasePersonScore( $player_id, $tile_person_score );                                
 
-        
         // Notify
         $i18n = array( 'person_type_name' );
-        $details = '';
-        $message = clienttranslate('${player_name} places a ${person_type_name} in one of his palace');
+        $age = '';
+        $message = clienttranslate('${player_name} places a ${person_type_name} in a palace');
         if( count( $tile_persontype['subtype'] ) > 1 )
         {
-            $i18n[] = 'details';
-            $message = clienttranslate('${player_name} places a ${person_type_name} (${details}) in one of his palace');
-            if( $tile_level == 1 )
-                $details = clienttranslate('young');
-            else
-                $details = clienttranslate('old');
+            $i18n[] = 'age';
+            $message = clienttranslate('${player_name} places a ${age} ${person_type_name} in a palace');
+            $age = ($tile_level == 1) ? clienttranslate('young') : clienttranslate('old');
         }
         self::notifyAllPlayers( 'placePerson', $message, array(
             'i18n' => $i18n,
@@ -964,8 +954,8 @@ class InTheYearOfTheDragonExp extends Table
             'person_level' => $tile_level,
             'palace_id' => $palace_id,
             'person_id' => $tile_id,
-            'person_type_name' => $tile_persontype['name'],
-            'details' => $details
+            'person_type_name' => $tile_persontype['name_sg'],
+            'age' => $age
         ) );
         $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? 'sunrise' : 'nextPhase';
         $this->gamestate->nextState( $state );
@@ -1513,23 +1503,19 @@ class InTheYearOfTheDragonExp extends Table
         // Notify
         $tile_persontype = $this->person_types[ $person['type'] ];
         $i18n = array( 'person_type_name' );
-        $details = '';
+        $age = '';
         if( count( $tile_persontype['subtype'] ) > 1 )
         {
-            $i18n[] = 'details';
-            if( $person['level'] == 1 ) {
-                $details = ' ('.clienttranslate('young').')';
-            } else {
-                $details = ' ('.clienttranslate('old').')';
-            }
+            $i18n[] = 'age';
+            $age = ( $person['level'] == 1 ) ? clienttranslate('young') : clienttranslate('old');
         }
        
-        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${person_type_name}${details}'), array(
+        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}'), array(
             'i18n' => $i18n,
             'player_id' => $player_id,
             'player_name' => self::getCurrentPlayerName(),
-            'person_type_name' => $tile_persontype['name'],
-            'details' => $details,
+            'person_type_name' => $tile_persontype['name_sg'],
+            'age' => $age,
             'person_id' => $person_id
         ) );
         
@@ -1615,22 +1601,19 @@ class InTheYearOfTheDragonExp extends Table
         // Notify
         $tile_persontype = $this->person_types[ $person['type'] ];
         $i18n = array( 'person_type_name' );
-        $details = '';
+        $age = '';
         if( count( $tile_persontype['subtype'] ) > 1 )
         {
-            $i18n[] = 'details';
-            if( $person['level'] == 1 )
-                $details = ' ('.clienttranslate('young').')';
-            else
-                $details = ' ('.clienttranslate('old').')';
+            $i18n[] = 'age';
+            $age = ( $person['level'] == 1 ) ? clienttranslate('young') : clienttranslate('old');
         }
        
-        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${person_type_name}${details}'), array(
+        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}'), array(
             'i18n' => $i18n,
             'player_id' => $player_id,
             'player_name' => self::getCurrentPlayerName(),
-            'person_type_name' => $tile_persontype['name'],
-            'details' => $details,
+            'person_type_name' => $tile_persontype['name_sg'],
+            'age' => $age,
             'person_id' => $person_id
         ) );
     }
@@ -1679,10 +1662,8 @@ class InTheYearOfTheDragonExp extends Table
         // Remove this personcard
         self::DbQuery( "DELETE FROM personcard WHERE personcard_id='$pid' " );
             
-        // Notify this player
-        self::notifyPlayer( $player_id, 'usePersonCard','',  array(
-            'personcard_id' => $pid
-        ) );
+        $this->playPersonCard($player_id, $pid);
+
         $person = ($pp == 0) ? "Wild" : $this->person_types[$pp]['name'];
         self::notifyAllPlayers( 'discardCard', clienttranslate( '${player_name} discards ${persontype} card' ), array(
             'player_name' => self::getCurrentPlayerName(),
@@ -1762,6 +1743,21 @@ class InTheYearOfTheDragonExp extends Table
         }
 
         $this->gamestate->nextState($nextState);
+    }
+
+    /**
+     * Play a person card, send notification only to player or to all players if Openhands.
+     */
+    function playPersonCard($player_id, $pid) {
+        if ($this->isOpenHand()) {
+            self::notifyAllPlayers( 'usePersonCard', '', array(
+                'personcard_id' => $pid
+            ) );
+        } else {
+            self::notifyPlayer( $player_id, 'usePersonCard','',  array(
+                'personcard_id' => $pid
+            ) );
+        }
     }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -2185,12 +2181,9 @@ class InTheYearOfTheDragonExp extends Table
             $sql = "DELETE FROM personcard WHERE personcard_id='$personcard_id' ";
             self::DbQuery( $sql );
             
-            // Notify this player
-            self::notifyPlayer( $player_id, 'usePersonCard','',  array(
-                'personcard_id' => $personcard_id
-            ) );
+            $this->playPersonCard($player_id, $personcard_id);
 
-            self::notifyAllPlayers( 'noPersonCardToPlay', clienttranslate('${player_name} cannot recruit considering his remaining cards'), array(
+            self::notifyAllPlayers( 'noPersonCardToPlay', clienttranslate('${player_name} cannot recruit with remaining cards'), array(
                 'player_id' => $player_id,
                 'player_name' => self::getActivePlayerName()
             ) );

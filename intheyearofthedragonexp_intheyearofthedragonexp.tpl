@@ -35,10 +35,10 @@
     </div>
     <div id="openhands">
         <!-- BEGIN openhand_player -->
-        <h1 id="{PLAYER_ID}_name">{PLAYER_NAME}</h1>
+        <h1 id="{PLAYER_ID}_name" style="color: #{PLAYER_COLOR}">{PLAYER_NAME}</h1>
         <div id="personcards_{PLAYER_ID}" class="personcards_container">
             <!-- BEGIN openhand_person -->
-            <div id="{PLAYER_ID}_personcard_{ID}" class="personcard personcard_{TYPE} {SECONDJOKER}"></div>
+            <div id="personcard_{ID}" class="personcard personcard_{TYPE} {SECONDJOKER}"></div>
             <!-- END openhand_person -->
         </div>
         <!-- END openhand_player -->

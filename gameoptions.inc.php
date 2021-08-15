@@ -73,12 +73,11 @@ $game_options = array(
         ),
         'default' => 1
     )
-
 );
 
 $game_preferences = array(
     100 => array(
-        'name' => totranslate('Confirmation dialogs'),
+        'name' => totranslate('Confirm dialogs'),
         'values' => array(
             1 => array( 'name' => totranslate('None'), 'description' => totranslate('Never ask for confirmation')),
             2 => array( 'name' => totranslate('Recruiting'), 'description' => totranslate('Ask for confirmation after selecting a Person for recruitment')),

@@ -133,6 +133,14 @@ function (dojo, declare) {
             }
         },
 
+        /**
+         * 
+         */
+        setupPlayerHand: function(player_id, openhand) {
+            const handdiv = this.format_block('jstpl_openhand', {'name': this.gamedatas.players[player_id]['name'], 'color' : this.gamedatas.players[player_id]['color'], 'id' : player_id});
+            dojo.place(handdiv, openhand);
+        },
+
         /* @Override */
         format_string_recursive : function(log, args) {
             try {
@@ -952,7 +960,7 @@ function (dojo, declare) {
             if (persontype.subtype[2]) {
                 person_str = level == 1 ? _("Young ${persontype}") : _("Old ${persontype}");
             }
-            const personname = this.gamedatas.person_types[type].label;
+            const personname = this.gamedatas.person_types[type].name_sg;
             person_str = person_str.replace('${persontype}', personname);
 
             let act_str = _('${action} a ${person}?');
@@ -1348,9 +1356,6 @@ function (dojo, declare) {
         },
         notif_usePersonCard: function( notif )
         {
-            console.log( 'notif_usePersonCard' );
-            console.log( notif );
-            
             this.fadeOutAndDestroy( 'personcard_'+notif.args.personcard_id );
         },
         notif_refillyuan: function( notif )

@@ -125,6 +125,7 @@
                     $this->page->insert_block('openhand_player', array(
                         "PLAYER_ID" => $player['player_id'],
                         "PLAYER_NAME" => $player['player_name'],
+                        "PLAYER_COLOR" => $player['player_color']
                     ));
     
                 }
