@@ -296,6 +296,11 @@
     position: absolute;
     transform: translateY(-25px);
     font-size: 12px;
+    background-color: #DFDBB9;
+    padding: 2px;
+    border: solid 1px;
+    border-style: ridge;
+    border-color: #B0964B;
 }
 
 /*** player board ***/

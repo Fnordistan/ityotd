@@ -264,7 +264,9 @@ function (dojo, declare) {
                 } else {
                     wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'great_wall_'+player_id);
                 }
-                this.addTooltip(wall_tile.id, _("Wall tile bonus: ")+WALL_BONUS[bonus-1], '');
+                const walltile_tt = _("Wall tile bonus: ${bonus}");
+                walltile_tt = walltile_tt.replace('${bonus}', WALL_BONUS[bonus-1]);
+                this.addTooltip(wall_tile.id, walltile_tt, '');
             } else {
                 // flip face down on player board
                 if (wall_tile) {
@@ -277,7 +279,10 @@ function (dojo, declare) {
                 // flip over the Great Wall tile
                 const wall = document.getElementById('wall_'+location);
                 wall.style['background-position-x'] = xoff+"px";
-                this.addTooltip(wall.id, _("Great Wall section built by ")+this.gamedatas.players[ player_id ].name, '');
+                const player_name = this.gamedatas.players[ player_id ].name;
+                const wall_tt = _("Great Wall section built by ${player_name}");
+                wall_tt = wall_tt.replace('${player_name}', player_name);
+                this.addTooltip(wall.id, wall_tt, '');
             }
         },
 
@@ -304,15 +309,24 @@ function (dojo, declare) {
                 var superevent = this.gamedatas.super_events[ se ];
                 var event_7 = document.getElementById("event_7");
 
-                var desc = '<span class="ityotd_se_label">'+superevent.name+'</span>';
-                var se_label = dojo.place(desc, event_7);
+                var parent = event_7.parentNode;
+                var desc_div = document.createElement("div");
+                desc_div.style['display'] = 'inline-block';
+                desc_div.style['transform'] = 'translateY(-60px)';
+                var desc_span = document.createElement("span");
+                desc_span.id = "superevent_label";
+                desc_span.innerHTML = superevent.name;
+                desc_span.classList.add('ityotd_se_label');
+                desc_div.appendChild(desc_span);
+                parent.insertBefore(desc_div, event_7);
+
                 if (this.gamedatas.month > 7) {
-                    se_label.style['text-decoration'] = 'line-through';
+                    desc_span.style['text-decoration'] = 'line-through';
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
                     this.addTooltipToClass( 'ityotd_superevent', superevent.name, '' );
                 } else {
-                    se_label.style['font-weight'] = 'bold';
+                    desc_span.style['font-weight'] = 'bold';
                     var superevent_div = this.createSuperEventTile("superevent", se, 0.3);
                     dojo.place(superevent_div, event_7);
     
@@ -321,6 +335,7 @@ function (dojo, declare) {
                     var tooltip = this.format_block('jstpl_super_event_icon', {'name': superevent.name, 'description': superevent.description, 'icon': tooltip_icon});
                     
                     this.addTooltipToClass( 'ityotd_superevent', tooltip, '' );
+                    this.addTooltipToClass('ityotd_se_label', tooltip, '');
                 }
             }
         },
@@ -1488,6 +1503,8 @@ function (dojo, declare) {
                     var event_7 = document.getElementById("event_7");
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
+                    const se_lbl = document.getElementById("superevent_label");
+                    se_lbl.style['text-decoration'] = 'line-through';
                 }
             }
         },
