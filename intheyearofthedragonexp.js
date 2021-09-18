@@ -312,7 +312,7 @@ function (dojo, declare) {
                 var parent = event_7.parentNode;
                 var desc_div = document.createElement("div");
                 desc_div.style['display'] = 'inline-block';
-                desc_div.style['transform'] = 'translateY(-60px)';
+                desc_div.style['margin-bottom'] = '65px';
                 var desc_span = document.createElement("span");
                 desc_span.id = "superevent_label";
                 desc_span.innerHTML = superevent.name;
