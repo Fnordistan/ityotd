@@ -264,7 +264,7 @@ function (dojo, declare) {
                 } else {
                     wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': yoff}), 'great_wall_'+player_id);
                 }
-                const walltile_tt = _("Wall tile bonus: ${bonus}");
+                let walltile_tt = _("Wall tile bonus: ${bonus}");
                 walltile_tt = walltile_tt.replace('${bonus}', WALL_BONUS[bonus-1]);
                 this.addTooltip(wall_tile.id, walltile_tt, '');
             } else {
@@ -280,7 +280,7 @@ function (dojo, declare) {
                 const wall = document.getElementById('wall_'+location);
                 wall.style['background-position-x'] = xoff+"px";
                 const player_name = this.gamedatas.players[ player_id ].name;
-                const wall_tt = _("Great Wall section built by ${player_name}");
+                let wall_tt = _("Great Wall section built by ${player_name}");
                 wall_tt = wall_tt.replace('${player_name}', player_name);
                 this.addTooltip(wall.id, wall_tt, '');
             }
