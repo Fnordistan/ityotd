@@ -23,6 +23,8 @@
 
         $template = self::getGameName() . "_" . self::getGameName();
 
+        $this->tpl['OPENHANDS_BUTTON'] = self::_("Open Hands (Show)");
+
         $this->page->begin_block( $template, "player" );
         $this->page->begin_block( $template, "persontile" );
         $this->page->begin_block( $template, "personcard" );

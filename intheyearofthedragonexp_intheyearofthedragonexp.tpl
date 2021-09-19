@@ -33,6 +33,7 @@
         <div id="personcard_{ID}" class="personcard personcard_{TYPE} {SECONDJOKER}"></div>
         <!-- END personcard -->
     </div>
+    <a href="#" id="openhands_button" class="bgabutton bgabutton_blue"><span>{OPENHANDS_BUTTON}</span></a>
     <div id="openhands">
         <!-- BEGIN openhand_player -->
         <h1 id="{PLAYER_ID}_name" style="color: #{PLAYER_COLOR}">{PLAYER_NAME}</h1>

@@ -128,9 +128,28 @@ function (dojo, declare) {
             }
 
             // openhand
-            if (!this.gamedatas.openhand) {
-                document.getElementById("openhands").style["display"] = "none";
+            document.getElementById("openhands").style["display"] = "none";
+            if (this.gamedatas.openhand) {
+                // Show/Hide Player shares button
+                document.getElementById('openhands_button').addEventListener('click', () => {
+                    this.onShowHands();
+                });
+            } else {
+                document.getElementById("openhands_button").style.display = "none";
             }
+        },
+
+        /**
+         * Button for showing/hiding open hands
+         */
+        onShowHands: function() {
+            const openhandsdiv = document.getElementById("openhands");
+            var handsdisplay = openhandsdiv.style.display;
+            // toggle display
+            handsdisplay = (handsdisplay == 'none') ? 'block' : 'none';
+            var button_text = (handsdisplay == 'none') ? _("Open Hands (Show)") : _("Open Hands (Hide)");
+            openhandsdiv.style.display = handsdisplay;
+            document.getElementById('openhands_button').innerHTML = button_text;
         },
 
         /**
@@ -172,53 +191,6 @@ function (dojo, declare) {
             const main = $('pagemaintitletext');
             main.innerHTML += html;
         },
-
-        // /**
-        //  * Puts top banner for active player.
-        //  * @param {string} text
-        //  * @param {Array} moreargs
-        //  */
-        //  setDescriptionOnMyTurn : function(text, moreargs) {
-        //     this.gamedatas.gamestate.descriptionmyturn = text;
-        //     let tpl = Object.assign({}, this.gamedatas.gamestate.args);
-
-        //     if (!tpl) {
-        //         tpl = {};
-        //     }
-        //     if (typeof moreargs != 'undefined') {
-        //         for ( const key in moreargs) {
-        //             if (moreargs.hasOwnProperty(key)) {
-        //                 tpl[key]=moreargs[key];
-        //             }
-        //         }
-        //     }
- 
-        //     let title = "";
-        //     // if (this.isCurrentPlayerActive() && text !== null) {
-        //     //     // tpl.you = this.spanYou();
-        //     // }
-        //     if (text !== null) {
-        //         title = this.format_string_recursive(text, tpl);
-        //     }
-        //     if (title == "") {
-        //         this.setMainTitle("&nbsp;");
-        //     } else {
-        //         this.setMainTitle(title);
-        //     }
-        // },
-
-        // /**
-        //  * From BGA Cookbook. Return "You" in this player's color
-        //  */
-        //  spanYou : function() {
-        //     const color = this.gamedatas.players[this.player_id].color;
-        //     let color_bg = "";
-        //     if (this.gamedatas.players[this.player_id] && this.gamedatas.players[this.player_id].color_back) {
-        //         color_bg = "background-color:#" + this.gamedatas.players[this.player_id].color_back + ";";
-        //     }
-        //     const you = "<span style=\"font-weight:bold;color:#" + color + ";" + color_bg + "\">" + __("lang_mainsite", "You") + "</span>";
-        //     return you;
-        // },
 
         /**
          * Place each Wall Tile, on player board and in Great Wall.
