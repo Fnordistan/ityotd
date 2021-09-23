@@ -1518,8 +1518,7 @@ class InTheYearOfTheDragonExp extends Table
             'age' => $age,
             'person_id' => $person_id
         ) );
-        
-        
+
         if( $bAndReplace )
         {
             self::place( $palace_id );
@@ -2194,6 +2193,9 @@ class InTheYearOfTheDragonExp extends Table
 
     function stEventPhaseNextPlayer()
     {
+        // reset Drought affected
+        self::DbQuery( "UPDATE palace SET palace_drought_affected='0' " );  // All palaces should be reset
+
         // Done ! => next player
         if( self::activeNextPlayerInPlayOrder() ) {
             $this->gamestate->nextState( 'nextPlayer' );
