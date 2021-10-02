@@ -90,8 +90,8 @@ var jstpl_action  = '<div id="actioncard_${type}" class="actioncard actioncard_$
 var jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}"></div>';
 
 // Great Wall tile on player boards
-var jstpl_player_great_wall = '<div id="great_wall_${id}"></div>';
-var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall" style="margin-top: 10px; background-position: ${x}px ${y}px;"></div>';
+var jstpl_player_great_wall = '<div id="great_wall_${id}" class="ityotd_greatwall_pb"></div>';
+var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall" style="background-position: ${x}px ${y}px;"></div>';
 
 var jstpl_super_event = '<div id="${id}" class="ityotd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
 

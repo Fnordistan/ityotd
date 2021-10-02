@@ -251,8 +251,8 @@ function (dojo, declare) {
                 // flip over the Great Wall tile
                 const wall = document.getElementById('wall_'+location);
                 wall.style['background-position-x'] = xoff+"px";
-                const player_name = this.gamedatas.players[ player_id ].name;
                 let wall_tt = _("Great Wall section built by ${player_name}");
+                const player_name = this.spanPlayerName(player_id);
                 wall_tt = wall_tt.replace('${player_name}', player_name);
                 this.addTooltip(wall.id, wall_tt, '');
             }
@@ -293,7 +293,7 @@ function (dojo, declare) {
                 parent.insertBefore(desc_div, event_7);
 
                 if (this.gamedatas.month > 7) {
-                    desc_span.style['text-decoration'] = 'line-through';
+                    desc_span.style['opacity'] = 0.5;
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
                     this.addTooltipToClass( 'ityotd_superevent', superevent.name, '' );
@@ -382,6 +382,17 @@ function (dojo, declare) {
          */
         decoratePersonTileToPlace: function(type, level) {
             dojo.addClass( $('persontile_'+type+'_'+level), 'persontileToPlace' );
+        },
+
+        /**
+         * Create span with Player's name in color.
+         * @param {int} player 
+         */
+         spanPlayerName: function(player_id) {
+            const player = this.gamedatas.players[player_id];
+            const color_bg = player.color_back ?? "";
+            const pname = "<span style=\"font-weight:bold;color:#" + player.color + ";" + color_bg + "\">" + player.name + "</span>";
+            return pname;
         },
 
         ///////////////////////////////////////////////////
@@ -889,7 +900,7 @@ function (dojo, declare) {
                     }
                 };
                 const pcolor = '#'+this.gamedatas.players[ player_id ].color;
-                wall_container.style['border'] = '4px solid '+pcolor;
+                wall_container.style['border'] = '4px dashed '+pcolor;
             } else {
                 wall_container.onclick = null;
                 wall_container.style['border'] = '';
@@ -1476,7 +1487,7 @@ function (dojo, declare) {
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
                     const se_lbl = document.getElementById("superevent_label");
-                    se_lbl.style['text-decoration'] = 'line-through';
+                    se_lbl.style['opacity'] = 0.5;
                 }
             }
         },

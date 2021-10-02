@@ -45,8 +45,19 @@
     cursor: grab;
 }
 
+.ityotd_wall_active:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s;
+}
+
 .ityotd_nextwall {
     margin: 2px 4px;
+}
+
+.ityotd_greatwall_pb {
+    max-width: 192px;
+    max-height: 80px;
+    margin-top: 10px;
 }
 
 .ityotd_superevent {
@@ -76,6 +87,7 @@
     background-size: calc(var(--scale) * 960px) calc(var(--scale) * 80px);
     height: calc(var(--scale) * 80px);
     width: calc(var(--scale) * 80px);
+    top: 5px;
 }
 
 /*** person tiles ***/
@@ -231,7 +243,7 @@
     cursor: grab;
 }
 .ityotd_hvr_pers:hover, .ityotd_hvr_pers:focus, .ityotd_hvr_pers:active {
-    transform: translateX(8px);
+    transform: translateX(4px);
 }
 
 .choosepalace{
@@ -258,7 +270,9 @@
     height: 100px;
     background-image: url('img/cards.png');
     cursor: default;
+    transition: box-shadow 0.3s;
 }
+
 .actioncard_1 { background-position: -0px -0px; }
 .actioncard_2 { background-position: -60px -0px; }
 .actioncard_3 { background-position: -120px -0px; }
@@ -284,7 +298,8 @@
 
 .ityotd_action_active {
     cursor: pointer;
-    box-shadow: 2px 2px 8px orangered;
+    box-shadow: rgb(138, 57, 77) 0px 20px 30px -10px;
+    border: red dotted 1px;
     transition: transform 0.5s;
 }
 
