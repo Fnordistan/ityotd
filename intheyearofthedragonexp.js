@@ -105,8 +105,8 @@ function (dojo, declare) {
                 var personpool = gamedatas.personpool[ i ];
                 $('persontile_nbr_'+personpool.type+'_'+personpool.level).innerHTML = personpool.nbr;
                 
-               // if( toint( personpool.nbr ) == 0 )
-                //{   this.fadeOutAndDestroy( 'persontile_'+personpool.type+'_'+personpool.level );   }
+               if( toint( personpool.nbr ) == 0 )
+                {   this.fadeOutAndDestroy( 'persontile_'+personpool.type+'_'+personpool.level );   }
             }
             
             this.setCurrentMonth( this.gamedatas.month );
