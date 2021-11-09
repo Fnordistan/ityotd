@@ -1,7 +1,7 @@
 {OVERALL_GAME_HEADER}
 
 <div id="yearofdragon" class="whiteblock">
-    <h3>{LB_THE_YEAR_OF_DRAGON}:</h3>
+    <h1>{LB_THE_YEAR_OF_DRAGON}:</h1>
     <div id="eventrow">
         <!-- BEGIN event -->
         <div id="event_{ID}" class="event eventtype_{TYPE}"></div>
@@ -15,12 +15,14 @@
 </div>
 
 <div id="actions" class="whiteblock">
-    <h3>{LB_ACTIONS}:</h3>
-    <!-- BEGIN actionplace -->{SPACE}<div id="actionplace_{ID}" class="actionplace"></div><!-- END actionplace -->
+    <h1>{LB_ACTIONS}:</h1>
+    <div id="actionscontainer">
+        <!-- BEGIN actionplace -->{SPACE}<div id="actionplace_{ID}" class="actionplace"></div><!-- END actionplace -->
+    </div>
 </div>
 
 <div id="persons" class="whiteblock">
-    <h3>{LB_AVAILABLE_PERSONS}:</h3>
+    <h1>{LB_AVAILABLE_PERSONS}:</h1>
     <div id="persontiles">
         <!-- BEGIN persontile -->
         <div id="persontile_{ID}" class="persontile persontile_{ID}">
@@ -36,7 +38,7 @@
     <a href="#" id="openhands_button" class="bgabutton bgabutton_blue"><span>{OPENHANDS_BUTTON}</span></a>
     <div id="openhands">
         <!-- BEGIN openhand_player -->
-        <h1 id="{PLAYER_ID}_name" style="color: #{PLAYER_COLOR}">{PLAYER_NAME}</h1>
+        <h2 id="{PLAYER_ID}_name" style="color: #{PLAYER_COLOR}">{PLAYER_NAME}</h2>
         <div id="personcards_{PLAYER_ID}" class="personcards_container">
             <!-- BEGIN openhand_person -->
             <div id="personcard_{ID}" class="personcard personcard_{TYPE} {SECONDJOKER}"></div>
@@ -48,7 +50,7 @@
 
 <!-- BEGIN player -->
 <div id="palace_{PLAYER_ID}" class="whiteblock palaceswrap">
-    <h3>{PLAYER_NAME}:</h3>
+    <h2>{PLAYER_NAME}:</h2>
     <div>
         <div id="palaces_{PLAYER_ID}">
         </div>
@@ -87,7 +89,7 @@ var jstpl_palace_person = '<div id="palacepersontile_${id}" class="palacepersont
     
 var jstpl_action  = '<div id="actioncard_${type}" class="actioncard actioncard_${type}"></div>';
 
-var jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}"></div>';
+var jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}" style="bottom: ${b}px; z-index: ${z};"></div>';
 
 // Great Wall tile on player boards
 var jstpl_player_great_wall = '<div id="great_wall_${id}" class="ityotd_greatwall_pb"></div>';

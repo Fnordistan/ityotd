@@ -93,10 +93,8 @@ function (dojo, declare) {
             }
             
             // Actions choices
-            for( var player_id in gamedatas.players )
-            {
-                var player = gamedatas.players[player_id];
-                this.setActionChoice( player_id, player.action_choice );                
+            for( var player of this.sortByPersonOrder()) {
+                this.setActionChoice( player.id, player.action_choice );                
             }            
             
             // Person pool
@@ -166,10 +164,10 @@ function (dojo, declare) {
                 if (log && args && !args.processed) {
                     args.processed = true;
                 }
-                if (args.superevent_i) {
-                    var superevent = this.createSuperEventTile("superevent", args.superevent_i, 0.3);
-                    superevent = superevent.replace('class="ityotd_superevent"', 'class="ityotd_superevent_log"');
-                    args.superevent_i = superevent;
+                if (args.superevent_icon) {
+                    var event_html = this.createSuperEventTile("superevent", args.superevent, 0.3);
+                    event_html = superevent.replace('class="ityotd_superevent"', 'class="ityotd_superevent_log"');
+                    args.superevent_icon = event_html;
                 }
                 if (args.superevent_name) {
                     args.superevent_name = '<b>'+args.superevent_name+'</b>';
@@ -305,7 +303,7 @@ function (dojo, declare) {
                     var tooltip_icon = this.createSuperEventTile("superevent_tt", se, 1);
                     tooltip_icon = tooltip_icon.replace('class="ityotd_superevent"', 'class="ityotd_superevent_icon"');
                     var tooltip = this.format_block('jstpl_super_event_icon', {'name': superevent.name, 'description': superevent.description, 'icon': tooltip_icon});
-                    
+
                     this.addTooltipToClass( 'ityotd_superevent', tooltip, '' );
                     this.addTooltipToClass('ityotd_se_label', tooltip, '');
                 }
@@ -424,9 +422,8 @@ function (dojo, declare) {
                 case 'actionPhaseChoose':
                     if (this.isCurrentPlayerActive()) {
                         const actioncards = document.getElementsByClassName('actioncard');
-                        for (let a of actioncards) {
-                            a.classList.add('ityotd_action_active');
-                        }
+                        [...actioncards].forEach(a => a.classList.add('ityotd_action_active'));
+                        $('actionscontainer').classList.add('ityotd_container_active');
                     }
                     break;
                 case 'actionPhaseBuild':
@@ -486,21 +483,24 @@ function (dojo, declare) {
                     break;
                 case 'initialPlace':
                     this.displayPalaceSelectors(false);
-                    dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
+                    this.stripClass("persontileToPlace");
                     break;
                 case 'personPhaseChoosePerson':
                     this.activatePersonTiles(false);
                     break;
                 case 'personPhasePlace':
                     this.displayPalaceSelectors(false);
-                    dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
+                    this.stripClass("persontileToPlace");
                     break;
                 case 'palaceFull':
                     this.displayPalaceSelectors(false);
-                    dojo.query( '.persontileToPlace' ).removeClass( 'persontileToPlace' );
+                    this.stripClass("persontileToPlace");
                     this.activatePersonTiles(false);
                     break;
                 case 'actionPhaseChoose':
+                    // remove the hover effects
+                    this.stripClass("ityotd_action_active");
+                    $('actionscontainer').classList.remove('ityotd_container_active');
                     break;
                 case 'actionPhaseBuild':
                     this.displayPalaceSelectors(false);
@@ -608,9 +608,9 @@ function (dojo, declare) {
             var total = resources["total"];
 
             if (total < toReduce) {
-                document.getElementById("reduceResource").classList.add("disabled");
+                $('reduceResource').classList.add("disabled");
             } else {
-                document.getElementById("reduceResource").classList.remove("disabled");
+                $('reduceResource').classList.remove("disabled");
             }
 
             for (let r = 0; r < rice; r++) {
@@ -638,8 +638,8 @@ function (dojo, declare) {
                 // are we adding or removing a resource to remove?
                 if (rsrc_box.contains(ibtn)) {
                     // deselecting resource to remove
-                    document.getElementById("yd_resources_div").insertBefore(ibtn, document.getElementById(type+"_top_mk"));
-                    document.getElementById("reduceResource").classList.add("disabled");
+                    $('yd_resources_div').insertBefore(ibtn, document.getElementById(type+"_top_mk"));
+                    $('reduceResource').classList.add("disabled");
                 } else {
                     var resources = this.getResourcesSelected();
                     var total = resources["total"];
@@ -647,7 +647,7 @@ function (dojo, declare) {
                     if (total < toReduce) {
                         rsrc_box.insertBefore(ibtn, document.getElementById(type+"_bottom_mk"));
                         if (total === toReduce-1) {
-                            document.getElementById("reduceResource").classList.remove("disabled");
+                            $('reduceResource').classList.remove("disabled");
                         }
                     }
                 }
@@ -679,7 +679,25 @@ function (dojo, declare) {
 
         ///////////////////////////////////////////////////
         //// Utility
-        
+
+        /**
+         * Return array of gamedatas.players sorted by person_score_order
+         */
+        sortByPersonOrder: function() {
+            const orderedplayers = [];
+            for (let player_id in this.gamedatas.players) {
+                orderedplayers.push(this.gamedatas.players[player_id]);
+            }
+            orderedplayers.sort((p1, p2) => {
+                pp = toint(p1.person_score) - toint(p2.person_score);
+                if (pp == 0) {
+                    pp = p1.person_score_order - p2.person_score_order;
+                }
+                return pp;
+            });
+            return orderedplayers;
+        },
+
         // Create new palace for given player with given id
         createNewPalace: function( player_id, id )
         {
@@ -796,9 +814,6 @@ function (dojo, declare) {
          * @param {int} action_id 
          */
         setActionChoice: function( player_id, action_id ) {
-            // first remove the hover effect
-            dojo.query( '.actioncard' ).removeClass( 'ityotd_action_active' );
-
             if( action_id == null )
             {
                 // No action => do nothing
@@ -806,22 +821,30 @@ function (dojo, declare) {
             else
             {
                 // Place player flag on this action
-                var flagsAlreadyThere = dojo.query( '#actioncard_'+action_id+' .actionflag' ).length;
-                
-
-                dojo.place( this.format_block('jstpl_actionflag', { 
+                // we're in reverse order, so these are players who went AFTER me
+                const flagsAlreadyThere = dojo.query( '#actioncard_'+action_id+' .actionflag' ).length;
+                const bottom = flagsAlreadyThere*8;
+                let zi = 10-flagsAlreadyThere;
+                const flag_html = this.format_block('jstpl_actionflag', {
                     id: player_id,
-                    color: this.gamedatas.players[ player_id ].color
-                } ), $('actioncard_'+action_id) );  
-                
-                // Position of the flag is swapped 8px down for each flag already there
-                var hpos = 70+8*flagsAlreadyThere;
-                
-                this.placeOnObject( $('actionflag_'+player_id), $('overall_player_board_'+player_id ) );           
-                this.slideToObjectPos( $('actionflag_'+player_id), $('actioncard_'+action_id), 5, hpos ).play();          
+                    color: this.gamedatas.players[ player_id ].color,
+                    b: bottom,
+                    z: zi,
+                });
+
+                const flag = dojo.place(flag_html, 'actioncard_'+action_id );
+            //     console.log("flag 2: "+action_id+" top:"+ flag.style['top'] + "; left:"+flag.style['left']);
+            //     this.slideToObject( 'actionflag_'+player_id, 'actioncard_'+action_id).play();
+            //     console.log("flag 3: "+action_id+" top:"+ flag.style['top'] + "; left:"+flag.style['left']);
             }
         },
-        
+
+        /**
+         * For the person track score.
+         * @param {*} player_id 
+         * @param {*} person_score 
+         * @param {*} person_score_order 
+         */
         setPersonScore: function( player_id, person_score, person_score_order )
         {
             var result = person_score;
@@ -923,9 +946,7 @@ function (dojo, declare) {
         activatePersonTiles: function(activate, recruiting) {
             var persontiles = document.getElementsByClassName('persontile');
             if (!activate) {
-                for (let p of persontiles) {
-                    p.classList.remove("ityotd_hvr_pers");
-                }
+                this.stripClass("ityotd_hvr_pers");
             } else {
                 if (recruiting == 1) {
                     persontiles = Array.from(document.getElementById("persontiles").children).filter(p => p.id.endsWith("1"));
@@ -937,10 +958,16 @@ function (dojo, declare) {
                         persontiles = player_palaces.getElementsByClassName('persontile');
                     }
                 }
-                for (let pp of persontiles) {
-                    pp.classList.add("ityotd_hvr_pers");
-                }
+                [...persontiles].forEach(pp => pp.classList.add("ityotd_hvr_pers"));
             }
+        },
+
+        /**
+         * Strip all elements with this class name of the class
+         */
+        stripClass: function(classToStrip) {
+            const elements = document.getElementsByClassName(classToStrip);
+            [...elements].forEach(e => e.classList.remove(classToStrip));
         },
 
         ///////////////////////////////////////////////////
@@ -1305,7 +1332,7 @@ function (dojo, declare) {
 
             dojo.subscribe( 'wallBuilt', this, "notif_wallBuilt");
             dojo.subscribe( 'superEventChosen', this, "notif_superEventChosen");
-            dojo.subscribe( 'assassinationAttempt', this, 'notif_losePrivileges');
+            dojo.subscribe( 'superEvent', this, 'notif_superEvent');
         },
         
         notif_placePerson: function( notif )
@@ -1317,8 +1344,9 @@ function (dojo, declare) {
             
             var tile_id = notif.args.person_type+'_'+notif.args.person_level;
             $('persontile_nbr_'+tile_id).innerHTML = toint( $('persontile_nbr_'+tile_id).innerHTML ) - 1;
-            if( toint( $('persontile_nbr_'+tile_id).innerHTML ) == 0 )
-            {   this.fadeOutAndDestroy( 'persontile_'+tile_id );    }
+            if( toint( $('persontile_nbr_'+tile_id).innerHTML ) == 0 ) {
+                this.fadeOutAndDestroy( 'persontile_'+tile_id );
+            }
         },
         notif_personScoreUpdate: function( notif )
         {
@@ -1414,16 +1442,6 @@ function (dojo, declare) {
             console.log( notif );
             $('privnbr_'+notif.args.player_id).innerHTML = ( toint( $('privnbr_'+notif.args.player_id).innerHTML ) + toint( notif.args.nbr ) );
             $('yuannbr_'+notif.args.player_id).innerHTML = ( toint( $('yuannbr_'+notif.args.player_id).innerHTML ) - toint( notif.args.price ) );
-        },
-
-        /**
-         * Zero all privileges.
-         * @param {Object} notif 
-         */
-        notif_losePrivileges: function(notif) {
-            for( var player_id in this.gamedatas.players ) {
-                $('privnbr_'+player_id).innerHTML = 0;
-            }
         },
 
         notif_newPalace: function( notif )
@@ -1562,6 +1580,51 @@ function (dojo, declare) {
             const superevent = parseInt(notif.args.superevent);
             this.removeSuperEventTile();
             this.placeSuperEvent(superevent);
+        },
+
+        /**
+         * When a SuperEvent happens
+         */
+        notif_superEvent: function(notif) {
+            const event = parseInt(notif.args.superevent_i);
+            debugger;
+            switch (event) {
+                case 1:
+                    // Lanternfest
+                    break;
+                case 2:
+                    // Buddhe
+                    break;
+                case 3:
+                    // Earthquake
+                    break;
+                case 4:
+                    // Flood
+                    break;
+                case 5:
+                    // Solar Eclipse
+                    break
+                case 6:
+                    // Volcano
+                    break;
+                case 7:
+                    // Tornado
+                    break;
+                case 8:
+                    // Sunrise
+                    break;
+                case 9:
+                    // Assassination
+                    for( let player_id in this.gamedatas.players ) {
+                        $('privnbr_'+player_id).innerHTML = 0;
+                    }
+                    break;
+                case 10:
+                    // Charter
+                    break;
+                default:
+                    throw new Exception("Unexpected SuperEvent: " + event);
+            }
         },
   });      
 });
