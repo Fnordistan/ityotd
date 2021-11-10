@@ -89,7 +89,7 @@ function (dojo, declare) {
             // Actions
             for( var action_id in this.gamedatas.actions )
             {
-                this.setAction( action_id, this.gamedatas.actions[ action_id ] );
+                this.placeAction( action_id, this.gamedatas.actions[ action_id ] );
             }
             
             // Actions choices
@@ -681,7 +681,8 @@ function (dojo, declare) {
         //// Utility
 
         /**
-         * Return array of gamedatas.players sorted by person_score_order
+         * Return array of gamedatas.players sorted in REVERSE play order
+         * (last to act to first to act)
          */
         sortByPersonOrder: function() {
             const orderedplayers = [];
@@ -691,7 +692,7 @@ function (dojo, declare) {
             orderedplayers.sort((p1, p2) => {
                 pp = toint(p1.person_score) - toint(p2.person_score);
                 if (pp == 0) {
-                    pp = p1.person_score_order - p2.person_score_order;
+                    pp = toint(p1.person_score_order) - toint(p2.person_score_order);
                 }
                 return pp;
             });
@@ -772,7 +773,12 @@ function (dojo, declare) {
             dojo.connect( $(palace_person_tile), 'onclick', this, 'onSelectPalacePerson' );
         },
 
-        setAction: function( action_id, action_type )
+        /**
+         * Place an Action tile (each one is done sequentially).
+         * @param {*} action_id
+         * @param {*} action_type
+         */
+        placeAction: function( action_id, action_type )
         {
             dojo.place( this.format_block('jstpl_action', { 
                 type: action_type
@@ -821,21 +827,12 @@ function (dojo, declare) {
             else
             {
                 // Place player flag on this action
-                // we're in reverse order, so these are players who went AFTER me
                 const flagsAlreadyThere = dojo.query( '#actioncard_'+action_id+' .actionflag' ).length;
                 const bottom = flagsAlreadyThere*8;
                 let zi = 10-flagsAlreadyThere;
-                const flag_html = this.format_block('jstpl_actionflag', {
-                    id: player_id,
-                    color: this.gamedatas.players[ player_id ].color,
-                    b: bottom,
-                    z: zi,
-                });
+                const flag_html = this.actionFlagHtml(player_id, bottom, zi);
 
-                const flag = dojo.place(flag_html, 'actioncard_'+action_id );
-            //     console.log("flag 2: "+action_id+" top:"+ flag.style['top'] + "; left:"+flag.style['left']);
-            //     this.slideToObject( 'actionflag_'+player_id, 'actioncard_'+action_id).play();
-            //     console.log("flag 3: "+action_id+" top:"+ flag.style['top'] + "; left:"+flag.style['left']);
+                dojo.place(flag_html, 'actioncard_'+action_id );
             }
         },
 
@@ -1012,6 +1009,24 @@ function (dojo, declare) {
                 '<div style="height: 80px;"></div>';
             return html;
         },
+
+        /**
+         * Create HTML for stacked action flag.
+         * @param {string} player_id 
+         * @param {int} bottom 
+         * @param {int} zi 
+         * @returns flag html
+         */
+        actionFlagHtml: function(player_id, bottom, zi) {
+            const flag_html = this.format_block('jstpl_actionflag', {
+                id: player_id,
+                color: this.gamedatas.players[ player_id ].color,
+                b: bottom,
+                z: zi,
+            });
+            return flag_html;
+        },
+
 
         ///////////////////////////////////////////////////
         //// Action ajax calls
@@ -1366,22 +1381,41 @@ function (dojo, declare) {
             for( var action_id in notif.args.actions )
             {
                 var type = notif.args.actions[action_id];
-                this.setAction( action_id, type );
+                this.placeAction( action_id, type );
                 action_id ++;
             }
         },
-        notif_actionChoice: function( notif )
-        {
+
+        /**
+         * Player chose an action.
+         * @param {Object} notif 
+         */
+        notif_actionChoice: function( notif ) {
             console.log( 'notif_actionChoice' );
             console.log( notif );
-            
-            this.setActionChoice( notif.args.player_id, notif.args.action_id );
 
-            if( toint( notif.args.pay ) > 0 )
-            {
-                $('yuannbr_'+notif.args.player_id).innerHTML = ( toint( $('yuannbr_'+notif.args.player_id).innerHTML ) - 3 );
+            const player_id = notif.args.player_id;
+            const action_id = notif.args.action_id;
+
+            const prevFlags = $('actioncard_'+action_id).children;
+            for (let f = 0; f < prevFlags.length; f++) {
+                const flag = prevFlags[f];
+                flag.style["bottom"] = ((f+1)*8)+"px";
+                flag.style["z-index"] = 10-f;
+            }
+
+            const temp_flag = this.actionFlagHtml(player_id, 0, 10);
+            this.slideTemporaryObject(temp_flag, 'overall_player_board_'+player_id, 'player_board_'+player_id, 'actioncard_'+action_id, 500, 0).play();
+
+            const flag_html = this.actionFlagHtml(player_id, 0, 10);
+            dojo.place(flag_html, $('actioncard_'+action_id) );
+
+            // change yuan if paid for action
+            if( toint( notif.args.pay ) > 0 ) {
+                $('yuannbr_'+player_id).innerHTML = ( toint( $('yuannbr_'+player_id).innerHTML ) - 3 );
             }
         },
+
         notif_usePersonCard: function( notif )
         {
             this.fadeOutAndDestroy( 'personcard_'+notif.args.personcard_id );
