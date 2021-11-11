@@ -1005,7 +1005,7 @@ function (dojo, declare) {
          */
         actionTileHtml: function(action_id) {
             let html = this.actionString(action_id)
-                + '<div class="actioncard actioncard_'+action_id+'" style="margin: 5px;"></div>'+
+                + '<div class="actioncard actioncard_'+action_id+'" style="display: block; margin: 5px;"></div>'+
                 '<div style="height: 80px;"></div>';
             return html;
         },
