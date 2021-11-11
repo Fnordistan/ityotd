@@ -165,8 +165,8 @@ function (dojo, declare) {
                     args.processed = true;
                 }
                 if (args.superevent_icon) {
-                    var event_html = this.createSuperEventTile("superevent", args.superevent, 0.3);
-                    event_html = superevent.replace('class="ityotd_superevent"', 'class="ityotd_superevent_log"');
+                    var event_html = this.createSuperEventTile("superevent", args.superevent, 0.35);
+                    event_html = event_html.replace('class="ityotd_superevent"', 'class="ityotd_superevent_log"');
                     args.superevent_icon = event_html;
                 }
                 if (args.superevent_name) {
@@ -1062,7 +1062,7 @@ function (dojo, declare) {
             // skip warning dialog  in case of sunrise recruit because php game logic will throw error message
             if(!isSunrise && toint( $('persontile_nbr_'+type+'_'+level).innerHTML ) == 0 )
             {
-                this.confirmationDialog( _("There are no more persons of this type and your card will be discarded: do you confirm?"),
+                this.confirmationDialog( _("There are no more persons of this type and your card will be discarded. Confirm?"),
                 dojo.hitch( this, function() {
                     this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/recruit.html", {
                         lock: true, 
@@ -1170,12 +1170,29 @@ function (dojo, declare) {
                 large: 1
             }, this, function( result ) {  } );                 
         },
+
+        /**
+         * Player choose "Take 3 yuan"
+         * @returns 
+         */
         onTakeUpMoney: function()
         {
             if( ! this.checkAction( 'refillyuan' ) )
             {   return; } 
-            this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/refillyuan.html", { lock: true
-            }, this, function( result ) {  } );                 
+            const yuans = $('yuannbr_'+this.player_id).innerHTML;
+            if (toint(yuans) >= 3) {
+                let yuanstr = _("You already have ${yuan} yuan, so this action will have no effect. Confirm?");
+                yuanstr = yuanstr.replace('${yuan}', yuans);
+                this.confirmationDialog( yuanstr,
+                dojo.hitch( this, function() {
+                    this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/refillyuan.html", {
+                        lock: true, 
+                    }, this, function( result ) {  } );             
+                } ) );
+            } else {
+                this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/refillyuan.html", { lock: true
+                }, this, function( result ) {  } );
+            }
         },
         
         onSelectPalacePerson: function( evt )
@@ -1404,11 +1421,9 @@ function (dojo, declare) {
                 flag.style["z-index"] = 10-f;
             }
 
-            const temp_flag = this.actionFlagHtml(player_id, 0, 10);
-            this.slideTemporaryObject(temp_flag, 'overall_player_board_'+player_id, 'player_board_'+player_id, 'actioncard_'+action_id, 500, 0).play();
-
             const flag_html = this.actionFlagHtml(player_id, 0, 10);
-            dojo.place(flag_html, $('actioncard_'+action_id) );
+            this.slideTemporaryObject(flag_html, 'overall_player_board_'+player_id, 'player_board_'+player_id, 'actioncard_'+action_id, 500, 0).play();
+            dojo.place(flag_html, $('actioncard_'+action_id));
 
             // change yuan if paid for action
             if( toint( notif.args.pay ) > 0 ) {
@@ -1617,47 +1632,15 @@ function (dojo, declare) {
         },
 
         /**
-         * When a SuperEvent happens
+         * When a SuperEvent happens - only need to check for assassination to change privileges
          */
         notif_superEvent: function(notif) {
-            const event = parseInt(notif.args.superevent_i);
-            debugger;
-            switch (event) {
-                case 1:
-                    // Lanternfest
-                    break;
-                case 2:
-                    // Buddhe
-                    break;
-                case 3:
-                    // Earthquake
-                    break;
-                case 4:
-                    // Flood
-                    break;
-                case 5:
-                    // Solar Eclipse
-                    break
-                case 6:
-                    // Volcano
-                    break;
-                case 7:
-                    // Tornado
-                    break;
-                case 8:
-                    // Sunrise
-                    break;
-                case 9:
-                    // Assassination
-                    for( let player_id in this.gamedatas.players ) {
-                        $('privnbr_'+player_id).innerHTML = 0;
-                    }
-                    break;
-                case 10:
-                    // Charter
-                    break;
-                default:
-                    throw new Exception("Unexpected SuperEvent: " + event);
+            const event = parseInt(notif.args.superevent);
+            if (event == 9) {
+                // Assassination
+                for( let player_id in this.gamedatas.players ) {
+                    $('privnbr_'+player_id).innerHTML = 0;
+                }
             }
         },
   });      

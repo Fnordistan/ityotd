@@ -127,7 +127,7 @@ h1 {
 }
 
 .ityotd_superevent_log {
-    display: inline-block;
+    float: left;
     position: relative;
     margin-right: 2px;
     background-image: url('img/superevents.png');

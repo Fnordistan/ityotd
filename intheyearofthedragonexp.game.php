@@ -392,95 +392,52 @@ class InTheYearOfTheDragonExp extends Table
                 break;
             case 1:
                 // Lanternfest
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: All players score their people' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players score their people' ));
                 $this->scorePersons();
                 break;
             case 2:
                 // Buddha
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: All players score their Monks' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players score their Monks' ));
                 $this->scoreMonks(0);
                 break;
             case 3:
                 // Earthquake
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: All players lose two palace sections' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players lose two palace sections' ));
                 $state = "earthquake";
                 break;
             case 4:
                 // Flood
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: All players lose half their resources (rounded down)' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players lose half their resources (rounded down)' ));
                 $state = "flood";
                 break;
             case 5:
                 // Solar Eclipse
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: Repeat previous event' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'Repeat previous event' ));
                 $state = "solar";
                 break;
             case 6:
                 // Volcanic Eruption
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: All players set back to 0 on the person track' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'superevent_icon' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players set back to 0 on the person track' ));
                 $this->resetPlayerPlayOrder();
                 break;
             case 7:
                 // Tornado
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: All players must discard two person cards' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'superevent_icon' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players must discard two person cards' ));
                 $state = "tornado";
                 break;
             case 8:
                 // Sunrise
-                self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.clienttranslate( '${superevent_name}: All players select one young person tile' ), array(
-                    'i18n' => ['superevent_name'],
-                    'superevent_name' => $this->superevents[$superevent]['name'],
-                    'superevent' => $superevent,
-                    'superevent_icon' => $superevent,
-                    'preserve' => ['superevent'],
-                ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players select one young person tile' ));
                 $state = "sunrise";
                 break;
             case 9:
                 // Assassination Attempt
-                $this->sendSuperEventNotify($superevent, clienttranslate( '${superevent_name}: All players lose all privileges' ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players lose all privileges' ));
                 self::DbQuery( "UPDATE player SET player_favor=0" );
                 break;
             case 10:
                 // Charter
-                $this->sendSuperEventNotify($superevent, clienttranslate( '${superevent_name}: All players select one person type in their realm and gain the appropriate benefits' ));
+                $this->sendSuperEventNotify($superevent, clienttranslate( 'All players select one person type in their realm and gain the appropriate benefits' ));
                 $state = "charter";
                 break;
             case 11:
@@ -504,7 +461,7 @@ class InTheYearOfTheDragonExp extends Table
      * Send a translated string as notification text
      */
     protected function sendSuperEventNotify($superevent, $text) {
-        self::notifyAllPlayers( 'superEventChosen', '${superevent_icon}'.$text, array(
+        self::notifyAllPlayers( 'superEvent', '${superevent_icon}'.'${superevent_name}: '.$text, array(
             'i18n' => ['superevent_name'],
             'superevent_name' => $this->superevents[$superevent]['name'],
             'superevent' => $superevent,
