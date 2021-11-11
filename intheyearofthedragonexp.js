@@ -596,7 +596,7 @@ function (dojo, declare) {
             this.addToActionHeader(text);
 
             var rsrc_box = document.getElementById("yd_rsrc_box");
-            rsrc_box.style["width"] = toReduce*27 + "px";
+            rsrc_box.style["width"] = toReduce*30 + "px";
 
             // need to add tooltips to buttons
             this.addTooltipToClass( 'ttyuan', _('Yuan'), '' );
