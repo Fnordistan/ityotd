@@ -42,7 +42,8 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_ACTION_NP", 11);
     define("STATE_ACTION_CHOOSE", 12);
     define("STATE_BUILD", 13);
-    define("STATE_PRIVILEGE", 14);
+    define("STATE_CHOOSE_PRIVILEGE", 14);
+    define("STATE_PRIVILEGE", 15);
     define("STATE_NEXT_PHASE", 20);
     define("STATE_RECRUIT_PERSON", 21);
     define("STATE_PLACE_PERSON", 22);
@@ -138,23 +139,32 @@ $machinestates = array(
 
     STATE_BUILD => array(
         "name" => "actionPhaseBuild",
-        "description" => clienttranslate('${actplayer} must extend an existing palace or build a new one (x${toBuild})'),
-        "descriptionmyturn" => clienttranslate('${you} must extend an existing palace or build a new one (x${toBuild})'),
+        "description" => clienttranslate('${actplayer} may extend an existing palace or build a new one (x${toBuild})'),
+        "descriptionmyturn" => clienttranslate('${you} may extend an existing palace or build a new one (x${toBuild})'),
         "possibleactions" => array( "build" ),
         "args" => "argActionPhaseBuild",
         "type" => "activeplayer",
         "transitions" => array( "nextPlayer" => STATE_ACTION_NP, "buildAgain" => STATE_BUILD, "charter" => STATE_CHARTER )
-    ),    
+    ),
+
     STATE_PRIVILEGE => array(
+        "name" => "privilegeCheck",
+        "description" => '',
+        "type" => "game",
+        "action" => "stPrivilege",
+        "transitions" => array( "privilegeAction" => STATE_CHOOSE_PRIVILEGE, "nextPlayer" => STATE_ACTION_NP )
+    ),
+
+    STATE_CHOOSE_PRIVILEGE => array(
         "name" => "actionPhasePrivilege",
-        "description" => clienttranslate('${actplayer} must buy a small privilege (2 yuans) or a large privilege (${largePrivilegeCost} yuans)'),
-        "descriptionmyturn" => clienttranslate('${you} must buy a small privilege (2 yuans) or a large privilege (${largePrivilegeCost} yuans)'),
+        "description" => clienttranslate('${actplayer} may buy a small privilege (2 yuan) or a large privilege (${largePrivilegeCost} yuan)'),
+        "descriptionmyturn" => clienttranslate('${you} may buy a small privilege (2 yuan) or a large privilege (${largePrivilegeCost} yuan)'),
         "args" => "argActionPhasePrivilege",
         "possibleactions" => array( "choosePrivilege" ),
         "type" => "activeplayer",
         "transitions" => array( "nextPlayer" => STATE_ACTION_NP )
     ),  
-    
+
     /// 2nd phase: PERSONS //////
     STATE_NEXT_PHASE => array(
         "name" => "personPhaseNextPlayer",

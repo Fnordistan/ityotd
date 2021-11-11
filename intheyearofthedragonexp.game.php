@@ -1056,7 +1056,7 @@ class InTheYearOfTheDragonExp extends Table
         $action_position = self::getUniqueValueFromDB( "SELECT action_id FROM action WHERE action_type='$action_id' " );
         
         // Check if someone already realize some action from the same group
-        // (in this case: it costs 3 yuans)
+        // (in this case: it costs 3 yuan)
         $player_actions = self::getCollectionFromDB( "SELECT player_id, action_id
                                                       FROM player
                                                       INNER JOIN action ON action_type=player_action_choice", true );
@@ -1082,7 +1082,7 @@ class InTheYearOfTheDragonExp extends Table
 
         if( $bOccupiedGroup )
         {
-            // This player must pay 3 yuans to use this action
+            // This player must pay 3 yuan to use this action
             $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
             if( $money >= 3 )
             {
@@ -1269,7 +1269,30 @@ class InTheYearOfTheDragonExp extends Table
             'largePrivilegeCost' => ( $this->getLargePrivilegeCost() )
         );
     }
-    
+
+    /**
+     * Check whether player has enough money to choose, or automatically buy small privilege
+     */
+    function stPrivilege() {
+        $player_id = self::getActivePlayerId();
+        $state = "nextPlayer";
+        $remainingMoney = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id'" ); 
+        $largePrivilegeCost = $this->getLargePrivilegeCost();
+        // can I buy a large privileg?
+        if ($remainingMoney >= $largePrivilegeCost) {
+            $state = "privilegeAction";
+        } elseif ($remainingMoney < 2) {
+            throw new BgaUserException( self::_("Not enough money to buy a Privilege") );
+        } else {
+            // can only buy small privilege
+            $this->buyPrivilege(false);
+        }
+        $this->gamestate->nextState($state);
+    }
+
+    /**
+     * Player has a choice of privileges
+     */
     function choosePrivilege( $bIsLarge )
     {
         self::checkAction( 'choosePrivilege' );
@@ -1277,45 +1300,38 @@ class InTheYearOfTheDragonExp extends Table
         $player_id = self::getActivePlayerId();
         
         $remainingMoney = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id'" ); 
-        $largePrivilegeCost = $this->getLargePrivilegeCost();
-        $price = ( $bIsLarge ? $largePrivilegeCost : 2 );
-        
-        if( $remainingMoney < $price )
+        $price = $bIsLarge ? $this->getLargePrivilegeCost() : 2;
+
+        if( $remainingMoney < $price ) {
             throw new BgaUserException( self::_("Not enough money") );
-        
-        
-        if( $bIsLarge )
-        {
-            $sql = "UPDATE player SET player_favor=player_favor+2,
-                    player_yuan=player_yuan-$price
-                    WHERE player_id='$player_id' ";
-            self::DbQuery( $sql );
-            
-            $notifyText = clienttranslate( '${player_name} buys a big privilege' );
         }
-        else
-        {
-            $sql = "UPDATE player SET player_favor=player_favor+1,
-                    player_yuan=player_yuan-$price
-                    WHERE player_id='$player_id' ";
-            self::DbQuery( $sql );
-
-            $notifyText = clienttranslate( '${player_name} buys a small privilege' );
-        }
-
-
-        $sql = "UPDATE player SET player_yuan=player_yuan-$price WHERE player_id='$player_id' ";
         
-        self::notifyAllPlayers( 'buyPrivilege', $notifyText, array(
-            'player_id' => $player_id,
-            'player_name' => self::getActivePlayerName(),
-            'nbr' => ( $bIsLarge ? 2 : 1 ),
-            'price' => $price
-        ) );
+        $this->buyPrivilege($bIsLarge);
         
         $this->gamestate->nextState('nextPlayer');
     }
-    
+
+    /**
+     * Do the privilege action, assumes all checks have already been done.
+     */
+    function buyPrivilege($bIsLarge) {
+        $player_id = self::getActivePlayerId();
+        $priv = $bIsLarge ? 2 : 1;
+        $price = $bIsLarge ? $this->getLargePrivilegeCost() : 2;
+
+        $sql = "UPDATE player SET player_favor=player_favor+$priv, player_yuan=player_yuan-$price WHERE player_id='$player_id' ";
+        self::DbQuery( $sql );
+
+        self::notifyAllPlayers( 'buyPrivilege', clienttranslate('${player_name} buys a ${size} privilege'), array(
+            'i18n' => array('size'),
+            'player_id' => $player_id,
+            'player_name' => self::getActivePlayerName(),
+            'nbr' => ( $bIsLarge ? 2 : 1 ),
+            'size' => ( $bIsLarge ? clienttranslate('large') : clienttranslate('small') ),
+            'price' => $price
+        ) );
+    }
+
     function buildPalace( $palace_id )
     {
         self::checkAction( 'build' );
@@ -1996,13 +2012,13 @@ class InTheYearOfTheDragonExp extends Table
         }
         else if( $event == 2 )  // Imperial Tribute
         {
-            // 4 yuans per player
+            // 4 yuan per player
             $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
             if( $money >= 4 )
             {
                 // No problem, just reduce the money
                 self::DbQuery( "UPDATE player SET player_yuan=player_yuan-4 WHERE player_id='$player_id' " );
-                self::notifyAllPlayers( 'eventPayYuan', clienttranslate( '${player_name} pays 4 yuans to the Emperor' ), array(
+                self::notifyAllPlayers( 'eventPayYuan', clienttranslate( '${player_name} pays 4 yuan to the Emperor' ), array(
                     'player_id' => $player_id,
                     'player_name' => $players[ $player_id ]['player_name'],
                     'nbr' => 4
@@ -2019,7 +2035,7 @@ class InTheYearOfTheDragonExp extends Table
                 
                 $toRelease = 4-$money;
 
-                self::notifyAllPlayers( 'eventPayYuan', clienttranslate( '${player_name} pays ${nbr} yuans to the Emperor and must release ${nbrperson} person(s)' ), array(
+                self::notifyAllPlayers( 'eventPayYuan', clienttranslate( '${player_name} pays ${nbr} yuan to the Emperor and must release ${nbrperson} person(s)' ), array(
                     'player_id' => $player_id,
                     'player_name' => $players[ $player_id ]['player_name'],
                     'nbr' => $money,
@@ -2666,7 +2682,7 @@ class InTheYearOfTheDragonExp extends Table
         // Final scoring: 
         // 1 person = 2 points
         // monks
-        // rice or fireworks = 2 yuans, 1 VP for 3 yuans
+        // rice or fireworks = 2 yuan, 1 VP for 3 yuan
         self::finalScoring();
         
         // + auxiliary score = place on person track

@@ -9,7 +9,7 @@ $this->person_types = array(
 
     1 => array( 'name' => clienttranslate( 'Craftsmen' ),
                 'name_sg' => clienttranslate( 'Craftsman' ),
-                'description' => self::_("Build additional palaces floor during the Build action"),
+                'description' => self::_("Build an additional palace floor during the Build action for each Craftsman"),
                 'subtype' => array(
                     1 => array( 'value' => 2,
                                 'items' => 1 )
@@ -17,7 +17,7 @@ $this->person_types = array(
               ),
     2 => array( 'name' => clienttranslate( 'Court Ladies' ),
                 'name_sg' => clienttranslate( 'Court Lady' ),
-                'description' => self::_("Win additional points at the end of each turn"),
+                'description' => self::_("Score 1 additional point at the end of each turn for each Court Lady"),
                 'subtype' => array(
                     1 => array( 'value' => 1,
                                 'items' => 1 )
@@ -35,7 +35,7 @@ $this->person_types = array(
               ),
     4 => array( 'name' => clienttranslate( 'Tax Collectors' ),
                 'name_sg' => clienttranslate( 'Tax Collector' ),
-                'description' => self::_("Take additional yuans during the Taxes action"),
+                'description' => self::_("Take 2 additional yuan per Tax Collector during the Taxes action"),
                 'subtype' => array(
                     1 => array( 'value' => 3,
                                 'items' => 3 )
@@ -43,7 +43,7 @@ $this->person_types = array(
               ),
     5 => array( 'name' => clienttranslate( 'Warriors' ),
                 'name_sg' => clienttranslate( 'Warrior' ),
-                'description' => self::_("Win additional person points during Military Parade action"),
+                'description' => self::_("Gain additional person points during the Military Parade action"),
                 'subtype' => array(
                     1 => array( 'value' => 5,
                                 'items' => 1 ),
@@ -53,7 +53,7 @@ $this->person_types = array(
               ),
     6 => array( 'name' => clienttranslate( 'Monks' ),
                 'name_sg' => clienttranslate( 'Monk' ),
-                'description' => self::_("Win additional points at the end of the game: number of Buddhas x number of floor of this palace"),
+                'description' => self::_("Gain additional points at the end of the game: number of Buddhas x number of floors in each Monk's palace"),
                 'subtype' => array(
                     1 => array( 'value' => 6,
                                 'items' => 1 ),
@@ -63,7 +63,7 @@ $this->person_types = array(
               ),
     7 => array( 'name' => clienttranslate( 'Healers' ),
                 'name_sg' => clienttranslate( 'Healer' ),
-                'description' => self::_("Release less person during the Contagion event"),
+                'description' => self::_("Release fewer persons during the Contagion event"),
                 'subtype' => array(
                     1 => array( 'value' => 4,
                                 'items' => 1 ),
@@ -83,7 +83,7 @@ $this->person_types = array(
               ),
     9 => array( 'name' => clienttranslate( 'Scholars' ),
                 'name_sg' => clienttranslate( 'Scholar' ),
-                'description' => self::_("Win additional points during the Research action"),
+                'description' => self::_("Gain additional points during the Research action"),
                 'subtype' => array(
                     1 => array( 'value' => 4,
                                 'items' => 2 ),
@@ -101,13 +101,13 @@ $this->event_types = array(
     2 => array( 'name' => clienttranslate( 'Imperial Tribute' ),
                 'description' => clienttranslate("Each player must pay 4 yuan in tribute to the emperor. If a player does not have enough money, he must release 1 person for each missing yuan.") ),
     3 => array( 'name' => clienttranslate( 'Drought' ),
-                'description' => clienttranslate("Each player must pay 1 rice tile for each palace in which he has at least 1 person. If a player does not have enough rice tiles, he must release 1 person from each palace that he cannot supply.") ),
+                'description' => clienttranslate("Each player must pay 1 rice tile for each occupied palace. If a player does not have enough rice tiles, he must release 1 person from each palace that he cannot supply.") ),
     4 => array( 'name' => clienttranslate( 'Dragon Festival' ),
-                'description' => clienttranslate("The player or players with the most fireworks tiles get 6 victory points, and the players with the second most get 3 victory points. Afterward, the scoring players must return half of their fireworks tiles (rounding up)") ),
+                'description' => clienttranslate("The player(s) with the most fireworks tiles score 6 victory points, and the player(s) with the second most score 3 victory points. Afterward, all scoring players must return half of their fireworks tiles (rounding up)") ),
     5 => array( 'name' => clienttranslate( 'Mongol Invasion' ),
-                'description' => clienttranslate("Each player wins 1 point for each helmets on all warriors in his palaces. Additionally, the player or players with the fewest helmets must each release 1 person.") ),
+                'description' => clienttranslate("Each player scores 1 point for each helmet on all Warriors in his palaces. Additionally, the player(s) with the fewest helmets must each release 1 person.") ),
     6 => array( 'name' => clienttranslate( 'Contagion' ),
-                'description' => clienttranslate("Each player must release 3 persons of their choosing. For each mortar pictured on a player's healers, he releases 1 fewer person.") )
+                'description' => clienttranslate("Each player must release 3 persons. For each mortar on all the player's Healers, release 1 fewer persons.") )
 );
 
 $this->action_types = array(
@@ -118,10 +118,10 @@ $this->action_types = array(
                 'description' => self::_("Take 1 palace floor plus 1 per Craftsman"),
                 'items' => 1 ),
      3 => array( 'name' => clienttranslate( 'Harvest' ),
-                'description' => self::_("Take 1 Rice plus 1 per Rice icon on your Farmers"),
+                'description' => self::_("Take 1 rice plus 1 per rice icon on your Farmers"),
                 'items' => 1 ),
      4 => array( 'name' => clienttranslate( 'Fireworks' ),
-                'description' => self::_("Take 1 Fireworks plus 1 per Fireworks icon on your Pyrotechnicists"),
+                'description' => self::_("Take 1 fireworks plus 1 per fireworks icon on your Pyrotechnicists"),
                 'items' => 1 ),
      5 => array( 'name' => clienttranslate( 'Military Parade' ),
                 'description' => self::_("Move 1 space on the Person Track plus 1 for each helmet icon on your Warriors"),
@@ -142,13 +142,13 @@ $this->wall_tiles = array (
     1 => array( 'name' => clienttranslate('Person Track'),
                 'description' => self::_("Advance 3 spaces on the Person Track")),
     2 => array( 'name' => clienttranslate('Rice'),
-                'description' => self::_("Gain 1 Rice")),
+                'description' => self::_("Gain 1 rice")),
     3 => array( 'name' => clienttranslate('Palace'),
                 'description' => self::_("Gain 1 palace section")),
     4 => array( 'name' => clienttranslate('Yuan'),
                 'description' => self::_("Gain 2 yuan")),
     5 => array( 'name' => clienttranslate('Fireworks'),
-                'description' => self::_("Gain 1 Firework")),
+                'description' => self::_("Gain 1 firework")),
     6 => array( 'name' => clienttranslate('Victory Points'),
                 'description' => self::_("Gain 3 victory points")),
 );
