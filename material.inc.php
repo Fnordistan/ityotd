@@ -35,7 +35,7 @@ $this->person_types = array(
               ),
     4 => array( 'name' => clienttranslate( 'Tax Collectors' ),
                 'name_sg' => clienttranslate( 'Tax Collector' ),
-                'description' => self::_("Take 2 additional yuan per Tax Collector during the Taxes action"),
+                'description' => self::_("Take 3 additional yuan per Tax Collector during the Taxes action"),
                 'subtype' => array(
                     1 => array( 'value' => 3,
                                 'items' => 3 )
