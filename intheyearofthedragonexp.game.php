@@ -845,7 +845,7 @@ class InTheYearOfTheDragonExp extends Table
                     $personcard_id = self::getUniqueValueFromDB( "SELECT personcard_id FROM personcard WHERE personcard_type='0' AND personcard_player='$player_id' LIMIT 0,1" );
     
                     if( $personcard_id === null )
-                        throw new BgaUserException( self::_("You have no remaining valid person card to recruit this person") );
+                        throw new BgaUserException( self::_("You have no valid person cards remaining to recruit this person") );
                 }
                 // still need to check in case of zombie player
                 if ($personcard_id != null) {

@@ -468,6 +468,11 @@ function (dojo, declare) {
                         this.activatePersonTiles(true, 0);
                     }
                     break;
+                case 'charterPerson':
+                    if( this.isCurrentPlayerActive() ) {
+                        this.activatePersonTiles(true, 0);
+                    }
+                    break;
                 case 'dummmy':
                     break;
             }
@@ -519,6 +524,9 @@ function (dojo, declare) {
                     this.activatePersonTiles(false);
                     break;
                 case 'release':
+                    this.activatePersonTiles(false);
+                    break;
+                case 'charterPerson':
                     this.activatePersonTiles(false);
                     break;
             }
@@ -967,6 +975,22 @@ function (dojo, declare) {
             [...elements].forEach(e => e.classList.remove(classToStrip));
         },
 
+        // Check if `child` is a descendant of `parent`
+        isDescendant: function(parent, child) {
+            let node = child.parentNode;
+            while (node) {
+                if (node === parent) {
+                    return true;
+                }
+
+                // Traverse up to the parent
+                node = node.parentNode;
+            }
+
+            // Go up until the root but couldn't find the `parent`
+            return false;
+        },
+
         ///////////////////////////////////////////////////
         //// UI
 
@@ -981,14 +1005,26 @@ function (dojo, declare) {
             const persontype = this.gamedatas.person_types[type];
             let person_str = '${persontype}';
 
-            if (persontype.subtype[2]) {
+            const actionTr = {
+                "recruit": _("Recruit"),
+                "release": _("Release"),
+                "replace": _('Release and replace'),
+                "charter": _("Charter"),
+            };
+
+            if (persontype.subtype[2] && action != "charter") {
                 person_str = level == 1 ? _("Young ${persontype}") : _("Old ${persontype}");
             }
             const personname = this.gamedatas.person_types[type].name_sg;
             person_str = person_str.replace('${persontype}', personname);
-
-            let act_str = _('${action} a ${person}?');
-            act_str = act_str.replace('${action}', action);
+            let act_str;
+            if (action == "charter") {
+                act_str = _('Charter your ${persons}?');
+                act_str = act_str.replace('${persons}', this.gamedatas.person_types[type].name);
+            } else {
+                act_str = _('${action} a ${person}?');
+                act_str = act_str.replace('${action}', actionTr[action]);
+            }
 
             person_str = '<b>'+person_str+'</b>';
             act_str = act_str.replace('${person}', person_str);
@@ -1044,7 +1080,7 @@ function (dojo, declare) {
             const type = evt.currentTarget.id.substr( 11, 1 );
 
             if (this.prefs[100].value == 2 || this.prefs[100].value == 5) {
-                const person_html = this.personTileHtml(_('Recruit'), level, type);
+                const person_html = this.personTileHtml("recruit", level, type);
                 this.confirmationDialog( person_html, () => {this.recruitConfirmed(level, type)}, function() { return; });
             } else {
                 // without confirmation dialog
@@ -1194,7 +1230,11 @@ function (dojo, declare) {
                 }, this, function( result ) {  } );
             }
         },
-        
+
+        /**
+         * Person tile in a player's palace
+         * @param {Object} evt 
+         */
         onSelectPalacePerson: function( evt )
         {
             evt.preventDefault();
@@ -1202,36 +1242,41 @@ function (dojo, declare) {
                 return;
             }
 
+            const palaceperson = evt.currentTarget;
+            if (!this.isDescendant($('palaces_'+this.player_id), palaceperson)) {
+                return;
+            }
+
             // palacepersontile_${id}_inner
-            var person_id = evt.currentTarget.id.substr( 17 );
+            var person_id = palaceperson.id.substr( 17 );
             person_id = person_id.substr( 0, person_id.length-6 );
 
-            if (this.prefs[100].value == 4 || this.prefs[100].value == 5) {
-                const classname = evt.currentTarget.className;
+            const classname = palaceperson.className;
 
-                const match = classname.match(/.*persontile_(\d+)_(\d+).*/);
-                if (match) {
-                    var person_type = match[1];
-                    var person_level = match[2];
-                } else {
-                    throw new Exception("Unknown person tile: "+className);
-                }
+            const match = classname.match(/.*persontile_(\d+)_(\d+).*/);
+            if (!match) {
+                throw new Exception("Unknown person tile: "+className);
+            }
+            var person_type = match[1];
+            var person_level = match[2];
+
+            if (this.prefs[100].value == 4 || this.prefs[100].value == 5) {
 
                 const state = this.gamedatas.gamestate.name;
 
                 let action = '';
                 if (state == 'release' || state == 'greatWallRelease' || state == 'reducePopulation') {
-                    action = _('Release');
+                    action = "release";
                 } else if (state == 'palaceFull') {
-                    action = _('Release and replace');
+                    action = "replace";
                 } else if (state == 'charterPerson') {
-                    action = _('Charter');
+                    action = "charter";
                 }
                 const select_html = this.personTileHtml(action, person_level, person_type);
-                this.confirmationDialog( select_html, () => {this.confirmSelectPalacePerson(person_id, evt)}, function() { return; });
+                this.confirmationDialog( select_html, () => {this.confirmSelectPalacePerson(person_id, person_type)}, function() { return; });
             } else {
                 // without confirmation dialog
-                this.confirmSelectPalacePerson(person_id, evt);
+                this.confirmSelectPalacePerson(person_id, person_type);
             }
          },
 
@@ -1239,10 +1284,10 @@ function (dojo, declare) {
          /**
           * 
           * @param {string} person_id 
-          * @param {Object} evt 
+          * @param {int} person_type 
           * @returns 
           */
-         confirmSelectPalacePerson: function(person_id, evt) {
+         confirmSelectPalacePerson: function(person_id, person_type) {
             if( this.checkAction( 'releaseReplace', true ) )
             {
                 // Special case: release a person to replace it immediately by a new one
@@ -1260,9 +1305,7 @@ function (dojo, declare) {
                     id: person_id
                 }, this, function( result ) {  } );
             } else if ( this.checkAction('charter', true) ) {
-                const person_rx = /persontile_(\d+)_/;
-                var ptype = evt.currentTarget.className.match(person_rx)[1];
-                if (ptype == 7) {
+                if (person_type == 7) {
                     this.confirmationDialog( _("Chartering Healers has no effect: are you sure?"),
                     dojo.hitch( this, function() {
                         this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/charter.html", {
@@ -1273,7 +1316,7 @@ function (dojo, declare) {
                 } else {
                     this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/charter.html", {
                         lock: true,
-                        type: ptype
+                        type: person_type
                     }, this, function( result ) {  } );
                 }
             }
