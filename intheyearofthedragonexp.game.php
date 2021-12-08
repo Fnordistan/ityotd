@@ -18,6 +18,7 @@ define('SUPER_EVENT', "SUPER_EVENT");
 define('SUPER_EVENT_DONE', "SUPER_EVENT_DONE");
 define('SUPER_EVENT_ACTION', "SUPER_EVENT_ACTION");
 define('SUPER_EVENT_FIRST_PLAYER', "seFirstPlayer");
+define('TO_BUILD', "toBuild");
 
 class InTheYearOfTheDragonExp extends Table
 {
@@ -32,7 +33,7 @@ class InTheYearOfTheDragonExp extends Table
                 "remainingBigFavor" => 11,
                 "toPlaceType"=>12,
                 "toPlaceLevel"=>13,
-                "toBuild" => 14,
+                TO_BUILD => 14,
                 "month" => 15,
                 "toRelease" => 16,
                 "lowerHelmet" => 17,
@@ -176,7 +177,7 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( 'remainingBigFavor', 3 );   // Depreciated
         self::setGameStateInitialValue( 'toPlaceType', 0 );
         self::setGameStateInitialValue( 'toPlaceLevel', 0 );
-        self::setGameStateInitialValue( 'toBuild', 0 );
+        self::setGameStateInitialValue( TO_BUILD, 0 );
         self::setGameStateInitialValue( 'month', 1 );
         self::setGameStateInitialValue( 'toRelease', 0 );
         self::setGameStateInitialValue( 'toReduce', 0 );
@@ -512,7 +513,7 @@ class InTheYearOfTheDragonExp extends Table
                 break;
             case 3:
                 // Palace
-                self::setGameStateValue( 'toBuild', 1 );
+                self::setGameStateValue( TO_BUILD, 1 );
                 $tobuild = true;
                 break;
             case 4:
@@ -722,26 +723,38 @@ class InTheYearOfTheDragonExp extends Table
         return $toReduce;
      }
 
-    // /**
-    //  * Get ids of palaces that active player has that are full.
-    //  * @return palace_ids of full palaces for current player
-    //  */
-    // function getFilledPalaces() {
-    //     $player_id = self::getActivePlayerId();
+     /**
+      * How many yuan does this player have?
+      */
+     function playerYuan($player_id) {
+        $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
+        return $money;
+     }
 
-    //     $fullpalaces = array();
+     /**
+      * How many person tiles are left of the given type and left
+      */
+     function getPersonsLeft($type, $level) {
+        $nbr = self::getUniqueValueFromDB( "SELECT personpool_nbr FROM personpool WHERE personpool_type='$type' AND personpool_level='$level' ");
+        return $nbr;
+     }
 
-    //     $sql = "SELECT palace_id, palace_size FROM palace WHERE palace_player='$player_id' ";
-    //     $palaces = self::getCollectionFromDB( $sql, true );
-    //     foreach ($palaces as $palace_id => $size) {
-    //         // Get all persons in this palace
-    //         $persons = self::getUniqueValueFromDB( "SELECT COUNT( palace_person_id ) FROM palace_person WHERE palace_person_palace_id='$palace_id'" );
-    //         if (intval($persons) >= intval($size)) {
-    //             $fullpalaces[] = $palace_id;
-    //         }
-    //     }
-    //     return $fullpalaces;
-    // }
+     /**
+      * Number of levels in palace by id and player
+      */
+     function palaceSize($player_id, $palace_id) {
+        $size = self::getUniqueValueFromDB("SELECT palace_size FROM palace WHERE palace_id='$palace_id' AND palace_player='$player_id' ");
+        return $size;
+     }
+
+     /**
+      * Get an associative array of palaces for this player, player_id => size, cnt
+      */
+     function getPalaces($player_id) {
+        $sql = "SELECT palace_id, palace_size size, COUNT( palace_person_id ) cnt FROM palace LEFT JOIN palace_person ON palace_person_palace_id=palace_id WHERE palace_player=$player_id GROUP BY palace_id, palace_size";
+        $mypalaces = self::getCollectionFromDB( $sql );
+        return $mypalaces;
+     }
 
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
@@ -754,20 +767,15 @@ class InTheYearOfTheDragonExp extends Table
         $player_id = self::getActivePlayerId();
         
         // Check this person type/level exists
-        if( ! isset( $this->person_types[ $type ] ) )
-            throw new feException( 'This type does not exists' );
-        if( ! isset( $this->person_types[ $type ]['subtype'][$level] ) )
-            throw new feException( 'This type does not exists' );
-        
-        // Check there is tiles available
-        $nbr = self::getUniqueValueFromDB( "SELECT personpool_nbr FROM personpool
-                                            WHERE personpool_type='$type' AND personpool_level='$level' ");
-        
-        if( $nbr == 0 )
-        {
-           // "No more person from this type"
-           
+        if( ! isset( $this->person_types[ $type ] ) ) {
+            throw new BgaVisibleSystemException( 'This type does not exist: '.$type );
         }
+        if( ! isset( $this->person_types[ $type ]['subtype'][$level] ) ) {
+            throw new BgaVisibleSystemException( 'Level $level of person type $type does not exist' );
+        }
+        
+        // Check there are tiles available
+        $nbr = $this->getPersonsLeft($type, $level);
         
         $state = $this->gamestate->state();
         $bInitialChoice = ( $state['name'] == 'initialChoice' );
@@ -787,7 +795,7 @@ class InTheYearOfTheDragonExp extends Table
                     throw new BgaUserException( self::_("During the Sunrise super event you must recruit a younger person") );
                 }
             }
-            if ($nbr == 0 && $bSunrise) {
+            if ($nbr == 0) {
                 throw new BgaUserException( self::_("There are no more young persons of this type available") );
             }
 
@@ -795,8 +803,8 @@ class InTheYearOfTheDragonExp extends Table
             if (!$bSunrise) {
                 $first_type_chosen = self::getUniqueValueFromDB( "SELECT palace_person_type FROM palace_person INNER JOIN palace ON palace_id=palace_person_id WHERE palace_player=$player_id" );
             }
-                                                              
-            if( $first_type_chosen != null && $first_type_chosen==$type ) {
+
+            if( $first_type_chosen !== null && $first_type_chosen==$type ) {
                 throw new BgaUserException( self::_( "Your two initial persons must be different" ) );
             }
 
@@ -869,24 +877,25 @@ class InTheYearOfTheDragonExp extends Table
         
         // Next step...
         
-        // If all palaces are full ... ////
+        // Check if all palaces are full ... ////
         $totalSpace = self::getUniqueValueFromDB( "SELECT SUM( palace_size ) FROM palace WHERE palace_player='$player_id' " );
         $totalPersons = self::getUniqueValueFromDB( "SELECT COUNT( palace_person_id ) cnt
                                                     FROM palace_person
                                                     INNER JOIN palace ON palace_id = palace_person_palace_id
                                                     WHERE palace_player='$player_id' " );
                               
-        if( $totalPersons < $totalSpace )
+        if( $totalPersons < $totalSpace ) {
             $this->gamestate->nextState('chooseTile');
-        else      
+        } else {
             $this->gamestate->nextState('palaceFull' );
+        }
     }
     
     // Place selected tile in this palace
     function place( $palace_id )
     {
         self::checkAction( 'place' );
-        
+
         $tile_type = self::getGameStateValue( 'toPlaceType' );
         $tile_level = self::getGameStateValue( 'toPlaceLevel' );
         $tile_persontype = $this->person_types[ $tile_type ];
@@ -895,10 +904,9 @@ class InTheYearOfTheDragonExp extends Table
         // Check if tile exists and is available
         // ===> already done at the previous step
         
-        // Check if this palace exists and get its infos
-        $player_id = self::getCurrentPlayerId();
-        $sql = "SELECT palace_size FROM palace WHERE palace_id='$palace_id' AND palace_player='$player_id' ";
-        $palace_size = self::getUniqueValueFromDb( $sql );
+        // Check palace
+        $player_id = self::getActivePlayerId();
+        $palace_size = $this->palaceSize($player_id, $palace_id);
         
         // Get all persons in this palace
         $already_in_palace = self::getUniqueValueFromDB( "SELECT COUNT( palace_person_id ) FROM palace_person WHERE palace_person_palace_id='$palace_id'" );
@@ -936,7 +944,7 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'placePerson', $message, array(
             'i18n' => $i18n,
             'player_id' => $player_id,
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'person_type' => $tile_type,
             'person_level' => $tile_level,
             'palace_id' => $palace_id,
@@ -1041,55 +1049,50 @@ class InTheYearOfTheDragonExp extends Table
         ) );
     }
 
-    // Realize an action
-    function action( $action_id )
-    {
-        self::checkAction( 'action' );
-        
-        $player_id = self::getActivePlayerId();
-
-        // Check if action exists
-        if( ! isset( $this->action_types[ $action_id ] ) )
-            throw new feException( 'This action does not exists' );
-
+    /**
+     * Check whether this action is in an occupied group (ie another player has already played here).
+     * In which case it costs 3 yuan.
+     */
+    function isOccupiedGroup($action_id) {
         // Get action position from its id
         $action_position = self::getUniqueValueFromDB( "SELECT action_id FROM action WHERE action_type='$action_id' " );
-        
-        // Check if someone already realize some action from the same group
-        // (in this case: it costs 3 yuan)
-        $player_actions = self::getCollectionFromDB( "SELECT player_id, action_id
-                                                      FROM player
-                                                      INNER JOIN action ON action_type=player_action_choice", true );
+
+        $player_actions = self::getCollectionFromDB( "SELECT player_id, action_id FROM player INNER JOIN action ON action_type=player_action_choice", true );
+
         $players = self::loadPlayersBasicInfos();
         $actiongroups = $this->getActionGroups();
         $actionconfig = $actiongroups[ count( $players ) ];
         $this_group = $actionconfig[ $action_position ];
-        $bOccupiedGroup = false;
-        foreach( $player_actions as $opponentplayer_id => $playeraction_id )
-        {
-            if( $playeraction_id !== null )
-            {
-                if( $actionconfig[ $playeraction_id ] == $this_group )
-                {
-                    $bOccupiedGroup = true;
-                    break;
+        foreach( $player_actions as $opponentplayer_id => $playeraction_id ) {
+            if( $playeraction_id !== null ) {
+                if( $actionconfig[ $playeraction_id ] == $this_group ) {
+                    return true;
                 }
             }
         }
+        return false;
+    }
 
-        $moneycost = 0;
+    // perform an action
+    function action( $action_id ) {
+        self::checkAction( 'action' );
+        // Check if action exists
+        if( ! isset( $this->action_types[ $action_id ] ) ) {
+            throw new BgaVisibleSystemException( 'This action does not exist: $action_id' );
+        }
+       
+        $player_id = self::getActivePlayerId();
+
         $notiftext = clienttranslate( '${player_name} chooses action ${action_name}' );
 
-        if( $bOccupiedGroup )
-        {
+        $bOccupiedGroup = $this->isOccupiedGroup($action_id);
+        if( $bOccupiedGroup ) {
             // This player must pay 3 yuan to use this action
-            $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
-            if( $money >= 3 )
-            {
+            $money = $this->playerYuan($player_id);
+            if( $money >= 3 ) {
                 // Okay
                 $sql = "UPDATE player SET player_yuan=player_yuan-3 WHERE player_id='$player_id' ";
                 self::DbQuery( $sql );
-                $moneycost = 3;
                 $notiftext = clienttranslate( '${player_name} chooses action ${action_name} for 3 yuan' );
                 self::incStat( 1, 'action_payed', $player_id );
             }
@@ -1105,92 +1108,86 @@ class InTheYearOfTheDragonExp extends Table
         // Notify
         self::notifyAllPlayers( 'actionChoice', $notiftext, array(
             'i18n' => array( 'action_name' ),
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
             'action_id' => $action_id,
             'action_name' => $this->action_types[ $action_id ]['name'],
             'pay' => $bOccupiedGroup ? 3 : 0
         ) );        
 
-        
-        // Perform this action special effect
+        // Perform this action effect
         $nextState = 'nextPlayer';
-        if( $action_id == 1 )
-        {   // Taxes
-            // Get all tax collectors (4)
-            $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 4 );
-            
-            $this->addYuan($player_id, $items);
-        }
-        else if( $action_id == 2 )
-        {   // Build
-            // Get all craftsmen (1)
-            $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 1 );
-            
-            self::setGameStateValue( 'toBuild', $items );
-            $nextState = 'buildAction';
-        }
-        else if( $action_id == 3 )
-        {   // Harvest
-            // Get all Farmers (8)
-            $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 8 );
-            $this->addRice($player_id, $items);
-        }
-        else if( $action_id == 4 )
-        {   // Fireworks
-            // Get all Pyrotechnists (3)
-            $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 3 );
-            $this->addFireworks($player_id, $items);
-        }
-        else if( $action_id == 5 )
-        {   // Military parade
-            // Get all wariors (5)
+        switch ($action_id) {
+            case 1: // Taxes
+                // Get all tax collectors (4)
+                $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 4 );
+                $this->addYuan($player_id, $items);
+                break;
+            case 2: // Build
+                // Get all craftsmen (1)
+                $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 1 );
+                
+                self::setGameStateValue( TO_BUILD, $items );
+                $nextState = 'buildAction';
+                break;
+            case 3: // Harvest
+                // Get all Farmers (8)
+                $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 8 );
+                $this->addRice($player_id, $items);
+                break;
+            case 4: // Fireworks
+                // Get all Pyrotechnists (3)
+                $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 3 );
+                $this->addFireworks($player_id, $items);
+                break;
+            case 5: // Military parade
+                // Get all warriors (5)
+                $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 5 );
+                $this->addPersonPoints($player_id, $items);
+                break;
+            case 6: // Research
+                // Get all scholars (9)
+                $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 9 );
+                $this->addVictoryPoints($player_id, $items);
+                self::incStat( $items, 'points_scholars', $player_id );
+                break;
+            case 7: // Privilege
+                // We must check that there is enough remaining privilege and that player can afford it.
+                $money = $this->playerYuan($player_id);
 
-            $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 5 );
-            $this->addPersonPoints($player_id, $items);
-        }
-        else if( $action_id == 6 )
-        {   // Research
-            // Get all scholars (9)
+                if( $money < 2 ) {
+                    throw new BgaUserException( self::_("You don't have enough yuan to buy a privilege"));
+                }
 
-            $items = $this->action_types[ $action_id ]['items'] + self::countItemsByType( $player_id, 9 );
-            $this->addVictoryPoints($player_id, $items);
-            
-            self::incStat( $items, 'points_scholars', $player_id );
+                $nextState = 'privilegeAction';
+                break;
+            case 8: // Build Wall
+                // Great Wall
+                $nextWall = self::getGameStateValue("wallLength")+1;
+                if ($nextWall > 12) {
+                    throw new BgaUserException( self::_("No more wall sections can be built"));
+                }
+                $tiles = $this->getAvailableWallTiles($player_id);
+                if (count($tiles) == 0) {
+                    throw new BgaUserException( self::_("You have no more wall sections to build"));
+                }
+                // random bonus or chosen?
+                $gw_opt = self::getGameStateValue( 'greatWall' );
+                if ($gw_opt == 3) {
+                    // random tile
+                    shuffle($tiles);
+                    $wall = $tiles[0];
+                    $nextState = $this->buildGreatWall($wall['id']);
+                } else {
+                    // choose tile
+                    $nextState = "buildWallAction";
+                }
+                break;
+            default:
+                throw new BgaVisibleSystemException("Unknown action type: $action_id"); // NOI18N
         }
-        else if( $action_id == 7 )
-        {   // Privilege
-            
-            // We must check that there is enough remaining privilege and that player can afford it.
-            $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
-
-            if( $money < 2 ) {
-                throw new BgaUserException( self::_("You don't have enough yuan to buy a privilege"));
-            }
-
-            $nextState = 'privilegeAction';
-        } else if ($action_id == 8) {
-            // Great Wall
-            $nextWall = self::getGameStateValue("wallLength")+1;
-            if ($nextWall > 12) {
-                throw new BgaUserException( self::_("No more wall sections can be built"));
-            }
-            $tiles = $this->getAvailableWallTiles($player_id);
-            if (count($tiles) == 0) {
-                throw new BgaUserException( self::_("You have no more wall sections to build"));
-            }
-            // random bonus or chosen?
-            $gw_opt = self::getGameStateValue( 'greatWall' );
-            if ($gw_opt == 3) {
-                // random tile
-                shuffle($tiles);
-                $wall = $tiles[0];
-                $nextState = $this->buildGreatWall($wall['id']);
-            } else {
-                // choose tile
-                $nextState = "buildWallAction";
-            }
-        }
+        self::dump('action_id', $action_id);
+        self::dump('nextState', $nextState);
 
         // Next player (unless building or buying privilege)
         $this->gamestate->nextState( $nextState );
@@ -1240,14 +1237,16 @@ class InTheYearOfTheDragonExp extends Table
         return $nextState;
     }
 
-    function refillyuan()
-    {
+    /**
+     * Increase up to 3 yuan.
+     */
+    function refillyuan() {
         self::checkAction( 'action' );
         
         $player_id = self::getActivePlayerId();
         
         // Get current money
-        $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id'" );
+        $money = $this->playerYuan($player_id);
         if( $money < 3 )
         {
             self::DbQuery( "UPDATE player SET player_yuan='3' WHERE player_id='$player_id'" );
@@ -1256,13 +1255,13 @@ class InTheYearOfTheDragonExp extends Table
         // Notify
         self::notifyAllPlayers( 'refillyuan', clienttranslate('${player_name} chooses to bring his personal supply of money up to 3 yuan'), array(
             'i18n' => array( 'action_name' ),
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id
         ) );            
 
         $this->gamestate->nextState( 'nextPlayer' );
     }
-    
+
     function argActionPhasePrivilege()
     {
         return array(
@@ -1276,7 +1275,7 @@ class InTheYearOfTheDragonExp extends Table
     function stPrivilege() {
         $player_id = self::getActivePlayerId();
         $state = "nextPlayer";
-        $remainingMoney = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id'" ); 
+        $remainingMoney = $this->playerYuan($player_id);
         $largePrivilegeCost = $this->getLargePrivilegeCost();
         // can I buy a large privileg?
         if ($remainingMoney >= $largePrivilegeCost) {
@@ -1299,7 +1298,7 @@ class InTheYearOfTheDragonExp extends Table
 
         $player_id = self::getActivePlayerId();
         
-        $remainingMoney = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id'" ); 
+        $remainingMoney = $this->playerYuan($player_id);
         $price = $bIsLarge ? $this->getLargePrivilegeCost() : 2;
 
         if( $remainingMoney < $price ) {
@@ -1336,39 +1335,37 @@ class InTheYearOfTheDragonExp extends Table
     {
         self::checkAction( 'build' );
         $player_id = self::getActivePlayerId();
-        
-        $remainingToBuild = self::incGameStateValue( 'toBuild', -1 );
-        
+
+        $remainingToBuild = self::incGameStateValue( TO_BUILD, -1 );
+        self::dump(TO_BUILD, $remainingToBuild);
+        self::dump('palace_id', $palace_id);
         // palace_id must be 0 or an existing palace
-        if( $palace_id != 0 )
-        {
-            $sql = "SELECT palace_size FROM palace WHERE palace_id='$palace_id' AND palace_player='$player_id' ";
-            $palace_size = self::getUniqueValueFromDb( $sql );
+        if( $palace_id == 0 ) {
+            // New palace
+            $sql = "INSERT INTO palace (palace_player, palace_size) VALUES ('$player_id', '1' )";
+            self::DbQuery( $sql );
+            $palace_id = self::DbGetLastId();
+            self::dump('new palace_id', $palace_id);
+            
+            self::notifyAllPlayers( 'newPalace', clienttranslate('${player_name} builds a new palace'), array(
+                'player_id' => $player_id,
+                'player_name' => self::getActivePlayerName(),
+                'palace_id' => $palace_id
+            ) );
+        } else {
+            $palace_size = $this->palaceSize($player_id, $palace_id);
             
             if( $palace_size === null ) {
                 throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );// NOI18N
             }
             
-            if( $palace_size == 3 )
-                throw new feException( self::_("No palace can have more than 3 floors."), true );
+            if( $palace_size == 3 ) {
+                throw new BgaUserException( self::_("No palace can have more than 3 floors."), true );
+            }
                 
             self::DbQuery( "UPDATE palace SET palace_size=palace_size+1 WHERE palace_id='$palace_id' " );
 
             self::notifyAllPlayers( 'buildPalace', clienttranslate('${player_name} extends a palace'), array(
-                'player_id' => $player_id,
-                'player_name' => self::getActivePlayerName(),
-                'palace_id' => $palace_id
-            ) );
-        }
-        else
-        {
-            // New palace
-            $sql = "INSERT INTO palace (palace_player, palace_size) VALUES 
-                    ('$player_id', '1' )";
-            self::DbQuery( $sql );
-            $palace_id = self::DbGetLastId();
-            
-            self::notifyAllPlayers( 'newPalace', clienttranslate('${player_name} builds a new palace'), array(
                 'player_id' => $player_id,
                 'player_name' => self::getActivePlayerName(),
                 'palace_id' => $palace_id
@@ -1390,8 +1387,7 @@ class InTheYearOfTheDragonExp extends Table
         self::checkAction( 'reduce' );
         $player_id = self::getActivePlayerId();
 
-        $sql = "SELECT palace_size FROM palace WHERE palace_id='$palace_id' AND palace_player='$player_id' ";
-        $palace_size = self::getUniqueValueFromDb( $sql );
+        $palace_size = $this->palaceSize($player_id, $palace_id);
         if( $palace_size === null ) {
             throw new BgaVisibleSystemException( 'This palace ($palace_id) does not exist' );// NOI18N
         }
@@ -1439,8 +1435,9 @@ class InTheYearOfTheDragonExp extends Table
      */
     function markOverPopulatedPalaces($player_id) {
         $overFilled = false;
-        $palaces = self::getCollectionFromDB("SELECT palace_id, palace_size FROM palace WHERE palace_player='$player_id' ", true);
-        foreach ($palaces as $palace_id => $size) {
+        $palaces = $this->getPalaces($player_id);
+        foreach ($palaces as $palace_id => $palace) {
+            $size = $palace['size'];
             $persons = self::getObjectListFromDB("SELECT palace_person_id FROM palace_person WHERE palace_person_palace_id=$palace_id", true);
             $diff = count($persons) - $size;
             if ($diff > 0) {
@@ -1516,7 +1513,7 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}'), array(
             'i18n' => $i18n,
             'player_id' => $player_id,
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'person_type_name' => $tile_persontype['name_sg'],
             'age' => $age,
             'person_id' => $person_id
@@ -1531,14 +1528,15 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * Action for replacing one person with another.
      */
-    function releaseReplace( $person_id )
-    {
+    function releaseReplace( $person_id ) {
         self::checkAction( 'releaseReplace' );
         self::doRelease( $person_id, true );
     }
-    
-    function noReplace()
-    {
+
+    /**
+     * Action to discard person tile just taken.
+     */
+    function noReplace() {
         self::checkAction( "releaseReplace" );
         
         // Release to tile "to recruit" and change nothing else
@@ -1613,7 +1611,7 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}'), array(
             'i18n' => $i18n,
             'player_id' => $player_id,
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'person_type_name' => $tile_persontype['name_sg'],
             'age' => $age,
             'person_id' => $person_id
@@ -1641,7 +1639,7 @@ class InTheYearOfTheDragonExp extends Table
 
         self::notifyAllPlayers( 'loseResources', clienttranslate( '${player_name} loses ${nbrrice} rice, ${nbrfw} fireworks, and ${nbryuan} yuan to Flood' ), array(
             'player_id' => $player_id,
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'nbrrice' => $rice,
             'nbrfw' => $fireworks,
             'nbryuan' => $yuan
@@ -1668,7 +1666,7 @@ class InTheYearOfTheDragonExp extends Table
 
         $person = ($pp == 0) ? "Wild" : $this->person_types[$pp]['name'];
         self::notifyAllPlayers( 'discardCard', clienttranslate( '${player_name} discards ${persontype} card' ), array(
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'persontype' => $person
         ) );
 
@@ -1688,7 +1686,7 @@ class InTheYearOfTheDragonExp extends Table
         $player_id = self::getActivePlayerId();
     
         self::notifyAllPlayers( 'charterPerson', clienttranslate( '${player_name} charters ${persontype}' ), array(
-            'player_name' => self::getCurrentPlayerName(),
+            'player_name' => self::getActivePlayerName(),
             'persontype' => $this->person_types[$type]['name']
         ) );
 
@@ -1698,7 +1696,7 @@ class InTheYearOfTheDragonExp extends Table
             case 1:
                 // Craftsmen
                 $toBuild = self::countItemsByType( $player_id, $type );
-                self::setGameStateValue( 'toBuild', $toBuild );
+                self::setGameStateValue( TO_BUILD, $toBuild );
                 $nextState = 'buildAction';
                 break;
             case 2:
@@ -1793,7 +1791,7 @@ class InTheYearOfTheDragonExp extends Table
     function argActionPhaseBuild()
     {
         return array(
-            'toBuild' => self::getGameStateValue( 'toBuild' )
+            TO_BUILD => self::getGameStateValue( TO_BUILD )
         );
     }
 
@@ -2013,7 +2011,7 @@ class InTheYearOfTheDragonExp extends Table
         else if( $event == 2 )  // Imperial Tribute
         {
             // 4 yuan per player
-            $money = self::getUniqueValueFromDB( "SELECT player_yuan FROM player WHERE player_id='$player_id' " );
+            $money = $this->playerYuan($player_id);
             if( $money >= 4 )
             {
                 // No problem, just reduce the money
@@ -2157,7 +2155,6 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState( 'notPossible' );
             return;
         }
-            
     
         // Check that at least 1 person can be recruited by player with his card. Otherwise, discard a card and jump to next player
         $player_id = self::getActivePlayerId();
@@ -2525,6 +2522,20 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
+     * Returns rows of palaces owned by this player that are empty
+     */
+    function emptyPalaces($player_id) {
+        $empty_palaces = [];
+        $palaces = $this->getPalaces($player_id);
+        foreach($palaces as $palace_id => $palace) {
+            if ($palace['cnt'] == 0) {
+                $empty_palaces[] = $palace;
+            }
+        }
+        return $empty_palaces;
+    }
+
+    /**
      * Return an associated array of monks per player and palace level
      * palace_player => [palace_size, palace_person_level]
      */
@@ -2720,94 +2731,351 @@ class InTheYearOfTheDragonExp extends Table
 //////////// Zombie
 ////////////
 
-    function zombieTurn( $state, $active_player )
-    {
-        if( $state['name'] == 'initialChoice' )
-        {
-            // Note: if there is a zombie at this state there is a risk of an infinite loop => we don't support this
-            throw new feException( "Zombie mode (voluntarly) not supported at this game state:".$state['name'], true );
+    function zombieTurn( $state, $active_player ) {
+    	$statename = $state['name'];
+    	
+        if ($state['type'] === "activeplayer") {
+            self::dump("zombie player", $state);
+            switch ($statename) {
+                case 'initialChoice':
+                    // Note: if there is a zombie at this state there is a risk of an infinite loop => we don't support this
+                    $this->gamestate->nextState( 'zombiePass' );
+                    break;
+                case 'initialPlace':
+                    $this->initialPlaceRandom( $active_player );
+                    break;
+                case 'actionPhaseChoose':
+                    $this->randomAction($active_player);
+                    break;
+                case 'actionPhaseBuild':
+                    $this->buildRandom($active_player);
+                    break;
+                case 'actionPhasePrivilege':
+                    // buy a small privilege - actionPhaseChoose should have already verified enough money
+                    $this->buyPrivilege(false);
+                    break;
+                case 'personPhaseChoosePerson':
+                    $this->recruitRandom($active_player);
+                    break;
+                case 'personPhasePlace':
+                    $this->placeRandom($active_player);
+                    break;
+                case 'palaceFull':
+                    // just release the recruited person
+                    $this->noReplace();
+                    break;
+                case 'release':
+                    // Get one person from current player, random
+                    $this->releaseRandomPerson($active_player);
+                    break;
+                case 'actionBuildWall':
+                    $this->buildWallRandom($active_player);
+                    break;
+                case 'greatWallRelease':
+                    $this->releaseRandomPerson($active_player);
+                    break;
+                case 'reducePalace':
+                    $this->reduceRandom($active_player);
+                    break;
+                case 'reducePopulation':
+                    $this->depopRandom($active_player);
+                    break;
+                case 'reduceResources':
+                    $this->resourcesRandom($active_player);
+                    break;
+                case 'discardPersonCards':
+                    $this->discardRandom($active_player);
+                    break;
+                case 'sunriseRecruit':
+                    $this->recruitRandom($active_player);
+                    break;
+                case 'charterPerson':
+                    $this->charterRandom($active_player);
+                    break;
+                default:
+                    throw new BgaVisibleSystemException( "Zombie mode not supported at this game state:".$statename );
+            }
         }
-        else if( $state['name'] == 'initialPlace' )
-        {
-            $this->gamestate->nextState( 'nextPhase' );
+    }
+
+    /**
+     * For zombie player, place person in unoccupied palace
+     */
+    function initialPlaceRandom($active_player) {
+        $empty = $this->emptyPalaces($active_player);
+        if (empty($empty)) {
+            throw new BgaVisibleSystemException("No empty palaces during initial recruitment stage");
         }
-        else if( $state['name'] == 'actionPhaseChoose' )
-        {
-            $this->gamestate->nextState( 'nextPlayer' );
+        $palace_id = $empty[0]['palace_id'];
+        $this->place($palace_id);
+    }
+
+    /**
+     * Choose an action for zombie player.
+     * Always choose refillYuan if < 3 yuan, otherwise choose a free action, otherwise a random one.
+     */
+    function randomAction($active_player) {
+        $money = $this->playerYuan($active_player);
+        // always take money if < 3
+        if ($money < 3) {
+            $this->refillyuan();
+        } else {
+            // choose first non-occupied action
+            $action_id = 0;
+            $actions = [];
+            $actrng = 7;
+            if ($this->useGreatWall()) {
+                $tiles = $this->countWallTilesBuilt($active_player);
+                if ($tiles < 6) {
+                    $actrng = 8;                    
+                }
+            }
+
+            for ($i = 1; $i <= $actrng; $i++) {
+                if (!$this->isOccupiedGroup($i)) {
+                    $actions[] = $i;
+                }
+            }
+            if (empty($actions)) {
+                for ($a = 1; $a <= $actrng; $a++) {
+                    $actions[] = $a;
+                }
+            }
+            shuffle($actions);
+            $action_id = array_pop($actions);
+            // don't choose useless privilege action
+            if ($action_id == 7) {
+                // do we have enough money?
+                $minYuan = $this->isOccupiedGroup(7) ? 5 : 2;
+                if ($money < $minYuan) {
+                    $action_id = array_pop($actions);
+                }
+            }
+
+            if ($action_id == 0) {
+                throw new BgaVisibleSystemException("Unable to select action for zombie player");
+            }
+            $this->action($action_id);
         }
-        else if( $state['name'] == 'actionPhaseBuild' )
-        {
-            $this->gamestate->nextState( 'nextPlayer'  );
+    }
+
+    /**
+     * Build action for zombie player.
+     * Build up if possible, otherwise a new palace.
+     */
+    function buildRandom($active_player) {
+        // buildPalace
+        $palace_id = 0;
+        $palaces = self::getObjectListFromDB("SELECT palace_id FROM palace WHERE palace_player=$active_player AND palace_size < 3", true);
+        if (!empty($palaces)) {
+            shuffle($palaces);
+            $palace_id = array_pop($palaces);
         }
-        else if( $state['name'] == 'actionPhasePrivilege' )
-        {
-            $this->gamestate->nextState( 'nextPlayer' );
+        $this->buildPalace($palace_id);
+    }
+
+    /**
+     * Build Great Wall action for zombie player. Should have already checked that a tile is available to build.
+     */
+    function buildWallRandom($active_player) {
+        $walltiles = self::getObjectListFromDB("SELECT id FROM WALL WHERE player_id=$active_player AND location=0", true);
+        if (empty($walltiles)) {
+            throw new BgaVisibleSystemException("Zombie player cannot build wall section");
+        } else {
+            shuffle($walltiles);
+            $wall = array_pop($walltiles);
+            $nextState = $this->buildGreatWall($wall);
+            $this->gamestate->nextState( $nextState );
         }
-        else if( $state['name'] == 'personPhaseChoosePerson' )
-        {
-            $this->gamestate->nextState( 'zombiePass' );
+    }
+
+    /**
+     * For zombie player, use random person card
+     */
+    function recruitRandom($active_player) {
+        // get non-wildcards first
+        $cards = self::getObjectListFromDB("SELECT personcard_id id, personcard_type type FROM personcard WHERE personcard_player=$active_player AND personcard_type!=0");
+        if (empty($cards)) {
+            $cards = self::getObjectListFromDB("SELECT personcard_id id, personcard_type type FROM personcard WHERE personcard_player=$active_player AND personcard_type=0");
         }
-        else if( $state['name'] == 'personPhasePlace' )
-        {
-            $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? 'sunrise' : 'nextPhase';
-            $this->gamestate->nextState( $state );
+        if (empty($cards)) {
+            // nothing to do
+            $this->gamestate->nextState( 'notPossible' );
+        } else {
+            shuffle($cards);
+            $card = array_pop($cards);
+            $person_type = $card['type'];
+            // wildcard - choose random type
+            if ($person_type == 0) {
+                $randomtype = array_keys($this->person_types);
+                shuffle($randomtype);
+                while ($person_type == 0 && !empty($randomtype)) {
+                    $p = array_pop($randomtype);
+                   if ($this->getPersonsLeft($p, 1) > 0 || $this->getPersonsLeft($p, 2) > 0) {
+                       $person_type = $p;
+                   }
+                }
+            }
+            // recruit level 1 by default
+            $nbr = $this->getPersonsLeft($person_type, 1);
+            if ($nbr == 0) {
+                $nbr = $this->getPersonsLeft($person_type, 2);
+                $this->recruit($person_type, $nbr == 0 ? 1 : 2);
+            } else {
+                // will result in throwing away the card
+                $this->recruit($person_type, 1);
+            }
         }
-        else if( $state['name'] == 'palaceFull' )
-        {
-            $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? 'sunrise' : 'nextPhase';
-            $this->gamestate->nextState( $state );
+    }
+
+    /**
+     * For zombie player, place in random spot
+     */
+    function placeRandom($active_player) {
+        $palace_id = 0;
+        $mypalaces = $this->getPalaces($active_player);
+        $notfull = [];
+        // look for empty palaces first
+        foreach ($mypalaces as $p => $palace) {
+            if ($palace['cnt'] == 0) {
+                $palace_id = $p;
+                break;
+            } else if ($palace['cnt'] < $palace['size']) {
+                $notfull[] = $p;
+            }
         }
-        else if( $state['name'] == 'release' )
-        {
-            // Get one person from current player, random
-            $this->releaseRandomPerson($active_player);
+        if ($palace_id == 0) {
+            // are there any palaces with space available?
+            if (!empty($notfull)) {
+                shuffle($notfull);
+                $palace_id = array_pop($notfull);
+            }
         }
-        else if ($state['name'] == 'greatWallRelease')
-        {
-            $this->releaseRandomPerson($active_player);
+        if ($palace_id == 0) {
+            throw new BgaVisibleSystemException("No palace available for Zombie player to place person in");
         }
-        else if ($state['name'] == 'reducePalace')
-        {
-            $this->gamestate->nextState( 'zombiePass' );
-        }
-        else if ($state['name'] == 'reducePopulation')
-        {
-            $this->gamestate->nextState( 'zombiePass' );
-        }
-        else if ($state['name'] == 'reduceResources')
-        {
-            $this->gamestate->nextState( 'zombiePass' );
-        }
-        else if ($state['name'] == 'discardPersonCards')
-        {
-            $this->gamestate->nextState( 'zombiePass' );
-        }
-        else if ($state['name'] == 'sunriseRecruit')
-        {
-            $this->gamestate->nextState( 'zombiePass' );
-        }
-        else if ($state['name'] == 'charterPerson')
-        {
-            $this->gamestate->nextState( 'zombiePass' );
-        }
-        else
-            throw new feException( "Zombie mode not supported at this game state:".$state['name'] );
+        $this->place($palace_id);
     }
 
     /**
      * For zombie player release random person
      */
     function releaseRandomPerson($active_player) {
+        // do we have any people?
+        if ($this->hasPersonsLeft()) {
             // Get one person from current player, random
             $person_id = self::getUniqueValueFromDB( "SELECT palace_person_id
                                                       FROM palace_person
                                                       INNER JOIN palace ON palace_id=palace_person_palace_id
                                                       WHERE palace_player='$active_player' AND palace_drought_affected=0 LIMIT 0,1" );
             self::release( $person_id );
+        } else {
+            $this->gamestate->nextState( 'zombiePass' );
+        }
     }
 
-    function upgradeTableDb( $from_version )
-    {
+    /**
+     * For zombie player, reduce random palace
+     */
+    function reduceRandom($active_player) {
+        $palace_id = 0;
+        $mypalaces = $this->getPalaces($active_player);
+        if (empty($mypalaces)) {
+            // player has no palaces
+            $this->gamestate->nextState( 'zombiePass' );
+        } else {
+            // any with space available?
+            foreach ($mypalaces as $p => $palace) {
+                if ($palace['cnt'] < $palace['size']) {
+                    $palace_id = $p;
+                    break;
+                }
+            }
+            if ($palace_id == 0) {
+                shuffle($mypalaces);
+                $palacered = array_pop($mypalaces);
+                $palace_id = $palacered['palace_id'];
+            }
+        }
+        $this->reduce($palace_id);
+    }
+
+    /**
+     * For zombie player, remove random person.
+     */
+    function depopRandom($active_player) {
+        $mypersons = self::getObjectListFromDB( "SELECT palace_person_id FROM palace_person INNER JOIN palace ON palace_id=palace_person_id WHERE palace_player=$active_player", true );
+        if (empty($mypersons)) {
+            // no people left
+            $this->gamestate->nextState( 'zombiePass' );
+        } else {
+            shuffle($mypersons);
+            $depop = array_pop($mypersons);
+            $this->depopulate($depop);
+        }
+    }
+
+    /**
+     * Reduce random resources
+     */
+    function resourcesRandom($active_player) {
+        $toReduce = self::getGameStateValue('toReduce');
+        $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$active_player' " );
+        $reductions = array('rice' => 0, 'fireworks' => 0, 'yuan' => 0);
+        $reduced = 0;
+        while ($reduced < $toReduce) {
+            shuffle($resources);
+            foreach ($resources as $r => $ct) {
+                if ($ct > 0) {
+                    $reductions[$r] = $reductions[$r]+1;
+                    $resources[$r] = $resources[$r]-1;
+                    $reduced++;
+                    break;
+                }
+            }
+        }
+        $this->removeResources($reductions['rice'], $reductions['fireworks'], $reductions['yuan']);
+    }
+
+    /**
+     * Zombie player discards random card
+     */
+    function discardRandom($active_player) {
+        $cards = self::getObjectListFromDB("SELECT personcard_id FROM personcard WHERE personcard_player=$active_player", true);
+        if (empty($cards)) {
+            // no cards left
+            $this->gamestate->nextState( 'zombiePass' );
+        } else {
+            shuffle($cards);
+            $card = array_pop($cards);
+            $this->discard($card);
+        }
+    }
+
+    /**
+     * Choose random person to Charter
+     */
+    function charterRandom($active_player) {
+        $person = [];
+        // do we have any people?
+        if ($this->hasPersonsLeft()) {
+            // Get one person from current player, random
+            $person = self::getCollectionFromDB( "SELECT palace_person_id id, palace_person_type type
+                                                      FROM palace_person
+                                                      INNER JOIN palace ON palace_id=palace_person_palace_id
+                                                      WHERE palace_player='$active_player' AND palace_person_type != 7 LIMIT 0,1", true );
+        }
+        if (empty($person)) {
+            $this->gamestate->nextState( 'zombiePass' );
+        } else {
+            $this->charter($person['type']);
+        }
+    }
+
+    /**
+     * Adding sunrise event data
+     */
+    function upgradeTableDb( $from_version ) {
         // Example:
        if( $from_version <= 2105120134 )
        {

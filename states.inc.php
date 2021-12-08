@@ -98,7 +98,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must summon your first 2 subjects to court'),
         "possibleactions" => array( "recruit" ),
         "type" => "activeplayer",
-        "transitions" => array( "chooseTile" => STATE_INITIAL_PLACE, "zombiePass" => STATE_INITIAL_CHOICE_NP )
+        "transitions" => array( "chooseTile" => STATE_INITIAL_PLACE, "zombiePass" => STATE_ENDGAME )
     ),
     STATE_INITIAL_PLACE => array(
         "name" => "initialPlace",

@@ -1,4 +1,5 @@
 
+-- player data
 ALTER TABLE `player` ADD `player_person_score` INT UNSIGNED NOT NULL DEFAULT '0',
 ADD `player_person_score_order` SMALLINT UNSIGNED NOT NULL DEFAULT '0',
 ADD `player_play_order` SMALLINT UNSIGNED NULL DEFAULT NULL,
@@ -8,13 +9,14 @@ ADD `player_fireworks` SMALLINT UNSIGNED NOT NULL ,
 ADD `player_rice` SMALLINT UNSIGNED NOT NULL ,
 ADD `player_favor` SMALLINT UNSIGNED NOT NULL ;
 
+-- orders action tiles
 CREATE TABLE IF NOT EXISTS `action` (
   `action_id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
   `action_type` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`action_id`)
 ) ENGINE=InnoDB ;
 
-
+-- palaces owned by people
 CREATE TABLE IF NOT EXISTS `palace` (
   `palace_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `palace_player` int(10) unsigned NOT NULL,
@@ -24,7 +26,7 @@ CREATE TABLE IF NOT EXISTS `palace` (
   KEY `palace_player` (`palace_player`)
 ) ENGINE=InnoDB ;
 
-
+-- people in palaces
 CREATE TABLE IF NOT EXISTS `palace_person` (
   `palace_person_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `palace_person_palace_id` int(10) unsigned NOT NULL,
@@ -34,7 +36,7 @@ CREATE TABLE IF NOT EXISTS `palace_person` (
   KEY `palace_character_palace_id` (`palace_person_palace_id`)
 ) ENGINE=InnoDB ;
 
-
+-- person cards held by players
 CREATE TABLE IF NOT EXISTS `personcard` (
   `personcard_id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `personcard_player` int(10) unsigned NOT NULL,
@@ -43,7 +45,7 @@ CREATE TABLE IF NOT EXISTS `personcard` (
   KEY `charactercard_player` (`personcard_player`)
 ) ENGINE=InnoDB ;
 
-
+-- people remaining on board
 CREATE TABLE IF NOT EXISTS `personpool` (
   `personpool_type` int(10) unsigned NOT NULL,
   `personpool_level` tinyint(3) unsigned NOT NULL,
@@ -52,13 +54,14 @@ CREATE TABLE IF NOT EXISTS `personpool` (
   PRIMARY KEY (`personpool_type`,`personpool_level`)
 ) ENGINE=InnoDB ;
 
-
+-- ordered years/events
 CREATE TABLE IF NOT EXISTS `year` (
   `year_id` smallint(5) unsigned NOT NULL,
   `year_event` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`year_id`)
 ) ENGINE=InnoDB ;
 
+-- for Great Wall
 CREATE TABLE IF NOT EXISTS `WALL` ( 
   `id` TINYINT unsigned NOT NULL AUTO_INCREMENT,
   `player_id` int(10) unsigned NOT NULL COMMENT 'player_id',

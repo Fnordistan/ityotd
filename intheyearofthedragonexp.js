@@ -711,8 +711,10 @@ function (dojo, declare) {
         createNewPalace: function( player_id, id )
         {
             console.log( 'createNewPalace' );
-            
-            dojo.place( this.format_block('jstpl_palace', { id: id } ), $('palaces_'+player_id) );
+            const player_pal = $('palaces_'+player_id);
+            const new_pal_html = this.format_block('jstpl_palace', { id: id } );
+
+            dojo.place( new_pal_html, player_pal );
             
             // By default: only 1 floor
             dojo.style( 'palacefloor_'+id+'_3', 'display', 'none' );
@@ -1078,7 +1080,6 @@ function (dojo, declare) {
 
             const level = evt.currentTarget.id.substr( 13 );
             const type = evt.currentTarget.id.substr( 11, 1 );
-
             if (this.prefs[100].value == 2 || this.prefs[100].value == 5) {
                 const person_html = this.personTileHtml("recruit", level, type);
                 this.confirmationDialog( person_html, () => {this.recruitConfirmed(level, type)}, function() { return; });
@@ -1098,7 +1099,7 @@ function (dojo, declare) {
             // skip warning dialog  in case of sunrise recruit because php game logic will throw error message
             if(!isSunrise && toint( $('persontile_nbr_'+type+'_'+level).innerHTML ) == 0 )
             {
-                this.confirmationDialog( _("There are no more persons of this type and your card will be discarded. Confirm?"),
+                this.confirmationDialog( _("There are no more persons of this type and your card will be discarded."),
                 dojo.hitch( this, function() {
                     this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/recruit.html", {
                         lock: true, 
@@ -1109,12 +1110,15 @@ function (dojo, declare) {
             }
             else
             {                
-               this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/recruit.html", { lock: true, 
+               this.ajaxcall( "/intheyearofthedragonexp/intheyearofthedragonexp/recruit.html", { 
+                lock: true, 
                 type: type,
                 level: level
                 }, this, function( result ) {  } );             
             }
         },
+
+
 
         // Choose a palace (ex: to place some tile)
         onChoosePalace: function( evt )
@@ -1288,6 +1292,7 @@ function (dojo, declare) {
           * @returns 
           */
          confirmSelectPalacePerson: function(person_id, person_type) {
+             debugger;
             if( this.checkAction( 'releaseReplace', true ) )
             {
                 // Special case: release a person to replace it immediately by a new one
@@ -1305,6 +1310,7 @@ function (dojo, declare) {
                     id: person_id
                 }, this, function( result ) {  } );
             } else if ( this.checkAction('charter', true) ) {
+                debugger;
                 if (person_type == 7) {
                     this.confirmationDialog( _("Chartering Healers has no effect: are you sure?"),
                     dojo.hitch( this, function() {
@@ -1540,6 +1546,7 @@ function (dojo, declare) {
         {
             console.log( 'notif_newPalace' );
             console.log( notif );
+            debugger;
             this.createNewPalace( notif.args.player_id, notif.args.palace_id );
         },
         notif_buildPalace: function( notif )
