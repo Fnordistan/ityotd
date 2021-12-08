@@ -14,8 +14,7 @@
   
   class action_intheyearofthedragonexp extends APP_GameAction
   { 
-   	public function __default()
-  	{
+   	public function __default() {
   	    if( self::isArg( 'notifwindow') )
   	    {
             $this->view = "common_notifwindow";
@@ -24,85 +23,83 @@
   	    else
   	    {
             $this->view = "intheyearofthedragonexp_intheyearofthedragonexp";
-            self::trace( "Complete reinitialization of board game" );
       }
-  	} 
-    public function recruit()
-    {
+  	}
+
+    public function recruit() {
         self::setAjaxMode();     
         $type = self::getArg( "type", AT_posint, true );
         $level = self::getArg( "level", AT_posint, true );
-        $result = $this->game->recruit($type, $level);
+        $this->game->recruit($type, $level);
         self::ajaxResponse( );
     }
-    public function place()
-    {
+
+    public function place() {
         self::setAjaxMode();     
         $palace_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->place( $palace_id );
+        $this->game->place( $palace_id );
         self::ajaxResponse( );
-    }    
-    public function action()
-    {
+    }
+
+    public function action() {
         self::setAjaxMode();     
         $action_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->action( $action_id );
+        $this->game->action( $action_id );
         self::ajaxResponse( );
-    } 
-    public function refillyuan()
-    {
+    }
+
+    public function refillyuan() {
         self::setAjaxMode();     
-        $result = $this->game->refillyuan();
+        $this->game->refillyuan();
         self::ajaxResponse( );
-    }       
-    public function choosePrivilege()
-    {
+    }
+    
+    public function choosePrivilege() {
         self::setAjaxMode();     
         $isLarge = self::getArg( "large", AT_posint, true );
-        $result = $this->game->choosePrivilege( ($isLarge==1) );
+        $this->game->choosePrivilege( ($isLarge==1) );
         self::ajaxResponse( );
-    }        
-    public function build()
-    {
+    }
+
+    public function build() {
         self::setAjaxMode();     
         $palace_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->buildPalace( $palace_id );
+        $this->game->buildPalace( $palace_id );
         self::ajaxResponse( );    
     }
 
-    public function buildWall()
-    {
+    public function buildWall() {
         self::setAjaxMode();     
         $wall = self::getArg( "wall", AT_posint, true );
-        $result = $this->game->buildWall( $wall );
+        $this->game->buildWall( $wall );
         self::ajaxResponse( );    
     }
 
     public function reduce() {
         self::setAjaxMode();
         $palace_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->reduce( $palace_id );
+        $this->game->reduce( $palace_id );
         self::ajaxResponse( );    
     }
 
     public function discard() {
         self::setAjaxMode();   
         $id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->discard( $id );
+        $this->game->discard( $id );
         self::ajaxResponse( );    
     }
 
     public function charter() {
         self::setAjaxMode();   
         $type = self::getArg( "type", AT_posint, true );
-        $result = $this->game->charter( $type );
+        $this->game->charter( $type );
         self::ajaxResponse( );    
     }
 
     public function depopulate() {
         self::setAjaxMode();     
         $palace_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->depopulate( $palace_id );
+        $this->game->depopulate( $palace_id );
         self::ajaxResponse( );    
     }
 
@@ -111,28 +108,27 @@
         $rice = self::getArg( "rice", AT_posint, true );
         $fw = self::getArg( "fireworks", AT_posint, true );
         $yuan = self::getArg( "yuan", AT_posint, true );
-        $result = $this->game->removeResources( $rice, $fw, $yuan );
+        $this->game->removeResources( $rice, $fw, $yuan );
         self::ajaxResponse( );    
     }
 
-    public function release()
-    {
+    public function release() {
         self::setAjaxMode();     
         $person_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->release( $person_id );
+        $this->game->release( $person_id );
         self::ajaxResponse( );    
     }
-    public function releaseReplace()
-    {
+
+    public function releaseReplace() {
         self::setAjaxMode();     
         $person_id = self::getArg( "id", AT_posint, true );
-        $result = $this->game->releaseReplace( $person_id );
+        $this->game->releaseReplace( $person_id );
         self::ajaxResponse( );    
     }
-    public function noReplace()
-    {
+ 
+    public function noReplace() {
         self::setAjaxMode();     
-        $result = $this->game->noReplace(  );
+        $this->game->noReplace(  );
         self::ajaxResponse( );    
     }
 }

@@ -380,6 +380,13 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
+     * Are we in the middle of one of the super events that have actions?
+     */
+    function isSuperEventAction() {
+        return self::getGameStateValue(SUPER_EVENT_ACTION) == 1;
+    }
+
+    /**
      * It's the Super Event phase.
      * Return the next phase to go to
      */
@@ -952,7 +959,7 @@ class InTheYearOfTheDragonExp extends Table
             'person_type_name' => $tile_persontype['name_sg'],
             'age' => $age
         ) );
-        $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? 'sunrise' : 'nextPhase';
+        $state = $this->isSuperEventAction() ? 'sunrise' : 'nextPhase';
         $this->gamestate->nextState( $state );
     }
 
@@ -1186,8 +1193,6 @@ class InTheYearOfTheDragonExp extends Table
             default:
                 throw new BgaVisibleSystemException("Unknown action type: $action_id"); // NOI18N
         }
-        self::dump('action_id', $action_id);
-        self::dump('nextState', $nextState);
 
         // Next player (unless building or buying privilege)
         $this->gamestate->nextState( $nextState );
@@ -1337,15 +1342,12 @@ class InTheYearOfTheDragonExp extends Table
         $player_id = self::getActivePlayerId();
 
         $remainingToBuild = self::incGameStateValue( TO_BUILD, -1 );
-        self::dump(TO_BUILD, $remainingToBuild);
-        self::dump('palace_id', $palace_id);
         // palace_id must be 0 or an existing palace
         if( $palace_id == 0 ) {
             // New palace
             $sql = "INSERT INTO palace (palace_player, palace_size) VALUES ('$player_id', '1' )";
             self::DbQuery( $sql );
             $palace_id = self::DbGetLastId();
-            self::dump('new palace_id', $palace_id);
             
             self::notifyAllPlayers( 'newPalace', clienttranslate('${player_name} builds a new palace'), array(
                 'player_id' => $player_id,
@@ -1372,12 +1374,11 @@ class InTheYearOfTheDragonExp extends Table
             ) );
         }
 
+        $state = "buildAgain";
         if( $remainingToBuild == 0 ) {
-            $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? "charter" : "nextPlayer";
-            $this->gamestate->nextState( $state );
-        } else {
-            $this->gamestate->nextState( 'buildAgain' );
+            $state = $this->isSuperEventAction() ? "charter" : "nextPlayer";
         }
+        $this->gamestate->nextState( $state );
     }
 
     /**
@@ -1545,7 +1546,7 @@ class InTheYearOfTheDragonExp extends Table
             'player_id' => self::getActivePlayerId(),
             'player_name' => self::getActivePlayerName()
         ) );
-        $state = self::getGameStateValue(SUPER_EVENT_ACTION) == 1 ? "sunrise" : "nextPhase";
+        $state = $this->isSuperEventAction() ? "sunrise" : "nextPhase";
         $this->gamestate->nextState( $state );
     }
 
@@ -2735,7 +2736,6 @@ class InTheYearOfTheDragonExp extends Table
     	$statename = $state['name'];
     	
         if ($state['type'] === "activeplayer") {
-            self::dump("zombie player", $state);
             switch ($statename) {
                 case 'initialChoice':
                     // Note: if there is a zombie at this state there is a risk of an infinite loop => we don't support this
@@ -2753,6 +2753,7 @@ class InTheYearOfTheDragonExp extends Table
                 case 'actionPhasePrivilege':
                     // buy a small privilege - actionPhaseChoose should have already verified enough money
                     $this->buyPrivilege(false);
+                    $this->gamestate->nextState('nextPlayer');
                     break;
                 case 'personPhaseChoosePerson':
                     $this->recruitRandom($active_player);
@@ -3056,19 +3057,20 @@ class InTheYearOfTheDragonExp extends Table
      * Choose random person to Charter
      */
     function charterRandom($active_player) {
-        $person = [];
+        $peeps = [];
         // do we have any people?
         if ($this->hasPersonsLeft()) {
             // Get one person from current player, random
-            $person = self::getCollectionFromDB( "SELECT palace_person_id id, palace_person_type type
+            $peeps = self::getCollectionFromDB( "SELECT palace_person_id id, palace_person_type type
                                                       FROM palace_person
                                                       INNER JOIN palace ON palace_id=palace_person_palace_id
                                                       WHERE palace_player='$active_player' AND palace_person_type != 7 LIMIT 0,1", true );
         }
-        if (empty($person)) {
+        if (empty($peeps)) {
             $this->gamestate->nextState( 'zombiePass' );
         } else {
-            $this->charter($person['type']);
+            $persontype = array_pop($peeps);
+            $this->charter($persontype);
         }
     }
 

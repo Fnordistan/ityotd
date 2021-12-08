@@ -1292,7 +1292,6 @@ function (dojo, declare) {
           * @returns 
           */
          confirmSelectPalacePerson: function(person_id, person_type) {
-             debugger;
             if( this.checkAction( 'releaseReplace', true ) )
             {
                 // Special case: release a person to replace it immediately by a new one
@@ -1310,7 +1309,6 @@ function (dojo, declare) {
                     id: person_id
                 }, this, function( result ) {  } );
             } else if ( this.checkAction('charter', true) ) {
-                debugger;
                 if (person_type == 7) {
                     this.confirmationDialog( _("Chartering Healers has no effect: are you sure?"),
                     dojo.hitch( this, function() {
@@ -1546,7 +1544,6 @@ function (dojo, declare) {
         {
             console.log( 'notif_newPalace' );
             console.log( notif );
-            debugger;
             this.createNewPalace( notif.args.player_id, notif.args.palace_id );
         },
         notif_buildPalace: function( notif )
