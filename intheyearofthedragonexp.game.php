@@ -997,7 +997,9 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'personPointMsg', clienttranslate( '${player_name} advances ${nbr} spaces on the person track' ), array(
             'player_id' => $player_id,
             'player_name' => $players[$player_id]['player_name'],
-            'nbr' => $pp
+            'nbr' => $pp,
+            'logicon' => 'pers',
+            'preserve' => ['logicon'],
         ) );
     }
 
@@ -1011,7 +1013,9 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'harvest', clienttranslate( '${player_name} gains ${nbr} rice' ), array(
             'player_id' => $player_id,
             'player_name' => $players[$player_id]['player_name'],
-            'nbr' => $rice
+            'nbr' => $rice,
+            'logicon' => 'rice',
+            'preserve' => ['logicon']
         ) );
     }
 
@@ -1025,7 +1029,9 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'fireworks', clienttranslate( '${player_name} gains ${nbr} fireworks' ), array(
             'player_id' => $player_id,
             'player_name' => $players[$player_id]['player_name'],
-            'nbr' => $fw
+            'nbr' => $fw,
+            'logicon' => 'fw',
+            'preserve' => ['logicon']
         ) );
     }
 
@@ -1039,7 +1045,9 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'taxes', clienttranslate( '${player_name} gains ${nbr} yuan' ), array(
             'player_id' => $player_id,
             'player_name' => $players[$player_id]['player_name'],
-            'nbr' => $yuan
+            'nbr' => $yuan,
+            'logicon' => 'yuan',
+            'preserve' => ['logicon']
         ) );
     }
 
@@ -1234,7 +1242,8 @@ class InTheYearOfTheDragonExp extends Table
             'player_id' => $player_id,
             'length' => $nextWall,
             'bonus' => $wall['bonus'],
-            'reward' => $this->wall_tiles[$wall['bonus']]['name']
+            'reward' => $this->wall_tiles[$wall['bonus']]['name'],
+            'preserve' => ['player_id', 'bonus']
         ));
         $tobuild = $this->assignWallBonus($wall);
         if ($tobuild) {
@@ -1259,10 +1268,12 @@ class InTheYearOfTheDragonExp extends Table
         }
         
         // Notify
-        self::notifyAllPlayers( 'refillyuan', clienttranslate('${player_name} chooses to bring his personal supply of money up to 3 yuan'), array(
+        self::notifyAllPlayers( 'refillyuan', clienttranslate('${player_name} brings his money supply up to 3 yuan'), array(
             'i18n' => array( 'action_name' ),
             'player_name' => self::getActivePlayerName(),
-            'player_id' => $player_id
+            'player_id' => $player_id,
+            'logicon' => 'yuan',
+            'preserve' => ['logicon'],
         ) );            
 
         $this->gamestate->nextState( 'nextPlayer' );
@@ -1333,7 +1344,9 @@ class InTheYearOfTheDragonExp extends Table
             'player_name' => self::getActivePlayerName(),
             'nbr' => ( $bIsLarge ? 2 : 1 ),
             'size' => ( $bIsLarge ? clienttranslate('large') : clienttranslate('small') ),
-            'price' => $price
+            'price' => $price,
+            'logicon' => 'priv',
+            'preserve' => ['logicon'],
         ) );
     }
 
@@ -1353,7 +1366,9 @@ class InTheYearOfTheDragonExp extends Table
             self::notifyAllPlayers( 'newPalace', clienttranslate('${player_name} builds a new palace'), array(
                 'player_id' => $player_id,
                 'player_name' => self::getActivePlayerName(),
-                'palace_id' => $palace_id
+                'palace_id' => $palace_id,
+                'logicon' => 'palace',
+                'preserve' => ['logicon']
             ) );
         } else {
             $palace_size = $this->palaceSize($player_id, $palace_id);
@@ -1371,7 +1386,9 @@ class InTheYearOfTheDragonExp extends Table
             self::notifyAllPlayers( 'buildPalace', clienttranslate('${player_name} extends a palace'), array(
                 'player_id' => $player_id,
                 'player_name' => self::getActivePlayerName(),
-                'palace_id' => $palace_id
+                'palace_id' => $palace_id,
+                'logicon' => 'palace',
+                'preserve' => ['logicon']
             ) );
         }
 
@@ -1512,13 +1529,14 @@ class InTheYearOfTheDragonExp extends Table
             $age = ( $person['level'] == 1 ) ? clienttranslate('young') : clienttranslate('old');
         }
        
-        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}'), array(
+        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}').'${persontile}', array(
             'i18n' => $i18n,
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'person_type_name' => $tile_persontype['name_sg'],
             'age' => $age,
-            'person_id' => $person_id
+            'person_id' => $person_id,
+            'persontile' => $person['type'].'_'.$person['level'].'_release'
         ) );
 
         if( $bAndReplace )
@@ -1912,8 +1930,9 @@ class InTheYearOfTheDragonExp extends Table
         
         $event_type = $this->event_types[ $event ];
         
-        self::notifyAllPlayers( 'eventDescription', '${event_name}: ${event_description}', array(  // NOI18N
+        self::notifyAllPlayers( 'eventDescription', '${event_icon}${event_name}: ${event_description}', array(  // NOI18N
             'i18n' => array( 'event_name', 'event_description' ),
+            'event_icon' => $event,
             'event_name' => $event_type['name'],
             'event_description' => $event_type['description']
         ) );

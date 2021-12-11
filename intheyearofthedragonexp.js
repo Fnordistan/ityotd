@@ -176,9 +176,47 @@ function (dojo, declare) {
                     args.event_name = '<b>'+args.event_name+'</b>';
                 }
                 if (args.persontile) {
-                    const [type, level] = args.persontile.split('_');
-                    const ptile = this.format_block('jstpl_person_log', {type: type, level: level});
+                    const [type, level, release] = args.persontile.split('_');
+                    let ptile = this.format_block('jstpl_person_log', {type: type, level: level});
+                    if (release) {
+                        ptile = ptile.replace("class=\"", "class=\"person_release ");
+                    }
                     args.persontile = ptile;
+                }
+                if (args.action_name) {
+                    args.action_name = '<b>'+args.action_name+'</b>';
+                }
+                if (args.bonus) {
+                    const player_id = args.player_id;
+                    const pcolor = this.gamedatas.players[ player_id ].color;
+                    const scale = 0.5;
+                    const xoff = -60 * (COLORS_PLAYER[pcolor]-1) * scale;
+                    const yoff = -36 * args.bonus * scale;
+                    log += this.format_block('jstpl_wall_log', {x: xoff, y: yoff});
+                }
+                if (args.event_icon) {
+                    const event_icon = '<div class="event_log eventtype_'+args.event_icon+'"></div>';
+                    args.event_icon = event_icon;
+                }
+                if (args.logicon) {
+                    let iconhtml = null;
+                    switch (args.logicon) {
+                        case "fw":
+                        case "rice":
+                        case "yuan":
+                        case "pers":
+                        case "priv":
+                            iconhtml = this.format_block('jstpl_rsrc_log', {type: args.logicon});
+                            break;
+                        case "palace":
+                            iconhtml = '<span class="palaceminiicon" style="display: inline-block; margin: 2px;"></span>';
+                            break;
+                        default:
+                            throw "Unrecognized icon: "+args.logicon;
+                    }
+                    if (iconhtml) {
+                        log += iconhtml;
+                    }
                 }
             } catch (e) {
                 console.error(log, args, "Exception thrown", e.stack);

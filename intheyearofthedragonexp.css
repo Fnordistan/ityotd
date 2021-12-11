@@ -46,6 +46,8 @@
 :root {
     --scale: 1;
     --tile_dim: 60px;
+    --wall_w: 60px;
+    --wall_h: 36px;
 }
 
 h1 {
@@ -71,6 +73,17 @@ h1 {
 .eventtype_6 {  background-position: -300px -0px; }
 .eventtype_past {  background-position: -180px -180px; }
 
+
+.event_log {
+    float: left;
+    position: relative;
+    margin: 5px;
+    background-image: url('img/tiles.png');
+    width: 60px;
+    height: 60px;
+    top: 5px;
+}
+
 .nextevent {
     position: relative;
     border: 2px red solid;
@@ -80,12 +93,14 @@ h1 {
 
 /** Great Wall */
 .ityotd_wall {
+    --scale: 1;
     display: inline-block;
-    width: 60px;
-    height: 36px;
+    width: calc(var(--scale) * var(--wall_w));
+    height: calc(var(--scale) * var(--wall_h));
     margin: 2px;
     background-image: url('img/walltiles.jpg');
-    background-position: -300px -0px;
+    background-size: calc(6 * var(--scale) * var(--wall_w)) calc(7 * var(--scale) * var(--wall_h));
+    background-position: calc(-5 * var(--scale) * var(--wall_w)) -0px;
 }
 
 .ityotd_wall_built {
@@ -211,7 +226,13 @@ h1 {
 .persontile_log {
     display: inline-block;
     --scale: 0.5;
-    margin-left: 2px;
+    margin-left: 5px;
+    vertical-align: text-bottom;
+}
+
+.person_release {
+    filter: grayscale(100%);
+    opacity: 0.8;
 }
 
 /*** personcard ***/
@@ -269,6 +290,16 @@ h1 {
     height: 50px;
     background-position: 0px -25px;
 }
+
+.palaceminiicon {
+    background-image: url('img/icons.png'); 
+    width: 45px;   
+    height: 30px;
+    vertical-align: text-bottom;
+    background-position: 0px -15px;
+    background-size: 60px 90px;
+}
+
 .palacefloor {
     width: 75px;
     height: 30px;

@@ -50,7 +50,7 @@
 
 <!-- BEGIN player -->
 <div id="palace_{PLAYER_ID}" class="whiteblock palaceswrap">
-    <h2>{PLAYER_NAME}:</h2>
+    <h2 style="color: #{PLAYER_COLOR}">{PLAYER_NAME}:</h2>
     <div>
         <div id="palaces_{PLAYER_ID}">
         </div>
@@ -97,6 +97,8 @@ const jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionfl
 const jstpl_player_great_wall = '<div id="great_wall_${id}" class="ityotd_greatwall_pb"></div>';
 const jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall" style="background-position: ${x}px ${y}px;"></div>';
 
+const jstpl_wall_log = '<span class="ityotd_wall" style="--scale: 0.5; background-position: ${x}px ${y}px;"></span>';
+
 const jstpl_super_event = '<div id="${id}" class="ityotd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
 
 const jstpl_super_event_icon = '<div style="display: flex;">\
@@ -106,6 +108,9 @@ const jstpl_super_event_icon = '<div style="display: flex;">\
 
 // a currency icon used as a button, either note or cert
 const jstpl_rsrc_btn = '<button id="${type}_${i}_btn" type="button" class="yd_icon icon_${type} tt${type}"></button>';
+
+// icons for log
+const jstpl_rsrc_log = '<span class="yd_icon icon_${type}" style="margin-left: 2px;"></span>';
 
 </script>  
 

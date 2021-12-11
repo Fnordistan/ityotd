@@ -53,7 +53,9 @@
             if( $player['player_id'] != $g_user->get_id() )
             {
                 $this->page->insert_block( "player", array( "PLAYER_ID" => $player['player_id'],
-                                                            "PLAYER_NAME" => $player['player_name'] ) );
+                                                            "PLAYER_NAME" => $player['player_name'],
+                                                            "PLAYER_COLOR" => $player['player_color']
+                                                            ) );
             }
         }
         
