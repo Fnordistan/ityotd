@@ -175,6 +175,11 @@ function (dojo, declare) {
                 if (args.event_name) {
                     args.event_name = '<b>'+args.event_name+'</b>';
                 }
+                if (args.persontile) {
+                    const [type, level] = args.persontile.split('_');
+                    const ptile = this.format_block('jstpl_person_log', {type: type, level: level});
+                    args.persontile = ptile;
+                }
             } catch (e) {
                 console.error(log, args, "Exception thrown", e.stack);
             }

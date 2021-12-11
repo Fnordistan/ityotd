@@ -63,7 +63,7 @@
 <script type="text/javascript">
 
 // Templates
-var jstpl_player_board = '<div class="boardblock">\
+const jstpl_player_board = '<div class="boardblock">\
         <div class="yd_icon icon_yuan ttyuan" id="ttyuan${id}"></div><span id="yuannbr_${id}" class="ttyuan">0</span>&nbsp;\
         <div class="yd_icon icon_pers ttpers" id="ttpers${id}"></div><span id="persnbr_${id}" class="ttpers">0</span>\
     </div>\
@@ -73,7 +73,7 @@ var jstpl_player_board = '<div class="boardblock">\
         <div class="yd_icon icon_priv ttpriv" id="ttpriv${id}"></div><span id="privnbr_${id}" class="ttpriv">0</span>\
     </div>';
 
-var jstpl_palace = '<div id="palace_${id}" class="palace">\
+const jstpl_palace = '<div id="palace_${id}" class="palace">\
         <div id="choosepalace_${id}" class="choosepalace"></div>\
         <div id="palacefloor_${id}_3" class="palacefloor palacefloor3"><div class="palaceicon"></div></div>\
         <div id="palacefloor_${id}_2" class="palacefloor palacefloor2"><div class="palaceicon"></div></div>\
@@ -83,27 +83,29 @@ var jstpl_palace = '<div id="palace_${id}" class="palace">\
         </div>\
     </div>';
 
-var jstpl_palace_person = '<div id="palacepersontile_${id}" class="palacepersontile_place">\
+const jstpl_palace_person = '<div id="palacepersontile_${id}" class="palacepersontile_place">\
         <div id="palacepersontile_${id}_inner" class="persontile persontile_${type}_${level}"></div>\
     </div>';
-    
-var jstpl_action  = '<div id="actioncard_${type}" class="actioncard actioncard_${type}"></div>';
 
-var jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}" style="bottom: ${b}px; z-index: ${z};"></div>';
+const jstpl_person_log = '<span class="persontile persontile_log persontile_${type}_${level}"></span>';
+
+const jstpl_action  = '<div id="actioncard_${type}" class="actioncard actioncard_${type}"></div>';
+
+const jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}" style="bottom: ${b}px; z-index: ${z};"></div>';
 
 // Great Wall tile on player boards
-var jstpl_player_great_wall = '<div id="great_wall_${id}" class="ityotd_greatwall_pb"></div>';
-var jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall" style="background-position: ${x}px ${y}px;"></div>';
+const jstpl_player_great_wall = '<div id="great_wall_${id}" class="ityotd_greatwall_pb"></div>';
+const jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall" style="background-position: ${x}px ${y}px;"></div>';
 
-var jstpl_super_event = '<div id="${id}" class="ityotd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
+const jstpl_super_event = '<div id="${id}" class="ityotd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
 
-var jstpl_super_event_icon = '<div style="display: flex;">\
+const jstpl_super_event_icon = '<div style="display: flex;">\
                                 <div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>${name}</b><hr/>${description}</div>\
                                 ${icon}\
                                 </div>';
 
 // a currency icon used as a button, either note or cert
-var jstpl_rsrc_btn = '<button id="${type}_${i}_btn" type="button" class="yd_icon icon_${type} tt${type}"></button>';
+const jstpl_rsrc_btn = '<button id="${type}_${i}_btn" type="button" class="yd_icon icon_${type} tt${type}"></button>';
 
 </script>  
 

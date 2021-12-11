@@ -948,7 +948,7 @@ class InTheYearOfTheDragonExp extends Table
             $message = clienttranslate('${player_name} places a ${age} ${person_type_name} in a palace');
             $age = ($tile_level == 1) ? clienttranslate('young') : clienttranslate('old');
         }
-        self::notifyAllPlayers( 'placePerson', $message, array(
+        self::notifyAllPlayers( 'placePerson', $message.'${persontile}', array(
             'i18n' => $i18n,
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
@@ -957,7 +957,8 @@ class InTheYearOfTheDragonExp extends Table
             'palace_id' => $palace_id,
             'person_id' => $tile_id,
             'person_type_name' => $tile_persontype['name_sg'],
-            'age' => $age
+            'age' => $age,
+            'persontile' => $tile_type.'_'.$tile_level
         ) );
         $state = $this->isSuperEventAction() ? 'sunrise' : 'nextPhase';
         $this->gamestate->nextState( $state );
