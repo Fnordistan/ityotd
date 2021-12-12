@@ -92,7 +92,7 @@ h1 {
 }
 
 /** Great Wall */
-.ityotd_wall {
+.yd_wall {
     --scale: 1;
     display: inline-block;
     width: calc(var(--scale) * var(--wall_w));
@@ -103,30 +103,42 @@ h1 {
     background-position: calc(-5 * var(--scale) * var(--wall_w)) -0px;
 }
 
-.ityotd_wall_built {
+.yd_wallevent {
+    --scale: 1;
+    position: relative;
+    float: left;
+    width: calc(var(--scale) * var(--wall_w));
+    height: calc(var(--scale) * var(--wall_h));
+    margin: 2px;
+    background-image: url('img/walltiles.jpg');
+    background-size: calc(6 * var(--scale) * var(--wall_w)) calc(7 * var(--scale) * var(--wall_h));
+    background-position: calc(-5 * var(--scale) * var(--wall_w)) -0px;
+}
+
+.yd_wall_built {
     outline: ridge gray 2px;
 }
 
-.ityotd_wall_active {
+.yd_wall_active {
     cursor: grab;
 }
 
-.ityotd_wall_active:hover {
+.yd_wall_active:hover {
     transform: scale(1.1);
     transition: transform 0.3s;
 }
 
-.ityotd_nextwall {
+.yd_nextwall {
     margin: 2px 4px;
 }
 
-.ityotd_greatwall_pb {
+.yd_greatwall_pb {
     max-width: 192px;
     max-height: 80px;
     margin-top: 10px;
 }
 
-.ityotd_superevent {
+.yd_superevent {
     position: absolute;
     right: 0;
     top: 0;
@@ -136,7 +148,7 @@ h1 {
     width: calc(var(--scale) * 80px);
 }
 
-.ityotd_superevent_icon {
+.yd_superevent_icon {
     position: relative;
     background-image: url('img/superevents.png');
     background-size: calc(var(--scale) * 960px) calc(var(--scale) * 80px);
@@ -145,7 +157,7 @@ h1 {
     flex: 0 0 auto;
 }
 
-.ityotd_superevent_log {
+.yd_superevent_log {
     float: left;
     position: relative;
     margin-right: 2px;
@@ -265,17 +277,17 @@ h1 {
 .personcard_0 {    background-position: -1020px; left: 584px; }
 .second_joker {    left: 649px; }
 
-.ityotd_person_discard {
+.yd_person_discard {
     outline: red 4px groove;
 }
-.ityotd_person_discard:hover, .ityotd_person_discard:focus, .ityotd_person_discard:active {
+.yd_person_discard:hover, .yd_person_discard:focus, .yd_person_discard:active {
     outline: goldenrod 2px solid;
     box-shadow: 0 8px 16px 0 rgba(172, 149, 75, 0.8), 5px 6px 8px 6px;
 }
 
 /*** palace ***/
 
-.palaceswrap {
+.yd_palaceswrap {
     display: inline-block;
 }
 
@@ -284,14 +296,14 @@ h1 {
     width: 75px;
     float: left;
 }
-.palaceicon {
+.yd_palaceicon {
     background-image: url('img/icons.png'); 
     width: 75px;   
     height: 50px;
     background-position: 0px -25px;
 }
 
-.palaceminiicon {
+.yd_palacelog {
     background-image: url('img/icons.png'); 
     width: 45px;   
     height: 30px;
@@ -321,7 +333,7 @@ h1 {
 }
 
 /* Float */
-.ityotd_hvr_pers {
+.yd_hvr_pers {
     display: inline-block;
     vertical-align: middle;
     transform: perspective(1px) translateZ(0);
@@ -331,11 +343,11 @@ h1 {
     transition-timing-function: ease-out;
     cursor: grab;
 }
-.ityotd_hvr_pers:hover, .ityotd_hvr_pers:focus, .ityotd_hvr_pers:active {
+.yd_hvr_pers:hover, .yd_hvr_pers:focus, .yd_hvr_pers:active {
     transform: translateX(4px);
 }
 
-.choosepalace{
+.choosepalace {
     background-image: url('img/icons.png'); 
     width: 25px;   
     height: 32px;
@@ -389,16 +401,16 @@ h1 {
 .actionflag_ffa500 {    background-position: 0px -100px;   }
 .actionflag_ff00ff {    background-position: 0px -125px;   }
 
-.ityotd_action_active {
+.yd_action_active {
     cursor: pointer;
     transition: transform 0.5s;
 }
 
-.ityotd_action_active:hover {
+.yd_action_active:hover {
     transform: scale(1.1);
 }
 
-.ityotd_container_active {
+.yd_container_active {
     background-color: #cc9f87 0.3;
     box-shadow: #3E3B54 0px 20px 30px -10px;
     padding: 2px;
@@ -406,12 +418,12 @@ h1 {
     outline: #843F20 dashed 4px;
 }
 
-.ityotd_container_active:hover {
+.yd_container_active:hover {
     background-color: #b77135;
     outline: #cc9f87 dashed 4px;
 }
 
-.ityotd_se_label {
+.yd_se_label {
     position: absolute;
     transform: translateY(-25px);
     font-size: 12px;

@@ -9,7 +9,7 @@
     </div>
     <div id="great_wall">
         <!-- BEGIN wall -->
-        <div id="wall_{ID}" class="ityotd_wall"></div>
+        <div id="wall_{ID}" class="yd_wall"></div>
         <!-- END wall -->
     </div>
 </div>
@@ -49,7 +49,7 @@
 </div>
 
 <!-- BEGIN player -->
-<div id="palace_{PLAYER_ID}" class="whiteblock palaceswrap">
+<div id="palace_{PLAYER_ID}" class="whiteblock yd_palaceswrap">
     <h2 style="color: #{PLAYER_COLOR}">{PLAYER_NAME}:</h2>
     <div>
         <div id="palaces_{PLAYER_ID}">
@@ -75,9 +75,9 @@ const jstpl_player_board = '<div class="boardblock">\
 
 const jstpl_palace = '<div id="palace_${id}" class="palace">\
         <div id="choosepalace_${id}" class="choosepalace"></div>\
-        <div id="palacefloor_${id}_3" class="palacefloor palacefloor3"><div class="palaceicon"></div></div>\
-        <div id="palacefloor_${id}_2" class="palacefloor palacefloor2"><div class="palaceicon"></div></div>\
-        <div id="palacefloor_${id}_1" class="palacefloor palacefloor1"><div class="palaceicon"></div></div>\
+        <div id="palacefloor_${id}_3" class="palacefloor palacefloor3"><div class="yd_palaceicon"></div></div>\
+        <div id="palacefloor_${id}_2" class="palacefloor palacefloor2"><div class="yd_palaceicon"></div></div>\
+        <div id="palacefloor_${id}_1" class="palacefloor palacefloor1"><div class="yd_palaceicon"></div></div>\
         <div class="palacespacer"></div>\
         <div id="palace_persons_${id}" class="palace_persons">\
         </div>\
@@ -94,12 +94,12 @@ const jstpl_action  = '<div id="actioncard_${type}" class="actioncard actioncard
 const jstpl_actionflag  = '<div id="actionflag_${id}" class="actionflag actionflag_${color}" style="bottom: ${b}px; z-index: ${z};"></div>';
 
 // Great Wall tile on player boards
-const jstpl_player_great_wall = '<div id="great_wall_${id}" class="ityotd_greatwall_pb"></div>';
-const jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="ityotd_wall" style="background-position: ${x}px ${y}px;"></div>';
+const jstpl_player_great_wall = '<div id="great_wall_${id}" class="yd_greatwall_pb"></div>';
+const jstpl_player_wall = '<div id="player_wall_${id}_${type}" class="yd_wall" style="background-position: ${x}px ${y}px;"></div>';
 
-const jstpl_wall_log = '<span class="ityotd_wall" style="--scale: 0.5; background-position: ${x}px ${y}px;"></span>';
+const jstpl_wall_log = '<span class="yd_wall" style="--scale: 0.5; background-position: ${x}px ${y}px;"></span>';
 
-const jstpl_super_event = '<div id="${id}" class="ityotd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
+const jstpl_super_event = '<div id="${id}" class="yd_superevent" style="background-position: ${x}px 0px; --scale: ${scale}"></div>';
 
 const jstpl_super_event_icon = '<div style="display: flex;">\
                                 <div id="superevent_tooltip" style="position: relative; flex: 1 1 auto;"><b>${name}</b><hr/>${description}</div>\

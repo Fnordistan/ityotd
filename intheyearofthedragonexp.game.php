@@ -2265,7 +2265,9 @@ class InTheYearOfTheDragonExp extends Table
      function stGreatWall() {
         $players = self::loadPlayersBasicInfos();
         if (self::getGameStateValue("wallLength") < self::getGameStateValue("month")) {
-            self::notifyAllPlayers( 'greatWallEvent', clienttranslate('The Great Wall is not long enough; player(s) with fewest wall sections built must lose 1 person'), array() );
+            self::notifyAllPlayers( 'greatWallEvent', '${wallevent}'.clienttranslate('The Great Wall is not long enough; player(s) with fewest wall sections built must lose 1 person'), array(
+                'wallevent' => 'gw',
+            ) );
 
             // find the lowest number of walls
             $min = 12;
@@ -2280,7 +2282,9 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState('losePerson');
         } else {
             // get points per wall
-            self::notifyAllPlayers( 'greatWallEvent', clienttranslate('The Great Wall reaches the current event; players score 1 point per wall section built'), array() );
+            self::notifyAllPlayers( 'greatWallEvent', '${wallevent}'.clienttranslate('The Great Wall reaches the current event; players score 1 point per wall section built'), array(
+                'wallevent' => 'gw',
+            ) );
             foreach( $players as $pid => $player ) {
                 $vp = $this->countWallTilesBuilt($pid);
                 $this->addVictoryPoints($pid, $vp);
