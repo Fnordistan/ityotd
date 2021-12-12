@@ -100,19 +100,14 @@ h1 {
     margin: 2px;
     background-image: url('img/walltiles.jpg');
     background-size: calc(6 * var(--scale) * var(--wall_w)) calc(7 * var(--scale) * var(--wall_h));
-    background-position: calc(-5 * var(--scale) * var(--wall_w)) -0px;
+    background-position: calc(-5 * var(--scale) * var(--wall_w)) 0px;
 }
 
 .yd_wallevent {
-    --scale: 1;
     position: relative;
     float: left;
-    width: calc(var(--scale) * var(--wall_w));
-    height: calc(var(--scale) * var(--wall_h));
-    margin: 2px;
-    background-image: url('img/walltiles.jpg');
-    background-size: calc(6 * var(--scale) * var(--wall_w)) calc(7 * var(--scale) * var(--wall_h));
-    background-position: calc(-5 * var(--scale) * var(--wall_w)) -0px;
+    background-color: slategray;
+    background-blend-mode: luminosity;
 }
 
 .yd_wall_built {
@@ -243,8 +238,9 @@ h1 {
 }
 
 .person_release {
-    filter: grayscale(100%);
-    opacity: 0.8;
+    background-color: red;
+    background-blend-mode: screen;
+    filter: grayscale(0.5);
 }
 
 /*** personcard ***/

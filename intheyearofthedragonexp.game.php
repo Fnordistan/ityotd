@@ -590,7 +590,9 @@ class InTheYearOfTheDragonExp extends Table
             self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points' ), array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]['player_name'],
-                'nbr' => $personscore
+                'nbr' => $personscore,
+                'logicon' => 'vp',
+                'preserve' => ['logicon']
             ));
         }
     }
@@ -624,7 +626,9 @@ class InTheYearOfTheDragonExp extends Table
             self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} scores ${nbr} points from Monks' ), array(
                 'player_id' => $player_id,
                 'player_name' => $players[$player_id]['player_name'],
-                'nbr' => $pts
+                'nbr' => $pts,
+                'logicon' => 'vp',
+                'preserve' => ['logicon']
             ));
         }
     }
@@ -1061,7 +1065,9 @@ class InTheYearOfTheDragonExp extends Table
         self::notifyAllPlayers( 'gainPoint', clienttranslate( '${player_name} gets ${nbr} points' ), array(
             'player_id' => $player_id,
             'player_name' => $players[$player_id]['player_name'],
-            'nbr' => $vp
+            'nbr' => $vp,
+            'logicon' => 'vp',
+            'preserve' => ['logicon']
         ) );
     }
 
@@ -1987,7 +1993,10 @@ class InTheYearOfTheDragonExp extends Table
                         self::notifyAllPlayers( "gainPointFireworks", clienttranslate('${player_name} has the most fireworks and gets ${nbr} points'), array(
                             'player_id' => $player_id,
                             'player_name' => $players[ $player_id ]['player_name'],
-                            'nbr' => 6 ) );
+                            'nbr' => 6,
+                            'logicon' => 'vp',
+                            'preserve' => ['logicon']
+                             ) );
                         self::incStat( 6, 'points_fireworks', $player_id );
                     }
                     else if( $rank == 2 )
@@ -1999,7 +2008,10 @@ class InTheYearOfTheDragonExp extends Table
                         self::notifyAllPlayers( "gainPointFireworks", clienttranslate('${player_name} has the second most fireworks and gets ${nbr} points'), array(
                             'player_id' => $player_id,
                             'player_name' => $players[ $player_id ]['player_name'],
-                            'nbr' => 3 ) );
+                            'nbr' => 3,
+                            'logicon' => 'vp',
+                            'preserve' => ['logicon']
+                            ) );
                         self::incStat( 3, 'points_fireworks', $player_id );
                     }
                     
@@ -2116,7 +2128,10 @@ class InTheYearOfTheDragonExp extends Table
                 self::notifyAllPlayers( 'gainPoint', clienttranslate( 'Mongol Invasion: ${player_name} has ${nbr} helmet(s) and gets ${nbr} point(s)' ), array(
                     'player_id' => $player_id,
                     'player_name' => $players[ $player_id ]['player_name'],
-                    'nbr' => $items
+                    'nbr' => $items,
+                    'logicon' => 'vp',
+                    'preserve' => ['logicon']
+
                 ) );
                 self::incStat( $items, 'points_mongol', $player_id );
             }

@@ -192,7 +192,7 @@ function (dojo, declare) {
                     log += this.format_block('jstpl_wall_log', {x: xoff, y: yoff});
                 }
                 if (args.wallevent) {
-                    args.wallevent = '<div class="yd_wallevent"></div>';
+                    args.wallevent = '<div class="yd_wall yd_wallevent"></div>';
                 }
                 if (args.event_icon) {
                     const event_icon = '<div class="event_log eventtype_'+args.event_icon+'"></div>';
@@ -210,6 +210,13 @@ function (dojo, declare) {
                             break;
                         case "palace":
                             iconhtml = '<span class="yd_palacelog" style="display: inline-block; margin: 2px;"></span>';
+                            break;
+                        case "vp":
+                            const nbr = args.nbr;
+                            iconhtml = " ";
+                            for (let i = 0; i < nbr; i++) {
+                                iconhtml += '<span class="fa fa-star"></span>';
+                            }
                             break;
                         default:
                             throw "Unrecognized icon: "+args.logicon;
