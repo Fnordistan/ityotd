@@ -55,6 +55,7 @@ if (!defined('STATE_SETUP')) { // ensure this block is only invoked once, since 
     define("STATE_GREAT_WALL", 34);
     define("STATE_GREAT_WALL_NP", 35);
     define("STATE_GREAT_WALL_RELEASE", 36);
+    define("STATE_GREAT_WALL_CHECKLAST", 44);
     define("STATE_SUPER_EVENT", 37);
     define("SUPER_EVENT_INIT", 38);
     define("STATE_BUILD_WALL", 39);
@@ -241,7 +242,7 @@ $machinestates = array(
         "description" => "",
         "type" => "game",
         "action" => "stGreatWall",
-        "transitions" => array( "losePerson" => STATE_GREAT_WALL_NP, "endPhase" => STATE_SUPER_EVENT )
+        "transitions" => array( "losePerson" => STATE_GREAT_WALL_NP, "endPhase" => STATE_GREAT_WALL_CHECKLAST )
     ),
 
     STATE_GREAT_WALL_NP => array(
@@ -249,7 +250,7 @@ $machinestates = array(
         "description" => "",
         "action" => "stGreatWallNext",
         "type" => "game",
-        "transitions" => array( "nextPlayer" => STATE_GREAT_WALL_NP, "releasePerson" => STATE_GREAT_WALL_RELEASE, "endPhase" => STATE_SUPER_EVENT )
+        "transitions" => array( "nextPlayer" => STATE_GREAT_WALL_NP, "releasePerson" => STATE_GREAT_WALL_RELEASE, "endPhase" => STATE_GREAT_WALL_CHECKLAST )
     ),
 
     STATE_GREAT_WALL_RELEASE => array(
@@ -261,6 +262,14 @@ $machinestates = array(
         "args" => "argNbrToRelease",
         "type" => "activeplayer",
         "transitions" => array( "endRelease" => STATE_GREAT_WALL_NP )
+    ),
+
+    STATE_GREAT_WALL_CHECKLAST => array(
+        "name" => "greatWallCheckLast",
+        "description" => "",
+        "action" => "stGreatWallLast",
+        "type" => "game",
+        "transitions" => array( "greatWall" => STATE_GREAT_WALL, "endPhase" => STATE_SUPER_EVENT )
     ),
 
     STATE_BUILD_WALL => array(
@@ -279,7 +288,7 @@ $machinestates = array(
         "description" => '',
         "type" => "game",
         "action" => "stSuperEvent",
-        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => SUPER_EVENT_INIT, "sunrise" => SUPER_EVENT_INIT, "charter" => SUPER_EVENT_INIT )
+        "transitions" => array( "endPhase" => STATE_END_PHASE, "earthquake" => SUPER_EVENT_INIT, "flood" => SUPER_EVENT_INIT, "solar" => STATE_EVENT, "tornado" => SUPER_EVENT_INIT, "sunrise" => SUPER_EVENT_INIT, "charter" => SUPER_EVENT_INIT, "greatWall" => STATE_GREAT_WALL )
     ),
 
     STATE_END_PHASE => array(

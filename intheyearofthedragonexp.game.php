@@ -16,6 +16,7 @@ require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
 define('SUPER_EVENT', "SUPER_EVENT");
 define('SUPER_EVENT_DONE', "SUPER_EVENT_DONE");
+define('GREAT_WALL_12', "GREAT_WALL_12");
 define('SUPER_EVENT_ACTION', "SUPER_EVENT_ACTION");
 define('SUPER_EVENT_FIRST_PLAYER', "seFirstPlayer");
 define('TO_BUILD', "toBuild");
@@ -46,6 +47,7 @@ class InTheYearOfTheDragonExp extends Table
                 SUPER_EVENT_ACTION => 30,
                 "largePrivilegeCost" => 100,
                 "greatWall" => 101,
+                GREAT_WALL_12 => 111,
                 "superEvents" => 102,
                 "openHand" => 103,
             ));
@@ -81,6 +83,7 @@ class InTheYearOfTheDragonExp extends Table
         $events = array( 1 => 1, 2 => 1 );    // 2 "peace" events to begin
         $remaining_events = array( 2, 2, 3, 3, 4, 4, 5, 5, 6, 6 );
         shuffle( $remaining_events );
+        // $remaining_events = array( 5, 2, 3, 2, 3, 5, 4, 6, 4, 6 );
 
         for( $i=3; $i<=12; $i++ )
         {
@@ -187,6 +190,7 @@ class InTheYearOfTheDragonExp extends Table
         self::setGameStateInitialValue( SUPER_EVENT_FIRST_PLAYER, 0 );
         self::setGameStateInitialValue( SUPER_EVENT, 0 ); // note this is different from "superEvents" which is the gameoptions value
         self::setGameStateInitialValue( SUPER_EVENT_DONE, 0 );
+        self::setGameStateInitialValue( GREAT_WALL_12, 0 );
         self::setGameStateInitialValue( SUPER_EVENT_ACTION, 0 );
 
         // Statistics
@@ -370,13 +374,12 @@ class InTheYearOfTheDragonExp extends Table
      * Check whether this is Month 7 and Super Events are enabled.
      */
     function isSuperEvent() {
-        $s_ev = false;
         if (self::getGameStateValue('month') == 7) {
             if (self::getGameStateValue(SUPER_EVENT) != 0) {
                 return true;
             }
         }
-        return $s_ev;
+        return false;
     }
 
     /**
@@ -477,7 +480,6 @@ class InTheYearOfTheDragonExp extends Table
             'preserve' => ['superevent'],
         ) );
     }
-
 
     /**
      * Get all the Wall tiles.
@@ -767,6 +769,15 @@ class InTheYearOfTheDragonExp extends Table
         return $mypalaces;
      }
 
+     /**
+      * Check whether this person type has already been chosen in Sunrise event.
+      * @return true if someone else already chose this person type
+      */
+     function chosenSunrise($type) {
+        $sunrise = self::getUniqueValueFromDB( "SELECT personpool_sunrise FROM personpool WHERE personpool_type=$type AND personpool_level=1");
+        return $sunrise;
+     }
+
 //////////////////////////////////////////////////////////////////////////////
 //////////// Player actions
 //////////// 
@@ -846,7 +857,7 @@ class InTheYearOfTheDragonExp extends Table
                 }
             } else {
                 // sunrise
-                $sunrise = self::getUniqueValueFromDB( "SELECT personpool_sunrise FROM personpool WHERE personpool_type=$type AND personpool_level=$level");
+                $sunrise = $this->chosenSunrise($type);
                 if ($sunrise) {
                     throw new BgaUserException( self::_("This person type was already chosen in the Sunrise phase") );
                 } else {
@@ -2310,6 +2321,25 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     /**
+     * This is a special case - where we need to check whether we are using the Great Wall and the Mongol Event happens on turn 12.
+     */
+    function stGreatWallLast() {
+        $state = "endPhase";
+        if ($this->useGreatWall()) {
+            if (self::getGameStateValue(GREAT_WALL_12) == 0) {
+                $month = self::getGameStateValue( 'month' );
+                $event12 = self::getUniqueValueFromDB( "SELECT year_event FROM year WHERE year_id=12" );
+                $gw = ($event12 == 5) && ($month == 12);
+                if ($gw) {
+                    $state = "greatWall";
+                    self::setGameStateValue(GREAT_WALL_12, 1);
+                }
+            }
+        }
+        $this->gamestate->nextState($state);
+    }
+
+    /**
      * For checking next player in a Super Event. If SUPER_EVENT_FIRST_PLAYER has been initialized it, unflag it.
      * If first player, or there is another player in player order, return true to continue.
      * If all players have gone, return false.
@@ -2667,7 +2697,7 @@ class InTheYearOfTheDragonExp extends Table
             'player_to_score' => $player_to_score
         ) );            
     }
-    
+
     function stDecayAndScoring()
     {
         // Decay: unoccupied palaces lose a floor, and void palaces are removed
@@ -2827,7 +2857,7 @@ class InTheYearOfTheDragonExp extends Table
                     $this->discardRandom($active_player);
                     break;
                 case 'sunriseRecruit':
-                    $this->recruitRandom($active_player);
+                    $this->recruitRandomSunrise($active_player);
                     break;
                 case 'charterPerson':
                     $this->charterRandom($active_player);
@@ -2965,6 +2995,27 @@ class InTheYearOfTheDragonExp extends Table
                 // will result in throwing away the card
                 $this->recruit($person_type, 1);
             }
+        }
+    }
+
+    /**
+     * Choose random young person.
+     */
+    function recruitRandomSunrise($active_player) {
+        $recruit = 0;
+        $randomtype = array_keys($this->person_types);
+        shuffle($randomtype);
+        while ($recruit == 0 && !empty($randomtype)) {
+            $p = array_pop($randomtype);
+            if (($this->getPersonsLeft($p, 1) > 0) && (!$this->chosenSunrise($p))) {
+                $recruit = $p;
+            }
+        }
+        if ($recruit == 0) {
+            // we couldn't recruit anyone
+            $this->gamestate->nextState( 'zombiePass' );
+        } else {
+            $this->recruit($recruit, 1);
         }
     }
 

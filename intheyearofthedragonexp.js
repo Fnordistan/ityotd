@@ -448,7 +448,6 @@ function (dojo, declare) {
         
         onEnteringState: function( stateName, args )
         {
-            
             switch( stateName ) {
                 case 'initialChoice':
                     if( this.isCurrentPlayerActive() ) {
