@@ -12,13 +12,10 @@ function (dojo, declare) {
     return declare("bgagame.intheyearofthedragonexp", ebg.core.gamegui, {
         constructor: function(){
             console.log('intheyearofthedragonexp constructor');
-              
-
         },
 
         setup: function( gamedatas )
         {
-            console.log( "start creating player boards" );
             for( var player_id in gamedatas.players )
             {
                 var player = gamedatas.players[player_id];
@@ -166,7 +163,7 @@ function (dojo, declare) {
                 }
                 if (args.superevent_icon) {
                     var event_html = this.createSuperEventTile("superevent", args.superevent, 0.35);
-                    event_html = event_html.replace('class="ityotd_superevent"', 'class="ityotd_superevent_log"');
+                    event_html = event_html.replace('class="yd_superevent"', 'class="yd_superevent_log"');
                     args.superevent_icon = event_html;
                 }
                 if (args.superevent_name) {
@@ -194,6 +191,9 @@ function (dojo, declare) {
                     const yoff = -36 * args.bonus * scale;
                     log += this.format_block('jstpl_wall_log', {x: xoff, y: yoff});
                 }
+                if (args.wallevent) {
+                    args.wallevent = '<div class="yd_wallevent"></div>';
+                }
                 if (args.event_icon) {
                     const event_icon = '<div class="event_log eventtype_'+args.event_icon+'"></div>';
                     args.event_icon = event_icon;
@@ -209,7 +209,7 @@ function (dojo, declare) {
                             iconhtml = this.format_block('jstpl_rsrc_log', {type: args.logicon});
                             break;
                         case "palace":
-                            iconhtml = '<span class="palaceminiicon" style="display: inline-block; margin: 2px;"></span>';
+                            iconhtml = '<span class="yd_palacelog" style="display: inline-block; margin: 2px;"></span>';
                             break;
                         default:
                             throw "Unrecognized icon: "+args.logicon;
@@ -287,7 +287,7 @@ function (dojo, declare) {
                 } else {
                     wall_tile = dojo.place( this.format_block('jstpl_player_wall', {'id': player_id, 'type': bonus, 'x': xoff, 'y': 0}), 'great_wall_'+player_id);
                 }
-                wall_tile.classList.add("ityotd_wall_built");
+                wall_tile.classList.add("yd_wall_built");
                 this.addTooltip(wall_tile.id, _("Wall section (built)"), '');
                 // flip over the Great Wall tile
                 const wall = document.getElementById('wall_'+location);
@@ -329,7 +329,7 @@ function (dojo, declare) {
                 var desc_span = document.createElement("span");
                 desc_span.id = "superevent_label";
                 desc_span.innerHTML = superevent.name;
-                desc_span.classList.add('ityotd_se_label');
+                desc_span.classList.add('yd_se_label');
                 desc_div.appendChild(desc_span);
                 parent.insertBefore(desc_div, event_7);
 
@@ -337,18 +337,18 @@ function (dojo, declare) {
                     desc_span.style['opacity'] = 0.5;
                     var fin_event_div = this.createSuperEventTile("superevent", 12, 0.3);
                     dojo.place(fin_event_div, event_7);
-                    this.addTooltipToClass( 'ityotd_superevent', superevent.name, '' );
+                    this.addTooltipToClass( 'yd_superevent', superevent.name, '' );
                 } else {
                     desc_span.style['font-weight'] = 'bold';
                     var superevent_div = this.createSuperEventTile("superevent", se, 0.3);
                     dojo.place(superevent_div, event_7);
     
                     var tooltip_icon = this.createSuperEventTile("superevent_tt", se, 1);
-                    tooltip_icon = tooltip_icon.replace('class="ityotd_superevent"', 'class="ityotd_superevent_icon"');
+                    tooltip_icon = tooltip_icon.replace('class="yd_superevent"', 'class="yd_superevent_icon"');
                     var tooltip = this.format_block('jstpl_super_event_icon', {'name': superevent.name, 'description': superevent.description, 'icon': tooltip_icon});
 
-                    this.addTooltipToClass( 'ityotd_superevent', tooltip, '' );
-                    this.addTooltipToClass('ityotd_se_label', tooltip, '');
+                    this.addTooltipToClass( 'yd_superevent', tooltip, '' );
+                    this.addTooltipToClass('yd_se_label', tooltip, '');
                 }
             }
         },
@@ -441,7 +441,6 @@ function (dojo, declare) {
         
         onEnteringState: function( stateName, args )
         {
-           console.log( 'Entering state: '+stateName );
             
             switch( stateName ) {
                 case 'initialChoice':
@@ -465,8 +464,8 @@ function (dojo, declare) {
                 case 'actionPhaseChoose':
                     if (this.isCurrentPlayerActive()) {
                         const actioncards = document.getElementsByClassName('actioncard');
-                        [...actioncards].forEach(a => a.classList.add('ityotd_action_active'));
-                        $('actionscontainer').classList.add('ityotd_container_active');
+                        [...actioncards].forEach(a => a.classList.add('yd_action_active'));
+                        $('actionscontainer').classList.add('yd_container_active');
                     }
                     break;
                 case 'actionPhaseBuild':
@@ -521,10 +520,7 @@ function (dojo, declare) {
             }
         },
 
-        onLeavingState: function( stateName )
-        {
-            console.log( 'Leaving state: '+stateName );
-
+        onLeavingState: function( stateName ) {
             switch( stateName ) {
                 case 'initialChoice':
                     this.activatePersonTiles(false);
@@ -547,8 +543,8 @@ function (dojo, declare) {
                     break;
                 case 'actionPhaseChoose':
                     // remove the hover effects
-                    this.stripClass("ityotd_action_active");
-                    $('actionscontainer').classList.remove('ityotd_container_active');
+                    this.stripClass("yd_action_active");
+                    $('actionscontainer').classList.remove('yd_container_active');
                     break;
                 case 'actionPhaseBuild':
                     this.displayPalaceSelectors(false);
@@ -575,10 +571,7 @@ function (dojo, declare) {
             }
         }, 
         
-        onUpdateActionButtons: function( stateName, args )
-        {
-            console.log( 'onUpdateActionButtons: '+stateName );
-                      
+        onUpdateActionButtons: function( stateName, args ) {
             if( this.isCurrentPlayerActive() )
             {            
                 switch( stateName )
@@ -751,9 +744,7 @@ function (dojo, declare) {
         },
 
         // Create new palace for given player with given id
-        createNewPalace: function( player_id, id )
-        {
-            console.log( 'createNewPalace' );
+        createNewPalace: function( player_id, id ) {
             const player_pal = $('palaces_'+player_id);
             const new_pal_html = this.format_block('jstpl_palace', { id: id } );
 
@@ -910,8 +901,8 @@ function (dojo, declare) {
             dojo.query( '.nextevent' ).removeClass( 'nextevent' );
             dojo.addClass( 'event_'+month, 'nextevent' );
             if (this.gamedatas.greatWall) {
-                dojo.query( '.ityotd_nextwall' ).removeClass( 'ityotd_nextwall' );
-                dojo.addClass( 'wall_'+month, 'ityotd_nextwall' );
+                dojo.query( '.yd_nextwall' ).removeClass( 'yd_nextwall' );
+                dojo.addClass( 'wall_'+month, 'yd_nextwall' );
             }
             
             for( var i=1; i<month; i++ )
@@ -948,9 +939,9 @@ function (dojo, declare) {
             const personcards = document.getElementsByClassName("personcard");
             for (let pp of personcards) {
                 if (toDiscard) {
-                    pp.classList.add("ityotd_person_discard");
+                    pp.classList.add("yd_person_discard");
                 } else {
-                    pp.classList.remove("ityotd_person_discard");
+                    pp.classList.remove("yd_person_discard");
                 }
             }
         },
@@ -967,7 +958,7 @@ function (dojo, declare) {
             if (enable) {
                 wall_container.onclick = event => {
                     var wall_tile = event.target;
-                    if (wall_tile.classList.contains("ityotd_wall") && !wall_tile.classList.contains("ityotd_wall_built")) {
+                    if (wall_tile.classList.contains("yd_wall") && !wall_tile.classList.contains("yd_wall_built")) {
                         var id = parseInt(wall_tile.id.match(wallid_rx)[1]);
                         this.onChooseWall(id);
                     }
@@ -978,12 +969,12 @@ function (dojo, declare) {
                 wall_container.onclick = null;
                 wall_container.style['border'] = '';
             }
-            const wall_tiles = wall_container.getElementsByClassName("ityotd_wall");
+            const wall_tiles = wall_container.getElementsByClassName("yd_wall");
             for (let w of wall_tiles) {
-                if (enable && !w.classList.contains("ityotd_wall_built")) {
-                    w.classList.add("ityotd_wall_active");
+                if (enable && !w.classList.contains("yd_wall_built")) {
+                    w.classList.add("yd_wall_active");
                 } else {
-                    w.classList.remove("ityotd_wall_active");
+                    w.classList.remove("yd_wall_active");
                 }
             }
         },
@@ -996,7 +987,7 @@ function (dojo, declare) {
         activatePersonTiles: function(activate, recruiting) {
             var persontiles = document.getElementsByClassName('persontile');
             if (!activate) {
-                this.stripClass("ityotd_hvr_pers");
+                this.stripClass("yd_hvr_pers");
             } else {
                 if (recruiting == 1) {
                     persontiles = Array.from(document.getElementById("persontiles").children).filter(p => p.id.endsWith("1"));
@@ -1008,7 +999,7 @@ function (dojo, declare) {
                         persontiles = player_palaces.getElementsByClassName('persontile');
                     }
                 }
-                [...persontiles].forEach(pp => pp.classList.add("ityotd_hvr_pers"));
+                [...persontiles].forEach(pp => pp.classList.add("yd_hvr_pers"));
             }
         },
 
@@ -1112,9 +1103,7 @@ function (dojo, declare) {
         ///////////////////////////////////////////////////
         //// Action ajax calls
 
-        onRecruit: function( evt )
-        {
-            console.log( 'onRecruit' );
+        onRecruit: function( evt ) {
             evt.preventDefault( );
             if( ! (this.isCurrentPlayerActive() && this.checkAction( 'recruit', true )) )
             {   
@@ -1164,9 +1153,7 @@ function (dojo, declare) {
 
 
         // Choose a palace (ex: to place some tile)
-        onChoosePalace: function( evt )
-        {
-            console.log( 'onChoosePalace' );
+        onChoosePalace: function( evt ) {
             evt.preventDefault( );
             // hack to disable selecting the arrows that have been made invisible
             if (evt.currentTarget.style['opacity'] == 0) {
@@ -1186,7 +1173,6 @@ function (dojo, declare) {
             } 
             else if( this.checkAction('build', true))
             {
-                console.log('build palace');
                 // Build a floor
                 if( palace_id == 'new' ) {   
                     palace_id = 0;  // Note: meaning = "new palace"
@@ -1207,7 +1193,6 @@ function (dojo, declare) {
         
         onAction: function( evt )
         {
-            console.log( 'onAction' );
             evt.preventDefault( );    
 
             if( ! (this.checkAction( 'action', true ) && this.isCurrentPlayerActive()) )
@@ -1264,7 +1249,7 @@ function (dojo, declare) {
             {   return; } 
             const yuans = $('yuannbr_'+this.player_id).innerHTML;
             if (toint(yuans) >= 3) {
-                let yuanstr = _("You already have ${yuan} yuan, so this action will have no effect. Confirm?");
+                let yuanstr = _("You already have ${yuan} yuan, so this action will have no effect.");
                 yuanstr = yuanstr.replace('${yuan}', yuans);
                 this.confirmationDialog( yuanstr,
                 dojo.hitch( this, function() {
@@ -1424,7 +1409,6 @@ function (dojo, declare) {
 
         setupNotifications: function()
         {
-            console.log( 'notifications subscriptions setup' );
             dojo.subscribe( 'placePerson', this, "notif_placePerson" );
             dojo.subscribe( 'newActions', this, "notif_newActions" );
             dojo.subscribe( 'actionChoice', this, "notif_actionChoice" );
@@ -1457,11 +1441,7 @@ function (dojo, declare) {
             dojo.subscribe( 'superEvent', this, 'notif_superEvent');
         },
         
-        notif_placePerson: function( notif )
-        {
-            console.log( 'notif_placePerson' );
-            console.log( notif );
-            
+        notif_placePerson: function( notif ) {
             this.addPersonToPalace( notif.args.palace_id, notif.args.person_id, notif.args.person_type, notif.args.person_level );
             
             var tile_id = notif.args.person_type+'_'+notif.args.person_level;
@@ -1472,16 +1452,11 @@ function (dojo, declare) {
         },
         notif_personScoreUpdate: function( notif )
         {
-            console.log( 'notif_personScoreUpdate' );
-            console.log( notif );
             this.setPersonScore( notif.args.player_id, notif.args.person_score, notif.args.person_score_place );
 
         },
         notif_newActions: function( notif )
         {
-            console.log( 'notif_newActions' );
-            console.log( notif );
-            
             // Remove all old actions
             dojo.query( '.actioncard' ).forEach(dojo.destroy);
             
@@ -1498,9 +1473,6 @@ function (dojo, declare) {
          * @param {Object} notif 
          */
         notif_actionChoice: function( notif ) {
-            console.log( 'notif_actionChoice' );
-            console.log( notif );
-
             const player_id = notif.args.player_id;
             const action_id = notif.args.action_id;
 
@@ -1527,78 +1499,54 @@ function (dojo, declare) {
         },
         notif_refillyuan: function( notif )
         {
-            console.log( 'notif_refillyuan' );
-            console.log( notif );
             $('yuannbr_'+notif.args.player_id).innerHTML = Math.max( 3, toint( $('yuannbr_'+notif.args.player_id).innerHTML ) );
         },        
         notif_harvest: function( notif )
         {
-            console.log( 'notif_harvest' );
-            console.log( notif );
             $('ricenbr_'+notif.args.player_id).innerHTML = ( toint( $('ricenbr_'+notif.args.player_id).innerHTML ) + toint( notif.args.nbr ) );
         },
         notif_eventPayRice: function( notif )
         {
-            console.log( 'notif_eventPayRice' );
-            console.log( notif );
             $('ricenbr_'+notif.args.player_id).innerHTML = ( toint( $('ricenbr_'+notif.args.player_id).innerHTML ) - toint( notif.args.nbr ) );
         },
         notif_fireworks: function( notif )
         {
-            console.log( 'notif_fireworks' );
-            console.log( notif );
             $('fwnbr_'+notif.args.player_id).innerHTML = ( toint( $('fwnbr_'+notif.args.player_id).innerHTML ) + toint( notif.args.nbr ) );
         },
         notif_taxes: function( notif )
         {
-            console.log( 'notif_taxes' );
-            console.log( notif );
             $('yuannbr_'+notif.args.player_id).innerHTML = ( toint( $('yuannbr_'+notif.args.player_id).innerHTML ) + toint( notif.args.nbr ) );
         },
         notif_eventPayYuan: function( notif )
         {
-            console.log( 'notif_eventPayYuan' );
-            console.log( notif );
             $('yuannbr_'+notif.args.player_id).innerHTML = ( toint( $('yuannbr_'+notif.args.player_id).innerHTML ) - toint( notif.args.nbr ) );
         },
         notif_gainPoint: function( notif )
         {
-            console.log( 'notif_gainPoint' );
-            console.log( notif );
             this.scoreCtrl[ notif.args.player_id ].incValue( parseInt(notif.args.nbr) );
         },   
         notif_gainPointFireworks: function( notif )
         {
-            console.log( 'notif_gainPointFireworks' );
-            console.log( notif );
             this.scoreCtrl[ notif.args.player_id ].incValue( notif.args.nbr );
             $('fwnbr_'+notif.args.player_id).innerHTML = Math.floor( ( toint( $('fwnbr_'+notif.args.player_id).innerHTML ) )/2 ); 
         },          
                    
         notif_buyPrivilege: function( notif )
         {
-            console.log( 'notif_buyPrivilege' );
-            console.log( notif );
             $('privnbr_'+notif.args.player_id).innerHTML = ( toint( $('privnbr_'+notif.args.player_id).innerHTML ) + toint( notif.args.nbr ) );
             $('yuannbr_'+notif.args.player_id).innerHTML = ( toint( $('yuannbr_'+notif.args.player_id).innerHTML ) - toint( notif.args.price ) );
         },
 
         notif_newPalace: function( notif )
         {
-            console.log( 'notif_newPalace' );
-            console.log( notif );
             this.createNewPalace( notif.args.player_id, notif.args.palace_id );
         },
         notif_buildPalace: function( notif )
         {
-            console.log( 'notif_buildPalace' );
-            console.log( notif );
             this.addFloorToPalace( notif.args.palace_id );
         },
 
         notif_reducePalace: function(notif) {
-            console.log( 'notif_reducePalace' );
-            console.log( notif );
             var palace_id = notif.args.reduce;
             var newsize = parseInt(notif.args.size);
 
@@ -1611,21 +1559,14 @@ function (dojo, declare) {
 
         notif_newMonth:function( notif )
         {
-            console.log( 'notif_newMonth' );
-            console.log( notif );
             this.setCurrentMonth( notif.args.month );
         },
         notif_release: function( notif )
         {
-            console.log( 'notif_release' );
-            console.log( notif );
             this.releasePerson( notif.args.person_id );
         },
         notif_decay: function( notif )
         {
-            console.log( 'notif_decay' );
-            console.log( notif );
-
             for( var i in notif.args.destroy )
             {
                 var palace_id = notif.args.destroy[ i ];
@@ -1650,9 +1591,6 @@ function (dojo, declare) {
         },
         notif_endOfTurnScoring: function( notif )
         {
-            console.log( 'notif_endOfTurnScoring' );
-            console.log( notif );
-        
             this.displayTableWindow( 'endTurn', _('End of turn scoring'), notif.args.datagrid );
             
             for( var player_id in notif.args.player_to_score )
@@ -1662,9 +1600,6 @@ function (dojo, declare) {
         }, 
         notif_endOfGameScoring: function( notif )
         {
-            console.log( 'notif_endOfGameScoring' );
-            console.log( notif );
-        
             this.displayTableWindow( 'endGame', _('End of game scoring'), notif.args.datagrid );
             
             for( var player_id in notif.args.player_to_score )
