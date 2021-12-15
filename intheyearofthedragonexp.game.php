@@ -790,10 +790,10 @@ class InTheYearOfTheDragonExp extends Table
         
         // Check this person type/level exists
         if( ! isset( $this->person_types[ $type ] ) ) {
-            throw new BgaVisibleSystemException( 'This type does not exist: '.$type );
+            throw new BgaVisibleSystemException( 'This type does not exist: '.$type ); // NOI18N
         }
         if( ! isset( $this->person_types[ $type ]['subtype'][$level] ) ) {
-            throw new BgaVisibleSystemException( 'Level $level of person type $type does not exist' );
+            throw new BgaVisibleSystemException( 'Level $level of person type $type does not exist' ); // NOI18N
         }
         
         // Check there are tiles available
@@ -954,17 +954,12 @@ class InTheYearOfTheDragonExp extends Table
         $this->increasePersonScore( $player_id, $tile_person_score );                                
 
         // Notify
-        $i18n = array( 'person_type_name' );
         $age = '';
-        $message = clienttranslate('${player_name} places a ${person_type_name} in a palace');
-        if( count( $tile_persontype['subtype'] ) > 1 )
-        {
-            $i18n[] = 'age';
-            $message = clienttranslate('${player_name} places a ${age} ${person_type_name} in a palace');
+        if( count( $tile_persontype['subtype'] ) > 1 ) {
             $age = ($tile_level == 1) ? clienttranslate('young') : clienttranslate('old');
         }
-        self::notifyAllPlayers( 'placePerson', $message.'${persontile}', array(
-            'i18n' => $i18n,
+        self::notifyAllPlayers( 'placePerson', clienttranslate('${player_name} places a ${age} ${person_type_name} in a palace'), array(
+            'i18n' => ['age', 'person_type_name'],
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'person_type' => $tile_type,
@@ -973,7 +968,8 @@ class InTheYearOfTheDragonExp extends Table
             'person_id' => $tile_id,
             'person_type_name' => $tile_persontype['name_sg'],
             'age' => $age,
-            'persontile' => $tile_type.'_'.$tile_level
+            'persontile' => $tile_type.'_'.$tile_level,
+            'preserve' => ['persontile']
         ) );
         $state = $this->isSuperEventAction() ? 'sunrise' : 'nextPhase';
         $this->gamestate->nextState( $state );
@@ -1111,7 +1107,7 @@ class InTheYearOfTheDragonExp extends Table
         self::checkAction( 'action' );
         // Check if action exists
         if( ! isset( $this->action_types[ $action_id ] ) ) {
-            throw new BgaVisibleSystemException( 'This action does not exist: $action_id' );
+            throw new BgaVisibleSystemException( 'This action does not exist: $action_id' ); // NOI18N
         }
        
         $player_id = self::getActivePlayerId();
@@ -1255,6 +1251,7 @@ class InTheYearOfTheDragonExp extends Table
         self::incStat(1, 'walls_built_allplayers');
 
         self::notifyAllPlayers("wallBuilt", clienttranslate('${player_name} builds Great Wall section and receives ${reward} bonus'), array(
+            'i18n' => ['reward'],
             'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
             'length' => $nextWall,
@@ -1285,7 +1282,7 @@ class InTheYearOfTheDragonExp extends Table
         }
         
         // Notify
-        self::notifyAllPlayers( 'refillyuan', clienttranslate('${player_name} brings his money supply up to 3 yuan'), array(
+        self::notifyAllPlayers( 'refillyuan', clienttranslate('${player_name} brings money supply up to 3 yuan'), array(
             'i18n' => array( 'action_name' ),
             'player_name' => self::getActivePlayerName(),
             'player_id' => $player_id,
@@ -1546,14 +1543,15 @@ class InTheYearOfTheDragonExp extends Table
             $age = ( $person['level'] == 1 ) ? clienttranslate('young') : clienttranslate('old');
         }
        
-        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}').'${persontile}', array(
+        self::notifyAllPlayers( 'release', clienttranslate('${player_name} releases a ${age} ${person_type_name}'), array(
             'i18n' => $i18n,
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'person_type_name' => $tile_persontype['name_sg'],
             'age' => $age,
             'person_id' => $person_id,
-            'persontile' => $person['type'].'_'.$person['level'].'_release'
+            'persontile' => $person['type'].'_'.$person['level'].'_release',
+            'preserve' => ['persontile']
         ) );
 
         if( $bAndReplace )
@@ -2308,7 +2306,11 @@ class InTheYearOfTheDragonExp extends Table
             $this->gamestate->nextState('losePerson');
         } else {
             // get points per wall
-            self::notifyAllPlayers( 'greatWallEvent', '${wallevent}'.clienttranslate('The Great Wall reaches the current event; players score 1 point per wall section built'), array(
+            $islast = self::getGameStateValue( 'month' ) == 12;
+            $eventdesc = $islast ? clienttranslate("The Great Wall is complete") : clienttranslate("The Great Wall reaches the Mongol Invasion");
+            self::notifyAllPlayers( 'greatWallEvent', '${wallevent}'.'${eventdesc}'.';'.clienttranslate('players score 1 point per wall section built'), array(
+                'i18n' => ['eventdesc'],
+                'eventdesc' => $eventdesc,
                 'wallevent' => 'gw',
             ) );
             foreach( $players as $pid => $player ) {
@@ -2623,7 +2625,7 @@ class InTheYearOfTheDragonExp extends Table
         $notification = array( 
             array( 
                 array( 'type' => 'header','str' => clienttranslate('Player'), 'args' => array() ), 
-                array( 'type' => 'header','str' => clienttranslate('2pt / Person'), 'args' => array() ), 
+                array( 'type' => 'header','str' => clienttranslate('2pts / Person'), 'args' => array() ), 
                 array( 'type' => 'header','str' => clienttranslate('Monks'), 'args' => array() ), 
                 array( 'type' => 'header','str' => clienttranslate('Remaining items'), 'args' => array() ),
                 array( 'type' => 'header','str' => clienttranslate('Total points (final scoring)'), 'args' => array() ) 
@@ -2863,7 +2865,7 @@ class InTheYearOfTheDragonExp extends Table
                     $this->charterRandom($active_player);
                     break;
                 default:
-                    throw new BgaVisibleSystemException( "Zombie mode not supported at this game state:".$statename );
+                    throw new BgaVisibleSystemException( "Zombie mode not supported at this game state:".$statename ); // NOI18N
             }
         }
     }
@@ -2874,7 +2876,7 @@ class InTheYearOfTheDragonExp extends Table
     function initialPlaceRandom($active_player) {
         $empty = $this->emptyPalaces($active_player);
         if (empty($empty)) {
-            throw new BgaVisibleSystemException("No empty palaces during initial recruitment stage");
+            throw new BgaVisibleSystemException("No empty palaces during initial recruitment stage"); // NOI18N
         }
         $palace_id = $empty[0]['palace_id'];
         $this->place($palace_id);
@@ -2923,7 +2925,7 @@ class InTheYearOfTheDragonExp extends Table
             }
 
             if ($action_id == 0) {
-                throw new BgaVisibleSystemException("Unable to select action for zombie player");
+                throw new BgaVisibleSystemException("Unable to select action for zombie player"); // NOI18N
             }
             $this->action($action_id);
         }
@@ -2950,7 +2952,7 @@ class InTheYearOfTheDragonExp extends Table
     function buildWallRandom($active_player) {
         $walltiles = self::getObjectListFromDB("SELECT id FROM WALL WHERE player_id=$active_player AND location=0", true);
         if (empty($walltiles)) {
-            throw new BgaVisibleSystemException("Zombie player cannot build wall section");
+            throw new BgaVisibleSystemException("Zombie player cannot build wall section"); // NOI18N
         } else {
             shuffle($walltiles);
             $wall = array_pop($walltiles);
@@ -3043,7 +3045,7 @@ class InTheYearOfTheDragonExp extends Table
             }
         }
         if ($palace_id == 0) {
-            throw new BgaVisibleSystemException("No palace available for Zombie player to place person in");
+            throw new BgaVisibleSystemException("No palace available for Zombie player to place person in"); // NOI18N
         }
         $this->place($palace_id);
     }

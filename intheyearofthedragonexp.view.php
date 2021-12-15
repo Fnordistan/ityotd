@@ -24,6 +24,9 @@
         $template = self::getGameName() . "_" . self::getGameName();
 
         $this->tpl['OPENHANDS_BUTTON'] = self::_("Open Hands (Show)");
+        $this->tpl['YEAROFTHEDRAGON'] = self::_("The Year of the Dragon");
+        $this->tpl['ACTIONS'] = self::_("Actions");
+        $this->tpl['AVAILABLE_PERSONS'] = self::_("Available Persons");
 
         $this->page->begin_block( $template, "player" );
         $this->page->begin_block( $template, "persontile" );

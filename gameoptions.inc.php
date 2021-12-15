@@ -40,7 +40,7 @@ $game_options = array(
                 'values' => array(
                     1 => array( 'name' => totranslate('None'), 'description' => totranslate('Do not use Great Wall')),
                     2 => array( 'name' => totranslate('Great Wall'), 'description' => totranslate('Choose reward tile when Great Wall built'), 'alpha' => true, 'nobeginner' => true ),
-                    3 => array( 'name' => totranslate('Great Wall (HARD MODE!)'), 'description' => totranslate('Random reward tiles'), 'alpha' => true, 'nobeginner' => true ),
+                    3 => array( 'name' => totranslate('Random Great Wall (HARD MODE!)'), 'description' => totranslate('Random reward tiles'), 'alpha' => true, 'nobeginner' => true ),
                 ),
                 'default' => 1
             ),
@@ -60,7 +60,7 @@ $game_options = array(
             10 => array( 'name' => totranslate('Sunrise'), 'description' => totranslate('Sunrise super event'), 'alpha' => true, 'nobeginner' => true ),
             11 => array( 'name' => totranslate('Assassination Attempt'), 'description' => totranslate('Assassination Attempt super event'), 'alpha' => true, 'nobeginner' => true ),
             12 => array( 'name' => totranslate('Charter'), 'description' => totranslate('Charter super event'), 'alpha' => true, 'nobeginner' => true ),
-            13 => array( 'name' => totranslate('HARD MODE!'), 'description' => totranslate('Random hidden super event, not revealed until turn 7'), 'alpha' => true, 'nobeginner' => true ),
+            13 => array( 'name' => totranslate('Hidden Super Event (HARD MODE!)'), 'description' => totranslate('Random super event, not revealed until turn 7'), 'alpha' => true, 'nobeginner' => true ),
         ),
         'default' => 1
     ),
@@ -80,9 +80,9 @@ $game_preferences = array(
         'name' => totranslate('Confirm dialogs'),
         'values' => array(
             1 => array( 'name' => totranslate('None'), 'description' => totranslate('Never ask for confirmation')),
-            2 => array( 'name' => totranslate('Recruiting'), 'description' => totranslate('Ask for confirmation after selecting a Person for recruitment')),
-            3 => array( 'name' => totranslate('Action'), 'description' => totranslate('Ask for confirmation after selecting an Action')),
-            4 => array( 'name' => totranslate('Select Person'), 'description' => totranslate('Ask for confirmation after selecting a Person in a palace')),
+            2 => array( 'name' => totranslate('Recruiting'), 'description' => totranslate('Ask for confirmation after selecting a person for recruitment')),
+            3 => array( 'name' => totranslate('Action'), 'description' => totranslate('Ask for confirmation after selecting an action')),
+            4 => array( 'name' => totranslate('Select Person'), 'description' => totranslate('Ask for confirmation after selecting a person in a palace')),
             5 => array( 'name' => totranslate('All'), 'description' => totranslate('Ask for confirmation after Recruiting, Actions, and Select Person')),
         ),
         'needReload' => true,

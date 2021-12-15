@@ -178,7 +178,7 @@ function (dojo, declare) {
                     if (release) {
                         ptile = ptile.replace("class=\"", "class=\"person_release ");
                     }
-                    args.persontile = ptile;
+                    log += ptile;
                 }
                 if (args.action_name) {
                     args.action_name = '<b>'+args.action_name+'</b>';
@@ -591,7 +591,7 @@ function (dojo, declare) {
                     this.addActionButton( 'refillyuan', _('Take money (up to 3 yuan)'), 'onTakeUpMoney' ); 
                     break;
                 case 'palaceFull':
-                    this.addActionButton( 'noReplace', _('None ! Release the new one.'), 'onNoReplace' );                     
+                    this.addActionButton( 'noReplace', _('None! Release the new one.'), 'onNoReplace' );                     
                     break;
                 case 'reduceResources':
                     this.createResourceButtons();

@@ -1,7 +1,7 @@
 {OVERALL_GAME_HEADER}
 
 <div id="yearofdragon" class="whiteblock">
-    <h1>{LB_THE_YEAR_OF_DRAGON}:</h1>
+    <h1>{YEAROFTHEDRAGON}</h1>
     <div id="eventrow">
         <!-- BEGIN event -->
         <div id="event_{ID}" class="event eventtype_{TYPE}"></div>
@@ -15,14 +15,14 @@
 </div>
 
 <div id="actions" class="whiteblock">
-    <h1>{LB_ACTIONS}:</h1>
+    <h1>{ACTIONS}</h1>
     <div id="actionscontainer">
         <!-- BEGIN actionplace -->{SPACE}<div id="actionplace_{ID}" class="actionplace"></div><!-- END actionplace -->
     </div>
 </div>
 
 <div id="persons" class="whiteblock">
-    <h1>{LB_AVAILABLE_PERSONS}:</h1>
+    <h1>{AVAILABLE_PERSONS}</h1>
     <div id="persontiles">
         <!-- BEGIN persontile -->
         <div id="persontile_{ID}" class="persontile persontile_{ID}">
