@@ -2308,7 +2308,7 @@ class InTheYearOfTheDragonExp extends Table
             // get points per wall
             $islast = self::getGameStateValue( 'month' ) == 12;
             $eventdesc = $islast ? clienttranslate("The Great Wall is complete") : clienttranslate("The Great Wall reaches the Mongol Invasion");
-            self::notifyAllPlayers( 'greatWallEvent', '${wallevent}'.'${eventdesc}'.';'.clienttranslate('players score 1 point per wall section built'), array(
+            self::notifyAllPlayers( 'greatWallEvent', '${wallevent}'.'${eventdesc}'.'; '.clienttranslate('players score 1 point per wall section built'), array(
                 'i18n' => ['eventdesc'],
                 'eventdesc' => $eventdesc,
                 'wallevent' => 'gw',
