@@ -1036,6 +1036,153 @@ function (dojo, declare) {
         },
 
         ///////////////////////////////////////////////////
+        /// Utility shared-code messages
+
+        isFastMode: function() {
+            return this.instantaneousMode;
+        },
+
+        /**
+         * Tisaac's slide function.
+         * @param {*} mobileElt 
+         * @param {*} targetElt 
+         * @param {*} options 
+         * @returns 
+         */
+        slide: function(mobileElt, targetElt, options = {}) {
+            let config = Object.assign(
+              {
+                duration: 800,
+                delay: 0,
+                destroy: false,
+                attach: true,
+                changeParent: true, // Change parent during sliding to avoid zIndex issue
+                pos: null,
+                className: 'moving',
+                from: null,
+                clearPos: true,
+                beforeBrother: null,
+                phantom: false,
+              },
+              options,
+            );
+            config.phantomStart = config.phantomStart || config.phantom;
+            config.phantomEnd = config.phantomEnd || config.phantom;
+      
+            // Mobile elt
+            mobileElt = $(mobileElt);
+            let mobile = mobileElt;
+            // Target elt
+            targetElt = $(targetElt);
+            let targetId = targetElt;
+            const newParent = config.attach ? targetId : $(mobile).parentNode;
+      
+            // Handle fast mode
+            if (this.isFastMode() && (config.destroy || config.clearPos)) {
+              if (config.destroy) dojo.destroy(mobile);
+              else dojo.place(mobile, targetElt);
+      
+              return new Promise((resolve, reject) => {
+                resolve();
+              });
+            }
+      
+            // Handle phantom at start
+            if (config.phantomStart) {
+              mobile = dojo.clone(mobileElt);
+              dojo.attr(mobile, 'id', mobileElt.id + '_animated');
+              dojo.place(mobile, 'game_play_area');
+              this.placeOnObject(mobile, mobileElt);
+              dojo.addClass(mobileElt, 'phantom');
+              config.from = mobileElt;
+            }
+      
+            // Handle phantom at end
+            if (config.phantomEnd) {
+              targetId = dojo.clone(mobileElt);
+              dojo.attr(targetId, 'id', mobileElt.id + '_afterSlide');
+              dojo.addClass(targetId, 'phantomm');
+              if (config.beforeBrother != null) {
+                dojo.place(targetId, config.beforeBrother, 'before');
+              } else {
+                dojo.place(targetId, targetElt);
+              }
+            }
+      
+            dojo.style(mobile, 'zIndex', 5000);
+            dojo.addClass(mobile, config.className);
+            if (config.changeParent) this.changeParent(mobile, 'game_play_area');
+            if (config.from != null) this.placeOnObject(mobile, config.from);
+            return new Promise((resolve, reject) => {
+              const animation =
+                config.pos == null
+                  ? this.slideToObject(mobile, targetId, config.duration, config.delay)
+                  : this.slideToObjectPos(mobile, targetId, config.pos.x, config.pos.y, config.duration, config.delay);
+      
+              dojo.connect(animation, 'onEnd', () => {
+                dojo.style(mobile, 'zIndex', null);
+                dojo.removeClass(mobile, config.className);
+                if (config.phantomStart) {
+                  dojo.place(mobileElt, mobile, 'replace');
+                  dojo.removeClass(mobileElt, 'phantom');
+                  mobile = mobileElt;
+                }
+                if (config.changeParent) {
+                  if (config.phantomEnd) dojo.place(mobile, targetId, 'replace');
+                  else this.changeParent(mobile, newParent);
+                }
+                if (config.destroy) dojo.destroy(mobile);
+                if (config.clearPos && !config.destroy) dojo.style(mobile, { top: null, left: null, position: null });
+                resolve();
+              });
+              animation.play();
+            });
+          },
+      
+          changeParent: function(mobile, new_parent, relation) {
+            if (mobile === null) {
+              console.error('attachToNewParent: mobile obj is null');
+              return;
+            }
+            if (new_parent === null) {
+              console.error('attachToNewParent: new_parent is null');
+              return;
+            }
+            if (typeof mobile == 'string') {
+              mobile = $(mobile);
+            }
+            if (typeof new_parent == 'string') {
+              new_parent = $(new_parent);
+            }
+            if (typeof relation == 'undefined') {
+              relation = 'last';
+            }
+            var src = dojo.position(mobile);
+            dojo.style(mobile, 'position', 'absolute');
+            dojo.place(mobile, new_parent, relation);
+            var tgt = dojo.position(mobile);
+            var box = dojo.marginBox(mobile);
+            var cbox = dojo.contentBox(mobile);
+            var left = box.l + src.x - tgt.x;
+            var top = box.t + src.y - tgt.y;
+            this.positionObjectDirectly(mobile, left, top);
+            box.l += box.w - cbox.w;
+            box.t += box.h - cbox.h;
+            return box;
+          },
+      
+          positionObjectDirectly: function(mobileObj, x, y) {
+            // do not remove this "dead" code some-how it makes difference
+            dojo.style(mobileObj, 'left'); // bug? re-compute style
+            // console.log("place " + x + "," + y);
+            dojo.style(mobileObj, {
+              left: x + 'px',
+              top: y + 'px',
+            });
+            dojo.style(mobileObj, 'left'); // bug? re-compute style
+          },
+
+          ///////////////////////////////////////////////////
         //// UI
 
         /**
@@ -1628,10 +1775,14 @@ function (dojo, declare) {
             const pcolor = this.gamedatas.players[ player_id ].color;
             const xoff = -60*(COLORS_PLAYER[pcolor]-1);
             const wall_tile = this.format_block('jstpl_player_wall', {id: player_id, type: 'temp', x: xoff, y: 0});
-            this.slideTemporaryObject( wall_tile, 'player_board_'+player_id, 'player_wall_'+player_id+'_'+bonus, 'wall_'+newSec, 1000, 1000 ).play();
-            this.placeWallTile(player_id, newSec, bonus);
+            const playerwalltile = 'player_wall_'+player_id+'_'+bonus;
+            const mobile = dojo.place(wall_tile, $(playerwalltile));
+            this.slide(mobile, 'wall_'+newSec, {phantom: true, phantomEnd: false, destroy: true}).then(() => {
+                this.placeWallTile(player_id, newSec, bonus)
+            });
             this.decorateUnbuiltWallSections(newSec);
         },
+
 
         /**
          * Flood SuperEvent.

@@ -50,6 +50,10 @@
     --wall_h: 36px;
 }
 
+.phantom {
+    visibility: hidden;
+}
+  
 h1 {
     font-family: 'Amatic SC';
     font-weight: 700;
