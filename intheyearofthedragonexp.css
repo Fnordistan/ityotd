@@ -407,15 +407,15 @@ h1 {
 }
 
 .yd_container_active {
-    background-color: #cc9f87 0.3;
-    box-shadow: #3E3B54 0px 20px 30px -10px;
+    background-color: rgba(204, 159, 135, 0.3);
     padding: 2px;
     border-radius: 2px;
-    outline: #843F20 dashed 4px;
+    outline: var(--player_color) dashed 4px;
+    outline:
 }
 
 .yd_container_active:hover {
-    background-color: #b77135;
+    background-color: rgba(183, 113, 53, 0.5);
     outline: #cc9f87 dashed 4px;
 }
 

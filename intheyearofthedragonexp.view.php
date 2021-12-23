@@ -146,17 +146,17 @@
         $actionct = $this->game->useGreatWall() ? 8 : 7;
         for( $i=1; $i<=$actionct; $i++ )
         {
-            $space_before = '';
+            $space_before = 0;
         
             if( $current_group != $actionmap[ $i ] )
             {
                 $current_group = $actionmap[ $i ];
-                $space_before = '&nbsp;&nbsp;';
+                $space_before = 15;
             }
         
             $this->page->insert_block( 'actionplace', array(
                 'ID' => $i,
-                'SPACE' => self::raw( $space_before )
+                'SPACE' => $space_before
             ) );
         }
   	}

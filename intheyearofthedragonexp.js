@@ -471,6 +471,8 @@ function (dojo, declare) {
                     if (this.isCurrentPlayerActive()) {
                         const actioncards = document.getElementsByClassName('actioncard');
                         [...actioncards].forEach(a => a.classList.add('yd_action_active'));
+                        const pcolor = '#'+this.gamedatas.players[ this.player_id ].color;
+                        $('actionscontainer').style.setProperty('--player_color', pcolor);
                         $('actionscontainer').classList.add('yd_container_active');
                     }
                     break;

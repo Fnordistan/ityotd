@@ -17,7 +17,9 @@
 <div id="actions" class="whiteblock">
     <h1>{ACTIONS}</h1>
     <div id="actionscontainer">
-        <!-- BEGIN actionplace -->{SPACE}<div id="actionplace_{ID}" class="actionplace"></div><!-- END actionplace -->
+        <!-- BEGIN actionplace -->
+        <div style="display: inline-block; width: {SPACE}px;"></div><div id="actionplace_{ID}" class="actionplace"></div>
+        <!-- END actionplace -->
     </div>
 </div>
 
