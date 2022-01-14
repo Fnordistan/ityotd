@@ -15,7 +15,11 @@ $stats_type = array(
 
         "walls_built_allplayers" => array( "id"=> 11,
                 "name" => totranslate("Number of walls built by players"), 
-                "type" => "int" )
+                "type" => "int" ),
+
+        "super_event" => array( "id" => 25,
+                "name" => totranslate("Super Event"),
+                "type" => "int"),
         ),
     
     // Statistics existing for each player
@@ -66,5 +70,21 @@ $stats_type = array(
         "walls_built" => array( "id" => 24,
                                 "name" => totranslate("Walls Built"),
                                 "type" => "int")
+    ),
+
+    "value_labels" => array(
+		25 => array( 
+			0 => totranslate("None"),
+			1 => totranslate("Lanternfest"), 
+			2 => totranslate("Buddha"), 
+			3 => totranslate("Earthquake"), 
+			4 => totranslate("Flood"), 
+			5 => totranslate("Solar Eclipse"), 
+			6 => totranslate("Volcanic Eruption"), 
+			7 => totranslate("Tornado"), 
+			8 => totranslate("Sunrise"), 
+			9 => totranslate("Assassination Attempt"), 
+			10 => totranslate("Charter"), 
+        )
     )
 );

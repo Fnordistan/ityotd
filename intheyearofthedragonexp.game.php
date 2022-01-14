@@ -215,6 +215,7 @@ class InTheYearOfTheDragonExp extends Table
             self::initStat( 'player', 'points_wall', 0 );
             $this->initializeWall();
         }
+
         $this->initializeSuperEvent();
 
         self::activeNextPlayer();
@@ -328,6 +329,9 @@ class InTheYearOfTheDragonExp extends Table
             self::setGameStateValue(SUPER_EVENT, 11);
         } else {
             self::setGameStateValue(SUPER_EVENT, $se-2);
+        }
+        if (self::getGameStateValue(SUPER_EVENT) != 0) {
+            self::initStat( 'table', 'super_event', self::getGameStateValue(SUPER_EVENT) );
         }
     }
 
@@ -465,6 +469,8 @@ class InTheYearOfTheDragonExp extends Table
                 $state = $this->doSuperEvent();
                 break;
         }
+        // set the stat for final display
+        self::setStat(self::getGameStateValue(SUPER_EVENT), 'super_event');
         return $state;
     }
 

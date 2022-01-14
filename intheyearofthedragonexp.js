@@ -1732,7 +1732,7 @@ function (dojo, declare) {
                 var palace_id = notif.args.reduce[ i ];
                 this.removeFloorToPalace( palace_id );
             }
-            if (this.gamedatas.superEvent) {
+            if (this.gamedatas.superEvent != 0) {
                 var month = parseInt(notif.args.month);
                 if (month == 7) {
                     this.removeSuperEventTile();
