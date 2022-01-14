@@ -3113,21 +3113,20 @@ class InTheYearOfTheDragonExp extends Table
      */
     function resourcesRandom($active_player) {
         $toReduce = self::getGameStateValue('toReduce');
-        $resources = self::getCollectionFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$active_player' " );
+        $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$active_player' " );
         $reductions = array('rice' => 0, 'fireworks' => 0, 'yuan' => 0);
         $reduced = 0;
+        $keys = array_keys($resources);
         while ($reduced < $toReduce) {
-            $keys = array_keys($resources);
             shuffle($keys);
-            foreach ($keys as $r) {
+            foreach($keys as $r) {
                 $ct = $resources[$r];
-                if ($ct > 0) {
+                if ($ct > 0 && ($reduced < $toReduce)) {
                     $reductions[$r] = $reductions[$r]+1;
-                    $resources[$r] = $resources[$r]-1;
+                    $resources[$r] = $ct-1;
                     $reduced++;
-                    break;
                 }
-            }
+            };
         }
         $this->removeResources($reductions['rice'], $reductions['fireworks'], $reductions['yuan']);
     }
