@@ -789,10 +789,12 @@ class InTheYearOfTheDragonExp extends Table
 //////////// 
 
     // Recruit a new person
-    function recruit( $type, $level )
+    function recruit( $type, $level, $zombiePlayerId = null )
     {
-        self::checkAction( 'recruit' );
-        $player_id = self::getActivePlayerId();
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'recruit' );
+        }
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
         
         // Check this person type/level exists
         if( ! isset( $this->person_types[ $type ] ) ) {
@@ -920,9 +922,11 @@ class InTheYearOfTheDragonExp extends Table
     }
     
     // Place selected tile in this palace
-    function place( $palace_id )
+    function place( $palace_id, $zombiePlayerId = null )
     {
-        self::checkAction( 'place' );
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'place' );
+        }
 
         $tile_type = self::getGameStateValue( 'toPlaceType' );
         $tile_level = self::getGameStateValue( 'toPlaceLevel' );
@@ -933,7 +937,7 @@ class InTheYearOfTheDragonExp extends Table
         // ===> already done at the previous step
         
         // Check palace
-        $player_id = self::getActivePlayerId();
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
         $palace_size = $this->palaceSize($player_id, $palace_id);
         
         // Get all persons in this palace
@@ -1109,14 +1113,16 @@ class InTheYearOfTheDragonExp extends Table
     }
 
     // perform an action
-    function action( $action_id ) {
-        self::checkAction( 'action' );
+    function action( $action_id, $zombiePlayerId = null ) {
+        if ($zombiePlayerId = null !== null) {
+            self::checkAction( 'action' );
+        }
         // Check if action exists
         if( ! isset( $this->action_types[ $action_id ] ) ) {
             throw new BgaVisibleSystemException( 'This action does not exist: $action_id' ); // NOI18N
         }
        
-        $player_id = self::getActivePlayerId();
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
 
         $notiftext = clienttranslate( '${player_name} chooses action ${action_name}' );
 
@@ -1230,9 +1236,12 @@ class InTheYearOfTheDragonExp extends Table
      * Active player choice of wall.
      * @param wall_id the bonus number for this player
      */
-    function buildWall($wall_id) {
-        self::checkAction( 'buildWall' );
-        $id = self::getUniqueValueFromDB("SELECT id from WALL WHERE bonus=$wall_id AND player_id=".self::getActivePlayerId());
+    function buildWall($wall_id, $zombiePlayerId = null) {
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'buildWall' );
+        }
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
+        $id = self::getUniqueValueFromDB("SELECT id from WALL WHERE bonus=$wall_id AND player_id=$player_id");
         $nextState = $this->buildGreatWall($id);
         $this->gamestate->nextState( $nextState );
     }
@@ -1275,10 +1284,12 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * Increase up to 3 yuan.
      */
-    function refillyuan() {
-        self::checkAction( 'action' );
+    function refillyuan($zombiePlayerId = null) {
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'action' );
+        }
         
-        $player_id = self::getActivePlayerId();
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
         
         // Get current money
         $money = $this->playerYuan($player_id);
@@ -1329,11 +1340,13 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * Player has a choice of privileges
      */
-    function choosePrivilege( $bIsLarge )
+    function choosePrivilege( $bIsLarge, $zombiePlayerId = null )
     {
-        self::checkAction( 'choosePrivilege' );
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'choosePrivilege' );
+        }
 
-        $player_id = self::getActivePlayerId();
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
         
         $remainingMoney = $this->playerYuan($player_id);
         $price = $bIsLarge ? $this->getLargePrivilegeCost() : 2;
@@ -1370,10 +1383,12 @@ class InTheYearOfTheDragonExp extends Table
         ) );
     }
 
-    function buildPalace( $palace_id )
+    function buildPalace( $palace_id, $zombiePlayerId = null )
     {
-        self::checkAction( 'build' );
-        $player_id = self::getActivePlayerId();
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'build' );
+        }
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
 
         $remainingToBuild = self::incGameStateValue( TO_BUILD, -1 );
         // palace_id must be 0 or an existing palace
@@ -1422,9 +1437,11 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * Player action to reduce a palace
      */
-    function reduce($palace_id) {
-        self::checkAction( 'reduce' );
-        $player_id = self::getActivePlayerId();
+    function reduce($palace_id, $zombiePlayerId = null) {
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'reduce' );
+        }
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
 
         $palace_size = $this->palaceSize($player_id, $palace_id);
         if( $palace_size === null ) {
@@ -1594,8 +1611,6 @@ class InTheYearOfTheDragonExp extends Table
      * Release person but for Earthquakes.
      */
      function depopulate( $person_id ) {
-        self::checkAction( 'depopulate' );
-
         $this->doDepopulate($person_id);
         
         $toRelease = self::incGameStateValue( 'toRelease', -1 );
@@ -1662,9 +1677,11 @@ class InTheYearOfTheDragonExp extends Table
     /**
      *From Flood super event. Player action.
      */
-     function removeResources($rice, $fireworks, $yuan) {
-        self::checkAction('removeResources');
-        $player_id = self::getActivePlayerId();
+     function removeResources($rice, $fireworks, $yuan, $zombiePlayerId = null) {
+        if ($zombiePlayerId !== null) {
+            self::checkAction('removeResources');
+        }
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
         // do sanity check
         $resources = self::getObjectFromDB( "SELECT player_rice rice, player_fireworks fireworks, player_yuan yuan FROM player WHERE player_id='$player_id' " );
         if ($resources['rice'] < $rice) {
@@ -1693,9 +1710,11 @@ class InTheYearOfTheDragonExp extends Table
      * From Tornado super event.
      * @param {int} $pid
      */
-     function discard($pid) {
-        self::checkAction( 'discard' );
-        $player_id = self::getActivePlayerId();
+     function discard($pid, $zombiePlayerId = null) {
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'discard' );
+        }
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
         $pp = self::getUniqueValueFromDB("SELECT personcard_type FROM personcard WHERE personcard_id=$pid AND personcard_player='$player_id'" );
         if ($pp == null) {
             throw new BgaVisibleSystemException("You do not have this person card in hand: $pid");
@@ -1722,9 +1741,11 @@ class InTheYearOfTheDragonExp extends Table
     /**
      * From Charter super event.
      */
-     function charter($type) {
-        self::checkAction( 'charter' );
-        $player_id = self::getActivePlayerId();
+     function charter($type, $zombiePlayerId = null) {
+        if ($zombiePlayerId !== null) {
+            self::checkAction( 'charter' );
+        }
+        $player_id = $zombiePlayerId ?? self::getActivePlayerId();
     
         self::notifyAllPlayers( 'charterPerson', clienttranslate( '${player_name} charters ${persontype}' ), array(
             'player_name' => self::getActivePlayerName(),
@@ -2808,6 +2829,25 @@ class InTheYearOfTheDragonExp extends Table
 //////////////////////////////////////////////////////////////////////////////
 //////////// Zombie
 ////////////
+
+    public function callZombie($numCycles = 1) { // Runs zombieTurn() on all active players
+        // Note: isMultiactiveState() doesn't work during this! It crashes without yielding an error.
+        for ($cycle = 0; $cycle < $numCycles; $cycle++) {
+            $state = $this->gamestate->state();
+            $activePlayers = $this->gamestate->getActivePlayerList(); // this works in both active and multiactive states
+
+            // You can remove the notification if you find it too noisy
+            self::notifyAllPlayers('notifyZombie', '<u>ZombieTest cycle ${cycle} for ${statename}</u>', [
+                'cycle'     => $cycle+1,
+                'statename' => $state['name']
+            ]);
+
+            // Make each active player take a zombie turn
+            foreach ($activePlayers as $key=>$playerId) {
+                self::zombieTurn($state, (int)$playerId);
+            }
+        }
+    }
 
     function zombieTurn( $state, $active_player ) {
     	$statename = $state['name'];
